@@ -57,8 +57,6 @@ def main():
 
 def set_coords(value, mode):
     render_hands_mode[0] = mode
-    print("render mode="+str(render_hands_mode[0]))
-
 
 def game_loop(window, window_width, window_height, hands, hands_surface, menu):
     hands.start()

@@ -15,7 +15,7 @@ class GetHands:
     def __init__(
         self,
         render_hands,
-        render_hands_mode,
+        mode,
         surface=None,
         show_window=False,
         hands=2,
@@ -49,7 +49,7 @@ class GetHands:
         self.show_window = show_window
         self.model_path = model_path
         self.render_hands = render_hands
-        self.render_hands_mode = render_hands_mode
+        self.render_hands_mode = mode
         self.confidence = confidence
         self.stopped = False
 
@@ -65,9 +65,8 @@ class GetHands:
         self.timer2 = 0
 
         self.build_model(hands)
-        
 
-    def build_model(self,hands_num):
+    def build_model(self, hands_num):
         # mediapipe setup
         self.BaseOptions = mp.tasks.BaseOptions
         self.HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -85,7 +84,6 @@ class GetHands:
 
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
-        
 
     def results_callback(
         self,
@@ -94,18 +92,36 @@ class GetHands:
         timestamp_ms: int,
     ):
         """
-        Wrapper function which finds the time taken to process the image
+        Wrapper function which finds the time taken to process the image and the origin of the hand
         """
+
+        normalized_origin_offset = []
+
+        for hand in result.hand_world_landmarks:
+            # take middle finger knuckle
+            normalized_origin_offset.append(hand[9])
+
+        world_hand_origin = []
+
+        for index, hand in enumerate(result.hand_landmarks):
+            originX = hand[9].x - normalized_origin_offset[index].x
+            originY = hand[9].y - normalized_origin_offset[index].y
+            originZ = hand[9].z - normalized_origin_offset[index].z
+            world_hand_origin.append((originX, originY, originZ))
+
+        # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
-        hands_delay = (
-            self.timer2 - self.timer1
-        ) / 1000  # timestamps are in microseconds so convert to ms
-        total_delay = (
-            timestamp_ms - self.last_timestamp
-        ) / 1000  # timestamps are in microseconds so convert to ms
+        hands_delay = (self.timer2 - self.timer1) / 1000
+        total_delay = (timestamp_ms - self.last_timestamp) / 1000
         self.last_timestamp = timestamp_ms
+
         self.render_hands(
-            result, output_image, (total_delay, hands_delay), self.surface, self.render_hands_mode
+            result,
+            output_image,
+            (total_delay, hands_delay),
+            self.surface,
+            self.render_hands_mode,
+            world_hand_origin,
         )
 
     def start(self):
