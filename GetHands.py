@@ -15,6 +15,7 @@ class GetHands:
     def __init__(
         self,
         render_hands,
+        render_hands_mode,
         surface=None,
         show_window=False,
         hands=2,
@@ -48,6 +49,8 @@ class GetHands:
         self.show_window = show_window
         self.model_path = model_path
         self.render_hands = render_hands
+        self.render_hands_mode = render_hands_mode
+        self.confidence = confidence
         self.stopped = False
 
         # OpenCV setup
@@ -61,6 +64,10 @@ class GetHands:
         self.timer1 = 0
         self.timer2 = 0
 
+        self.build_model(hands)
+        
+
+    def build_model(self,hands_num):
         # mediapipe setup
         self.BaseOptions = mp.tasks.BaseOptions
         self.HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -68,16 +75,17 @@ class GetHands:
         self.VisionRunningMode = mp.tasks.vision.RunningMode
         self.options = self.HandLandmarkerOptions(
             base_options=self.BaseOptions(model_asset_path=self.model_path),
-            num_hands=hands,
-            min_hand_detection_confidence=confidence,
-            min_hand_presence_confidence=confidence,
-            min_tracking_confidence=confidence,
+            num_hands=hands_num,
+            min_hand_detection_confidence=self.confidence,
+            min_hand_presence_confidence=self.confidence,
+            min_tracking_confidence=self.confidence,
             running_mode=self.VisionRunningMode.LIVE_STREAM,
             result_callback=self.results_callback,
         )
 
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
+        
 
     def results_callback(
         self,
@@ -97,7 +105,7 @@ class GetHands:
         ) / 1000  # timestamps are in microseconds so convert to ms
         self.last_timestamp = timestamp_ms
         self.render_hands(
-            result, output_image, (total_delay, hands_delay), self.surface
+            result, output_image, (total_delay, hands_delay), self.surface, self.render_hands_mode
         )
 
     def start(self):
