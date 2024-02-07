@@ -6,6 +6,8 @@ import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
 import math
+import pyautogui
+print(pyautogui.size())
 # global variables
 pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
@@ -16,10 +18,16 @@ render_hands_mode = [True]
 number_of_hands = 2
 SENSITIVITY = 0.03
 
+def mouse(x,y):
+    pyautogui.moveTo(1*x*pyautogui.size().width, 1*y*pyautogui.size().height, duration = 0, _pause=False)
+
+def click():
+    pyautogui.click(_pause = False)
+
 def main():
 
-    window_width = 800
-    window_height = 600
+    window_width = 1200
+    window_height = 1000
     window = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
@@ -34,7 +42,8 @@ def main():
         surface=hands_surface,
         confidence=0.5,
         hands=number_of_hands,
-        is_pinching=is_pinching
+        is_pinching=is_pinching,
+        move_mouse=mouse
     )
 
     menu = pygame_menu.Menu("Welcome", 400, 300, theme=pygame_menu.themes.THEME_BLUE)
