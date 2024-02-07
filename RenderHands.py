@@ -7,6 +7,7 @@ class RenderHands:
         self.surface = surface
         self.hand_scale = hand_scale
         self.font = pygame.font.Font("freesansbold.ttf", 30)
+        self.last_velocity = [(0.5, 0.5)]
 
     def connections(self, landmarks, mode):
 
@@ -62,7 +63,9 @@ class RenderHands:
     def render_line(self, start, end):
         pygame.draw.line(self.surface, (255, 255, 255), start, end, 5)
 
-    def render_hands(self, result, output_image, delay_ms, surface, mode, origins, velocity):
+    def render_hands(
+        self, result, output_image, delay_ms, surface, mode, origins, velocity, pinch
+    ):
         """Used as function callback by Mediapipe hands model
 
         This seems backwards, but:
@@ -74,16 +77,52 @@ class RenderHands:
             output_image (_type_): _description_
             delay_ms ((float, float)): Webcam latency and AI processing latency
         """
+        surface.fill((0, 0, 0))
         # Render hand landmarks
         # print(delay_ms)
+        if pinch != "":
+            text = self.font.render(pinch, False, (255,255,255))
+            surface.blit(text, (0, 90))
 
-        surface.fill((0, 0, 0))
+        
         w, h = surface.get_size()
         if result.handedness != []:
             if mode[0]:
                 hand_points = result.hand_world_landmarks
                 pygame.draw.circle(surface, (255, 0, 255), (0.5 * w, 0.5 * h), 5)
-                pygame.draw.circle(surface, (255, 255, 0), ((velocity[0]+0.5) * w, (velocity[1]+0.5) * h), 5)
+                # pygame.draw.circle(
+                #     surface,
+                #     (255, 255, 0),
+                #     ((velocity[0][0] + 0.5) * w, (velocity[0][1] + 0.5) * h),
+                #     5,
+                # )
+                pygame.draw.line(
+                    self.surface,
+                    (255, 255, 0),
+                    ((velocity[0][0] + 0.5) * w, (velocity[0][1] + 0.5) * h),
+                    ((0.5) * w, (0.5) * h),
+                    3,
+                )
+                # pygame.draw.line(
+                #     self.surface,
+                #     (255, 255, 0),
+                #     ((velocity[0][0] + 0.5) * w, (velocity[0][1] + 0.5) * h),
+                #     (
+                #         (self.last_velocity[0][0] + velocity[0][0] + 0.5) * w,
+                #         (self.last_velocity[0][1] + velocity[0][1] + 0.5) * h,
+                #     ),
+                #     3,
+                # )
+                # pygame.draw.circle(
+                #     surface,
+                #     (255, 255, 0),
+                #     (
+                #         (self.last_velocity[0][0] + velocity[0][0] + 0.5) * w,
+                #         (self.last_velocity[0][1] + velocity[0][1] + 0.5) * h,
+                #     ),
+                #     5,
+                # )
+                self.last_velocity = velocity
 
             else:
                 hand_points = result.hand_landmarks
@@ -133,3 +172,4 @@ class RenderHands:
         )
         surface.blit(delay_cam, (0, 30))
         surface.blit(delay_AI, (0, 60))
+

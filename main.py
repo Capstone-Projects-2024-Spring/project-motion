@@ -5,7 +5,7 @@ import pygame
 import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
-
+import math
 # global variables
 pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
@@ -14,7 +14,7 @@ clock = pygame.time.Clock()
 # pass this flag in a list because of pass by reference/value stuff i think
 render_hands_mode = [True]
 number_of_hands = 2
-
+SENSITIVITY = 0.03
 
 def main():
 
@@ -34,6 +34,7 @@ def main():
         surface=hands_surface,
         confidence=0.5,
         hands=number_of_hands,
+        is_pinching=is_pinching
     )
 
     menu = pygame_menu.Menu("Welcome", 400, 300, theme=pygame_menu.themes.THEME_BLUE)
@@ -64,6 +65,12 @@ def main():
 def set_coords(value, mode):
     render_hands_mode[0] = mode
 
+def is_pinching(tip1, tip2):
+    distance = math.sqrt((tip1.x-tip2.x)**2 + (tip1.y-tip2.y)**2 + (tip1.z-tip2.z)**2)
+    if distance < SENSITIVITY:
+        return True
+    else:
+        return False
 
 def game_loop(window, window_width, window_height, hands, hands_surface, menu):
     hands.start()
