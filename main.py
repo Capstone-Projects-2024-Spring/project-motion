@@ -36,8 +36,7 @@ def main():
         surface=hands_surface,
         confidence=0.5,
         hands=number_of_hands,
-        move_mouse=mouse_controls.move,
-        click=mouse_controls.click
+        control_mouse=mouse_controls.control,
     )
 
     menu = pygame_menu.Menu("Welcome", 400, 300, theme=pygame_menu.themes.THEME_BLUE)

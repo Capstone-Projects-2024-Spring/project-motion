@@ -21,9 +21,8 @@ class GetHands:
         confidence=0.5,
         webcam_id=0,
         model_path="hand_landmarker.task",
-        move_mouse=None,
+        control_mouse=None,
         sensitinity = 0.05,
-        click=None,
     ):
         """
         Class that continuously gets frames and extracts hand data
@@ -55,8 +54,7 @@ class GetHands:
         self.confidence = confidence
         self.stopped = False
         self.last_origin = [(0,0)]
-        self.move_mouse = move_mouse
-        self.click = click
+        self.control_mouse = control_mouse
         self.sensitinity = sensitinity
 
         # OpenCV setup
@@ -66,7 +64,7 @@ class GetHands:
         (self.grabbed, self.frame) = self.stream.read()
         self.frame = cv2.flip(self.frame, 1)
 
-        self.last_time = [time.time()]
+        self.last_time = [time.time(), time.time(), time.time()]
 
         self.last_timestamp = mp.Timestamp.from_seconds(time.time()).value
         self.timer1 = 0
@@ -102,16 +100,22 @@ class GetHands:
         """
         Wrapper function which finds the time taken to process the image, the origin of the hand, and velocity
         """
-        pinch = ""
+        mouse_button_text = ""
         normalized_origin_offset = []
 
 
         for hand in result.hand_world_landmarks:
             # take middle finger knuckle
             normalized_origin_offset.append(hand[9])
-            if self.is_pinching(hand[8], hand[4]):
-                pinch = "Pinching"
-                self.click(self.last_time)
+            #index finger tip and thumb tip
+            if self.is_clicking(hand[8], hand[4]):
+                mouse_button_text = "left"
+            #middle finger tip and thumb tip
+            if self.is_clicking(hand[12], hand[4]):
+                mouse_button_text = "middle"
+            #Ring Finger
+            if self.is_clicking(hand[16], hand[4]):
+                mouse_button_text = "right"
 
         world_hand_origin = []
         velocity = []
@@ -128,7 +132,7 @@ class GetHands:
 
         if world_hand_origin != []:
             #(0,0) is the top left corner
-            self.move_mouse(world_hand_origin[0][0], world_hand_origin[0][1])
+            self.control_mouse(world_hand_origin[0][0], world_hand_origin[0][1], mouse_button_text, self.last_time)
             #self.move_mouse(-1*velocity[0][0], -1*velocity[0][1])
 
         # timestamps are in microseconds so convert to ms
@@ -145,10 +149,10 @@ class GetHands:
             self.render_hands_mode,
             world_hand_origin,
             velocity,
-            pinch
+            mouse_button_text
         )
 
-    def is_pinching(self, tip1, tip2):
+    def is_clicking(self, tip1, tip2):
         distance = math.sqrt(
             (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
         )
