@@ -52,6 +52,7 @@ class GetHands:
         self.render_hands_mode = mode
         self.confidence = confidence
         self.stopped = False
+        self.last_origin = [(0,0)]
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -92,7 +93,7 @@ class GetHands:
         timestamp_ms: int,
     ):
         """
-        Wrapper function which finds the time taken to process the image and the origin of the hand
+        Wrapper function which finds the time taken to process the image, the origin of the hand, and velocity
         """
 
         normalized_origin_offset = []
@@ -102,12 +103,16 @@ class GetHands:
             normalized_origin_offset.append(hand[9])
 
         world_hand_origin = []
+        velocity = []
 
         for index, hand in enumerate(result.hand_landmarks):
             originX = hand[9].x - normalized_origin_offset[index].x
             originY = hand[9].y - normalized_origin_offset[index].y
             originZ = hand[9].z - normalized_origin_offset[index].z
             world_hand_origin.append((originX, originY, originZ))
+            velocity.append(self.last_origin[index][0] - world_hand_origin[index][0])
+            velocity.append(self.last_origin[index][1] - world_hand_origin[index][1])
+            self.last_origin = world_hand_origin
 
         # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
@@ -122,6 +127,7 @@ class GetHands:
             self.surface,
             self.render_hands_mode,
             world_hand_origin,
+            velocity
         )
 
     def start(self):

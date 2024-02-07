@@ -62,7 +62,7 @@ class RenderHands:
     def render_line(self, start, end):
         pygame.draw.line(self.surface, (255, 255, 255), start, end, 5)
 
-    def render_hands(self, result, output_image, delay_ms, surface, mode, origins):
+    def render_hands(self, result, output_image, delay_ms, surface, mode, origins, velocity):
         """Used as function callback by Mediapipe hands model
 
         This seems backwards, but:
@@ -83,6 +83,7 @@ class RenderHands:
             if mode[0]:
                 hand_points = result.hand_world_landmarks
                 pygame.draw.circle(surface, (255, 0, 255), (0.5 * w, 0.5 * h), 5)
+                pygame.draw.circle(surface, (255, 255, 0), ((velocity[0]+0.5) * w, (velocity[1]+0.5) * h), 5)
 
             else:
                 hand_points = result.hand_landmarks
