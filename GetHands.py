@@ -4,8 +4,7 @@ from threading import Thread
 import cv2
 import mediapipe as mp
 import time
-import pyautogui
-
+import math
 class GetHands:
     """
     Class that continuously gets frames and extracts hand data
@@ -22,8 +21,9 @@ class GetHands:
         confidence=0.5,
         webcam_id=0,
         model_path="hand_landmarker.task",
-        is_pinching=None,
-        move_mouse=None
+        move_mouse=None,
+        sensitinity = 0.05,
+        click=None,
     ):
         """
         Class that continuously gets frames and extracts hand data
@@ -55,8 +55,9 @@ class GetHands:
         self.confidence = confidence
         self.stopped = False
         self.last_origin = [(0,0)]
-        self.is_pinching = is_pinching
         self.move_mouse = move_mouse
+        self.click = click
+        self.sensitinity = sensitinity
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -64,6 +65,8 @@ class GetHands:
         self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
         (self.grabbed, self.frame) = self.stream.read()
         self.frame = cv2.flip(self.frame, 1)
+
+        self.last_time = [time.time()]
 
         self.last_timestamp = mp.Timestamp.from_seconds(time.time()).value
         self.timer1 = 0
@@ -108,8 +111,7 @@ class GetHands:
             normalized_origin_offset.append(hand[9])
             if self.is_pinching(hand[8], hand[4]):
                 pinch = "Pinching"
-                pyautogui.click()
-
+                self.click(self.last_time)
 
         world_hand_origin = []
         velocity = []
@@ -125,7 +127,9 @@ class GetHands:
             self.last_origin = world_hand_origin
 
         if world_hand_origin != []:
+            #(0,0) is the top left corner
             self.move_mouse(world_hand_origin[0][0], world_hand_origin[0][1])
+            #self.move_mouse(-1*velocity[0][0], -1*velocity[0][1])
 
         # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
@@ -143,6 +147,15 @@ class GetHands:
             velocity,
             pinch
         )
+
+    def is_pinching(self, tip1, tip2):
+        distance = math.sqrt(
+            (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
+        )
+        if distance < self.sensitinity:
+            return True
+        else:
+            return False
 
     def start(self):
         Thread(target=self.run, args=()).start()

@@ -5,9 +5,8 @@ import pygame
 import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
-import math
-import pyautogui
-print(pyautogui.size())
+from Mouse import Mouse
+
 # global variables
 pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
@@ -16,13 +15,6 @@ clock = pygame.time.Clock()
 # pass this flag in a list because of pass by reference/value stuff i think
 render_hands_mode = [True]
 number_of_hands = 2
-SENSITIVITY = 0.03
-
-def mouse(x,y):
-    pyautogui.moveTo(1*x*pyautogui.size().width, 1*y*pyautogui.size().height, duration = 0, _pause=False)
-
-def click():
-    pyautogui.click(_pause = False)
 
 def main():
 
@@ -36,14 +28,16 @@ def main():
 
     myRenderHands = RenderHands(hands_surface, 3)
 
+    mouse_controls = Mouse(mouse_scale=2)
+
     hands = GetHands(
         myRenderHands.render_hands,
         render_hands_mode,
         surface=hands_surface,
         confidence=0.5,
         hands=number_of_hands,
-        is_pinching=is_pinching,
-        move_mouse=mouse
+        move_mouse=mouse_controls.move,
+        click=mouse_controls.click
     )
 
     menu = pygame_menu.Menu("Welcome", 400, 300, theme=pygame_menu.themes.THEME_BLUE)
@@ -74,12 +68,6 @@ def main():
 def set_coords(value, mode):
     render_hands_mode[0] = mode
 
-def is_pinching(tip1, tip2):
-    distance = math.sqrt((tip1.x-tip2.x)**2 + (tip1.y-tip2.y)**2 + (tip1.z-tip2.z)**2)
-    if distance < SENSITIVITY:
-        return True
-    else:
-        return False
 
 def game_loop(window, window_width, window_height, hands, hands_surface, menu):
     hands.start()
