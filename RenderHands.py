@@ -2,6 +2,7 @@ import pygame
 
 
 class RenderHands:
+    """Given the Mediapipe hands output data, renders the hands in a normilzed view or camera perspective view"""
 
     def __init__(self, surface, hand_scale) -> None:
         self.surface = surface
@@ -10,6 +11,12 @@ class RenderHands:
         self.last_velocity = [(0.5, 0.5)]
 
     def connections(self, landmarks, mode):
+        """Renders lines between hand joints
+
+        Args:
+            landmarks (results): requires the direct output from mediapipe
+            mode (bool): render either normalized or perspective
+        """
 
         xy = []
 
@@ -81,10 +88,9 @@ class RenderHands:
         # Render hand landmarks
         # print(delay_ms)
         if pinch != "":
-            text = self.font.render(pinch, False, (255,255,255))
+            text = self.font.render(pinch, False, (255, 255, 255))
             surface.blit(text, (0, 90))
 
-        
         w, h = surface.get_size()
         if result.handedness != []:
             if mode[0]:
@@ -172,4 +178,3 @@ class RenderHands:
         )
         surface.blit(delay_cam, (0, 30))
         surface.blit(delay_AI, (0, 60))
-

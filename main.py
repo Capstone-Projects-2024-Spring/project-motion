@@ -6,6 +6,7 @@ import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
 from Mouse import Mouse
+from Writer import Writer
 
 # global variables
 pygame.init()
@@ -15,6 +16,7 @@ clock = pygame.time.Clock()
 # pass this flag in a list because of pass by reference/value stuff i think
 render_hands_mode = [True]
 number_of_hands = 2
+
 
 def main():
 
@@ -28,15 +30,29 @@ def main():
 
     myRenderHands = RenderHands(hands_surface, 3)
 
+    gesture_list = {
+        "fist",
+        "thumbs up",
+        "peace",
+        "point up",
+        "point down",
+        "point left",
+        "point right",
+        "point forward",
+        "OK",
+    }
+
+    myWriter = Writer(gesture_list=gesture_list)
     mouse_controls = Mouse(mouse_scale=2)
 
     hands = GetHands(
         myRenderHands.render_hands,
         render_hands_mode,
         surface=hands_surface,
-        confidence=0.5,
+        confidence=0.9,
         hands=number_of_hands,
         control_mouse=mouse_controls.control,
+        write_csv=myWriter.write,
     )
 
     menu = pygame_menu.Menu("Welcome", 400, 300, theme=pygame_menu.themes.THEME_BLUE)

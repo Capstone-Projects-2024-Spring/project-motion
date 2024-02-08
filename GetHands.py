@@ -17,12 +17,14 @@ class GetHands:
         mode,
         surface=None,
         show_window=False,
-        hands=2,
+        hands=1,
         confidence=0.5,
         webcam_id=0,
         model_path="hand_landmarker.task",
         control_mouse=None,
-        sensitinity = 0.05,
+        sensitinity = 0.06,
+        write_csv=None
+
     ):
         """
         Class that continuously gets frames and extracts hand data
@@ -56,6 +58,7 @@ class GetHands:
         self.last_origin = [(0,0)]
         self.control_mouse = control_mouse
         self.sensitinity = sensitinity
+        self.write_csv = write_csv
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -63,9 +66,6 @@ class GetHands:
         self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
         (self.grabbed, self.frame) = self.stream.read()
         self.frame = cv2.flip(self.frame, 1)
-
-        self.last_time = [time.time(), time.time(), time.time()]
-
         self.last_timestamp = mp.Timestamp.from_seconds(time.time()).value
         self.timer1 = 0
         self.timer2 = 0
@@ -89,7 +89,7 @@ class GetHands:
         )
 
         # build hands model
-        self.hands_detector = self.HandLandmarker.create_from_options(self.options)
+        #self.hands_detector = self.HandLandmarker.create_from_options(self.options)
 
     def results_callback(
         self,
@@ -117,23 +117,25 @@ class GetHands:
             if self.is_clicking(hand[16], hand[4]):
                 mouse_button_text = "right"
 
-        world_hand_origin = []
+        hands_location_on_screen = []
         velocity = []
 
         for index, hand in enumerate(result.hand_landmarks):
             originX = hand[9].x - normalized_origin_offset[index].x
             originY = hand[9].y - normalized_origin_offset[index].y
             originZ = hand[9].z - normalized_origin_offset[index].z
-            world_hand_origin.append((originX, originY, originZ))
-            velocityX = (self.last_origin[index][0] - world_hand_origin[index][0])
-            velocityY = (self.last_origin[index][1] - world_hand_origin[index][1])
+            hands_location_on_screen.append((originX, originY, originZ))
+            velocityX = (self.last_origin[index][0] - hands_location_on_screen[index][0])
+            velocityY = (self.last_origin[index][1] - hands_location_on_screen[index][1])
             velocity.append((velocityX,velocityY))
-            self.last_origin = world_hand_origin
+            self.last_origin = hands_location_on_screen
 
-        if world_hand_origin != []:
-            #(0,0) is the top left corner
-            self.control_mouse(world_hand_origin[0][0], world_hand_origin[0][1], mouse_button_text, self.last_time)
-            #self.move_mouse(-1*velocity[0][0], -1*velocity[0][1])
+        self.write_csv(result.hand_world_landmarks, velocity, None)
+
+        if callable(self.control_mouse):
+            if hands_location_on_screen != []:
+                #(0,0) is the top left corner
+                self.control_mouse(hands_location_on_screen[0][0], hands_location_on_screen[0][1], mouse_button_text)
 
         # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
@@ -147,7 +149,7 @@ class GetHands:
             (total_delay, hands_delay),
             self.surface,
             self.render_hands_mode,
-            world_hand_origin,
+            hands_location_on_screen,
             velocity,
             mouse_button_text
         )

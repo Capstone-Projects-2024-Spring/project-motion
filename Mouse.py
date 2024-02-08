@@ -14,8 +14,16 @@ class Mouse:
         self.left_down = False
         self.middle_down = False
         self.right_down = False
+        self.last_time = time.time()
 
-    def control(self, x, y, mouse_button, last_time):
+    def control(self, x:float, y:float, mouse_button:str):
+        """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
+
+        Args:
+            x (float): x coordinate between 0 and 1
+            y (float): y coordinate between 0 and 1
+            mouse_button (string): can be "", "left", "middle", or "right"
+        """
 
         x = int(
             ((self.mouse_scale) * x - (self.mouse_scale - 1) / 2)
@@ -40,7 +48,7 @@ class Mouse:
             self.move(x, y)
         else:
             # click or click and drag
-            self.click(last_time, x, y, mouse_button)
+            self.click(x, y, mouse_button)
 
     def move(self, x, y):
         pyautogui.moveTo(
@@ -50,37 +58,35 @@ class Mouse:
             _pause=False,
         )
 
-    def click(self, last_time, x, y, mouse_button):
+    def click(self, x, y, mouse_button):
 
         # if it has been longer than threshold time
         current_time = time.time()
-        if current_time - last_time[0] > self.click_threshold_time:
-            last_time[0] = current_time
+        if current_time - self.last_time > self.click_threshold_time:
+            self.last_time[0] = current_time
             print("click")
             pyautogui.click(button=mouse_button, _pause=False)
-            # pyautogui.mouseDown(button=mouse_button)
-            # pyautogui.mouseUp(button=mouse_button)
         elif (
-            (current_time - last_time[0] > self.drag_threshold_time)
+            (current_time - self.last_time > self.drag_threshold_time)
             or self.left_down
             or self.middle_down
             or self.right_down
         ):
 
             if mouse_button == "left":
-                last_time[0] = current_time
+                self.last_time = current_time
                 if not self.left_down:
                     pyautogui.mouseDown(button=mouse_button, _pause=False)
                     self.left_down = True
 
             if mouse_button == "middle":
-                last_time[0] = current_time
+                self.last_time = current_time
                 if not self.middle_down:
                     pyautogui.mouseDown(button=mouse_button, _pause=False)
                     self.middle_down = True
 
             if mouse_button == "right":
-                last_time[0] = current_time
+                self.last_time = current_time
                 if not self.right_down:
                     pyautogui.mouseDown(button=mouse_button, _pause=False)
                     self.right_down = True
