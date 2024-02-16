@@ -5,6 +5,7 @@ import pygame
 import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
+import random
 from Mouse import Mouse
 from Writer import Writer
 
@@ -13,10 +14,9 @@ pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
 clock = pygame.time.Clock()
 
-# pass this flag in a list because of pass by reference/value stuff i think
 render_hands_mode = [True]
+gesture_vector = []
 number_of_hands = 2
-
 
 def main():
 
@@ -30,7 +30,7 @@ def main():
 
     myRenderHands = RenderHands(hands_surface, 3)
 
-    gesture_list = {
+    gesture_list = [
         "fist",
         "thumbs up",
         "peace",
@@ -40,25 +40,41 @@ def main():
         "point right",
         "point forward",
         "OK",
-    }
+    ]
 
     myWriter = Writer(gesture_list=gesture_list)
+
     mouse_controls = Mouse(mouse_scale=2)
 
+
+    gesture_menu_selection = []
+
+    for index, gesture in enumerate(gesture_list):
+        gesture_vector.append("0")
+        gesture_menu_selection.append((gesture_list[index], index))
+
+    gesture_vector.append(False)
+
+    # control_mouse=mouse_controls.control,
     hands = GetHands(
         myRenderHands.render_hands,
         render_hands_mode,
         surface=hands_surface,
-        confidence=0.9,
+        confidence=0.5,
         hands=number_of_hands,
-        control_mouse=mouse_controls.control,
+        control_mouse=False,
         write_csv=myWriter.write,
+        gesture_vector=gesture_vector
     )
 
-    menu = pygame_menu.Menu("Welcome", 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+    menu = pygame_menu.Menu("Welcome", window_width*0.8, window_height*0.8, theme=pygame_menu.themes.THEME_BLUE)
 
     menu.add.selector(
         "Render Mode :", [("Normalized", True), ("World", False)], onchange=set_coords
+    )
+
+    menu.add.dropselect(
+        "Gesture :", gesture_menu_selection, onchange=set_current_gesture
     )
     menu.add.range_slider(
         "Hands",
@@ -69,22 +85,46 @@ def main():
         value_format=lambda x: str(int(x)),
         onchange=lambda value: hands.build_model(value),
     )
-
     menu.add.button("Close Menu", pygame_menu.events.CLOSE)
     menu.add.button("Quit", pygame_menu.events.EXIT)
     menu.enable()
 
     print("game loop")
-    game_loop(window, window_width, window_height, hands, hands_surface, menu)
+    game_loop(
+        window,
+        window_width,
+        window_height,
+        hands,
+        hands_surface,
+        menu,
+        gesture_list,
+        gesture_vector,
+    )
 
     pygame.quit()
 
+def set_write_status():
+    gesture_vector[len(gesture_vector)-1] = not gesture_vector[len(gesture_vector)-1]
 
 def set_coords(value, mode):
     render_hands_mode[0] = mode
 
+def set_current_gesture(value, index):
+    for myIndex, gesture in enumerate(gesture_vector):
+        gesture_vector[myIndex] = "0"
+    gesture_vector[index] = "1"
 
-def game_loop(window, window_width, window_height, hands, hands_surface, menu):
+
+def game_loop(
+    window,
+    window_width,
+    window_height,
+    hands,
+    hands_surface,
+    menu,
+    gesture_list,
+    gesture_vector,
+):
     hands.start()
     running = True
 
@@ -95,6 +135,9 @@ def game_loop(window, window_width, window_height, hands, hands_surface, menu):
             if event.type == pygame.QUIT:
                 hands.stop()
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    set_write_status()
 
         if menu.is_enabled():
             menu.update(events)
@@ -105,6 +148,18 @@ def game_loop(window, window_width, window_height, hands, hands_surface, menu):
             str(round(clock.get_fps(), 1)) + "fps", False, (255, 255, 255)
         )
 
+        for index, gesture in enumerate(gesture_list):
+            if gesture_vector[index] == "1":
+                gesture_text = font.render(gesture_list[index], False, (255, 255, 255))
+                break
+            else:
+                gesture_text = font.render("no gesture", False, (255, 255, 255))
+
+        # gesture_index = random.randrange(0, len(gesture_list))
+        # gesture_vector[gesture_index] = "1"
+
+
+        window.blit(gesture_text, (window_width - window_width // 5, 0))
         window.blit(hands_surface, (0, 0))
         window.blit(fps, (0, 0))
 
