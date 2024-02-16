@@ -4,10 +4,8 @@ from threading import Thread
 import cv2
 import mediapipe as mp
 import time
-import math
-import torch
 import numpy as np
-import torch.nn as nn
+from FeedForward import NeuralNet
 
 
 class GetHands:
@@ -74,8 +72,6 @@ class GetHands:
         self.gesture_model = NeuralNet(
             self.input_size, self.hidden_size, self.num_classes
         )
-        self.gesture_model.load_state_dict(torch.load("gestureModel.pth"))
-        self.gesture_model.eval()
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -108,46 +104,30 @@ class GetHands:
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
 
-    def get_gesture(self, model_input):
-        hands = torch.from_numpy(model_input)
-        outputs = self.gesture_model(hands)
-        _, predicted = torch.max(outputs.data, 1)
-        return predicted
-
-    def results_callback(
-        self,
-        result: mp.tasks.vision.HandLandmarkerResult,
-        output_image: mp.Image,
-        timestamp_ms: int,
-    ):
-        """
-        Wrapper function which finds the time taken to process the image, the origin of the hand, and velocity
-        """
-        mouse_button_text = ""
-        normalized_origin_offset = []
-
+    def gesture_input(self, result, velocity):
         model_input = []
 
         for hand in result.hand_world_landmarks:
-            # take middle finger knuckle
-            normalized_origin_offset.append(hand[9])
-            # index finger tip and thumb tip
-            if self.is_clicking(hand[8], hand[4]):
-                mouse_button_text = "left"
-            # middle finger tip and thumb tip
-            if self.is_clicking(hand[12], hand[4]):
-                mouse_button_text = "middle"
-            # Ring Finger
-            if self.is_clicking(hand[16], hand[4]):
-                mouse_button_text = "right"
-
             for point in hand:
                 model_input.append(point.x)
                 model_input.append(point.y)
                 model_input.append(point.z)
+        if velocity != []:
+            model_input.append(velocity[0][0])
+            model_input.append(velocity[0][1])
 
+        model_input = np.array([model_input], dtype="float32")
+        return model_input
+
+    def find_velocity_and_location(self, result):
+
+        normalized_origin_offset = []
         hands_location_on_screen = []
         velocity = []
+
+        for hand in result.hand_world_landmarks:
+            # take middle finger knuckle
+            normalized_origin_offset.append(hand[9])
 
         for index, hand in enumerate(result.hand_landmarks):
             originX = hand[9].x - normalized_origin_offset[index].x
@@ -158,34 +138,50 @@ class GetHands:
             velocityY = self.last_origin[index][1] - hands_location_on_screen[index][1]
             velocity.append((velocityX, velocityY))
             self.last_origin = hands_location_on_screen
-            model_input.append(velocityX)
-            model_input.append(velocityY)
 
-        if model_input != []:
-            output_gesture = self.get_gesture(np.array([model_input], dtype="float32"))
-            output_gesture = output_gesture.numpy()
-            print(self.gesture_list[output_gesture[0]])
+        return hands_location_on_screen, velocity
 
-        # write to CSV
-        if self.gesture_vector[len(self.gesture_vector) - 1] == True:
-            print("wiriting to csv")
-            self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
-
+    def move_mouse(self, hands_location_on_screen, mouse_button_text):
         if callable(self.control_mouse):
             if hands_location_on_screen != []:
                 # (0,0) is the top left corner
-
                 self.control_mouse(
                     hands_location_on_screen[0][0],
                     hands_location_on_screen[0][1],
                     mouse_button_text,
                 )
 
+
+    def results_callback(
+        self,
+        result: mp.tasks.vision.HandLandmarkerResult,
+        output_image: mp.Image,
+        timestamp_ms: int,
+    ):
+        """
+        Wrapper function which finds the time taken to process the image, the origin of the hand, and velocity
+        """
+
+        mouse_button_text = ""
+
+        hands_location_on_screen, velocity = self.find_velocity_and_location(result)
+        model_input = self.gesture_input(result, velocity)
+
+        if model_input.size != 0:
+            output_gesture = self.gesture_model.get_gesture(model_input)
+            print(self.gesture_list[output_gesture[0]])
+
+        self.move_mouse(hands_location_on_screen, mouse_button_text)
+        # write to CSV
+        if self.gesture_vector[len(self.gesture_vector) - 1] == True:
+            self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
+
         # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
         hands_delay = (self.timer2 - self.timer1) / 1000
         total_delay = (timestamp_ms - self.last_timestamp) / 1000
         self.last_timestamp = timestamp_ms
+
 
         self.render_hands(
             result,
@@ -197,15 +193,6 @@ class GetHands:
             velocity,
             mouse_button_text,
         )
-
-    def is_clicking(self, tip1, tip2):
-        distance = math.sqrt(
-            (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
-        )
-        if distance < self.sensitinity:
-            return True
-        else:
-            return False
 
     def start(self):
         Thread(target=self.run, args=()).start()
@@ -241,19 +228,3 @@ class GetHands:
 
     def stop(self):
         self.stopped = True
-
-
-class NeuralNet(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
-        super(NeuralNet, self).__init__()
-        self.input_size = input_size
-        self.l1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.l2 = nn.Linear(hidden_size, num_classes)
-
-    def forward(self, x):
-        out = self.l1(x)
-        out = self.relu(out)
-        out = self.l2(out)
-        # no activation and no softmax at the end
-        return out
