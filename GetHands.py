@@ -23,8 +23,8 @@ class GetHands:
         model_path="hand_landmarker.task",
         control_mouse=None,
         sensitinity = 0.06,
-        write_csv=None
-
+        write_csv=None,
+        gesture_vector=None
     ):
         """
         Class that continuously gets frames and extracts hand data
@@ -59,6 +59,7 @@ class GetHands:
         self.control_mouse = control_mouse
         self.sensitinity = sensitinity
         self.write_csv = write_csv
+        self.gesture_vector = gesture_vector
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -89,7 +90,7 @@ class GetHands:
         )
 
         # build hands model
-        #self.hands_detector = self.HandLandmarker.create_from_options(self.options)
+        self.hands_detector = self.HandLandmarker.create_from_options(self.options)
 
     def results_callback(
         self,
@@ -130,11 +131,15 @@ class GetHands:
             velocity.append((velocityX,velocityY))
             self.last_origin = hands_location_on_screen
 
-        self.write_csv(result.hand_world_landmarks, velocity, None)
+        #write to CSV
+        if self.gesture_vector[len(self.gesture_vector)-1] == True:
+            print("wiriting to csv")
+            self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
 
         if callable(self.control_mouse):
             if hands_location_on_screen != []:
                 #(0,0) is the top left corner
+                
                 self.control_mouse(hands_location_on_screen[0][0], hands_location_on_screen[0][1], mouse_button_text)
 
         # timestamps are in microseconds so convert to ms
