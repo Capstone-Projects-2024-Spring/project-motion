@@ -16,7 +16,8 @@ clock = pygame.time.Clock()
 
 render_hands_mode = [True]
 gesture_vector = []
-number_of_hands = 2
+number_of_hands = 1
+
 
 def main():
 
@@ -46,7 +47,6 @@ def main():
 
     mouse_controls = Mouse(mouse_scale=2)
 
-
     gesture_menu_selection = []
 
     for index, gesture in enumerate(gesture_list):
@@ -64,10 +64,16 @@ def main():
         hands=number_of_hands,
         control_mouse=False,
         write_csv=myWriter.write,
-        gesture_vector=gesture_vector
+        gesture_vector=gesture_vector,
+        gesture_list=gesture_list,
     )
 
-    menu = pygame_menu.Menu("Welcome", window_width*0.8, window_height*0.8, theme=pygame_menu.themes.THEME_BLUE)
+    menu = pygame_menu.Menu(
+        "Welcome",
+        window_width * 0.8,
+        window_height * 0.8,
+        theme=pygame_menu.themes.THEME_BLUE,
+    )
 
     menu.add.selector(
         "Render Mode :", [("Normalized", True), ("World", False)], onchange=set_coords
@@ -103,11 +109,16 @@ def main():
 
     pygame.quit()
 
+
 def set_write_status():
-    gesture_vector[len(gesture_vector)-1] = not gesture_vector[len(gesture_vector)-1]
+    gesture_vector[len(gesture_vector) - 1] = not gesture_vector[
+        len(gesture_vector) - 1
+    ]
+
 
 def set_coords(value, mode):
     render_hands_mode[0] = mode
+
 
 def set_current_gesture(value, index):
     for myIndex, gesture in enumerate(gesture_vector):
@@ -157,7 +168,6 @@ def game_loop(
 
         # gesture_index = random.randrange(0, len(gesture_list))
         # gesture_vector[gesture_index] = "1"
-
 
         window.blit(gesture_text, (window_width - window_width // 5, 0))
         window.blit(hands_surface, (0, 0))

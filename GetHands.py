@@ -5,6 +5,11 @@ import cv2
 import mediapipe as mp
 import time
 import math
+import torch
+import numpy as np
+import torch.nn as nn
+
+
 class GetHands:
     """
     Class that continuously gets frames and extracts hand data
@@ -22,9 +27,10 @@ class GetHands:
         webcam_id=0,
         model_path="hand_landmarker.task",
         control_mouse=None,
-        sensitinity = 0.06,
+        sensitinity=0.06,
         write_csv=None,
-        gesture_vector=None
+        gesture_vector=None,
+        gesture_list=None,
     ):
         """
         Class that continuously gets frames and extracts hand data
@@ -55,11 +61,21 @@ class GetHands:
         self.render_hands_mode = mode
         self.confidence = confidence
         self.stopped = False
-        self.last_origin = [(0,0)]
+        self.last_origin = [(0, 0)]
         self.control_mouse = control_mouse
         self.sensitinity = sensitinity
         self.write_csv = write_csv
         self.gesture_vector = gesture_vector
+        self.gesture_list = gesture_list
+
+        self.input_size = 65
+        self.hidden_size = 30
+        self.num_classes = 9
+        self.gesture_model = NeuralNet(
+            self.input_size, self.hidden_size, self.num_classes
+        )
+        self.gesture_model.load_state_dict(torch.load("gestureModel.pth"))
+        self.gesture_model.eval()
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -92,6 +108,12 @@ class GetHands:
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
 
+    def get_gesture(self, model_input):
+        hands = torch.from_numpy(model_input)
+        outputs = self.gesture_model(hands)
+        _, predicted = torch.max(outputs.data, 1)
+        return predicted
+
     def results_callback(
         self,
         result: mp.tasks.vision.HandLandmarkerResult,
@@ -104,19 +126,25 @@ class GetHands:
         mouse_button_text = ""
         normalized_origin_offset = []
 
+        model_input = []
 
         for hand in result.hand_world_landmarks:
             # take middle finger knuckle
             normalized_origin_offset.append(hand[9])
-            #index finger tip and thumb tip
+            # index finger tip and thumb tip
             if self.is_clicking(hand[8], hand[4]):
                 mouse_button_text = "left"
-            #middle finger tip and thumb tip
+            # middle finger tip and thumb tip
             if self.is_clicking(hand[12], hand[4]):
                 mouse_button_text = "middle"
-            #Ring Finger
+            # Ring Finger
             if self.is_clicking(hand[16], hand[4]):
                 mouse_button_text = "right"
+
+            for point in hand:
+                model_input.append(point.x)
+                model_input.append(point.y)
+                model_input.append(point.z)
 
         hands_location_on_screen = []
         velocity = []
@@ -126,21 +154,32 @@ class GetHands:
             originY = hand[9].y - normalized_origin_offset[index].y
             originZ = hand[9].z - normalized_origin_offset[index].z
             hands_location_on_screen.append((originX, originY, originZ))
-            velocityX = (self.last_origin[index][0] - hands_location_on_screen[index][0])
-            velocityY = (self.last_origin[index][1] - hands_location_on_screen[index][1])
-            velocity.append((velocityX,velocityY))
+            velocityX = self.last_origin[index][0] - hands_location_on_screen[index][0]
+            velocityY = self.last_origin[index][1] - hands_location_on_screen[index][1]
+            velocity.append((velocityX, velocityY))
             self.last_origin = hands_location_on_screen
+            model_input.append(velocityX)
+            model_input.append(velocityY)
 
-        #write to CSV
-        if self.gesture_vector[len(self.gesture_vector)-1] == True:
+        if model_input != []:
+            output_gesture = self.get_gesture(np.array([model_input], dtype="float32"))
+            output_gesture = output_gesture.numpy()
+            print(self.gesture_list[output_gesture[0]])
+
+        # write to CSV
+        if self.gesture_vector[len(self.gesture_vector) - 1] == True:
             print("wiriting to csv")
             self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
 
         if callable(self.control_mouse):
             if hands_location_on_screen != []:
-                #(0,0) is the top left corner
-                
-                self.control_mouse(hands_location_on_screen[0][0], hands_location_on_screen[0][1], mouse_button_text)
+                # (0,0) is the top left corner
+
+                self.control_mouse(
+                    hands_location_on_screen[0][0],
+                    hands_location_on_screen[0][1],
+                    mouse_button_text,
+                )
 
         # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
@@ -156,7 +195,7 @@ class GetHands:
             self.render_hands_mode,
             hands_location_on_screen,
             velocity,
-            mouse_button_text
+            mouse_button_text,
         )
 
     def is_clicking(self, tip1, tip2):
@@ -202,3 +241,19 @@ class GetHands:
 
     def stop(self):
         self.stopped = True
+
+
+class NeuralNet(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(NeuralNet, self).__init__()
+        self.input_size = input_size
+        self.l1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.l2 = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        out = self.l1(x)
+        out = self.relu(out)
+        out = self.l2(out)
+        # no activation and no softmax at the end
+        return out
