@@ -63,7 +63,7 @@ class Mouse:
         # if it has been longer than threshold time
         current_time = time.time()
         if current_time - self.last_time > self.click_threshold_time:
-            self.last_time[0] = current_time
+            self.last_time = current_time
             print("click")
             pyautogui.click(button=mouse_button, _pause=False)
         elif (
