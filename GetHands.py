@@ -25,10 +25,11 @@ class GetHands:
         webcam_id=0,
         model_path="hand_landmarker.task",
         control_mouse=None,
-        sensitinity=0.06,
         write_csv=None,
         gesture_vector=None,
         gesture_list=None,
+        move_mouse_flag=[False],
+        gesture_confidence=0.90,
     ):
         """
         Class that continuously gets frames and extracts hand data
@@ -61,14 +62,15 @@ class GetHands:
         self.stopped = False
         self.last_origin = [(0, 0)]
         self.control_mouse = control_mouse
-        self.sensitinity = sensitinity
         self.write_csv = write_csv
         self.gesture_vector = gesture_vector
         self.gesture_list = gesture_list
+        self.move_mouse_flag = move_mouse_flag
+        self.gesture_confidence = gesture_confidence
 
         self.input_size = 65
-        self.hidden_size = 30
-        self.num_classes = 9
+        self.hidden_size = 50
+        self.num_classes = 4
         self.gesture_model = NeuralNet(
             self.input_size, self.hidden_size, self.num_classes
         )
@@ -151,7 +153,6 @@ class GetHands:
                     mouse_button_text,
                 )
 
-
     def results_callback(
         self,
         result: mp.tasks.vision.HandLandmarkerResult,
@@ -165,13 +166,28 @@ class GetHands:
         mouse_button_text = ""
 
         hands_location_on_screen, velocity = self.find_velocity_and_location(result)
-        model_input = self.gesture_input(result, velocity)
 
-        if model_input.size != 0:
-            output_gesture = self.gesture_model.get_gesture(model_input)
-            print(self.gesture_list[output_gesture[0]])
+        if self.move_mouse_flag[0]:
+            model_input = self.gesture_input(result, velocity)
 
-        self.move_mouse(hands_location_on_screen, mouse_button_text)
+            if model_input.size != 0:
+                confidence, gesture = self.gesture_model.get_gesture(model_input)
+
+                if confidence[0] > self.gesture_confidence:
+                    print(confidence[0], self.gesture_list[gesture[0]])
+
+                if gesture[0] == 0 and confidence[0] > self.gesture_confidence:
+                    mouse_button_text = ""
+                elif gesture[0] == 1 and confidence[0] > self.gesture_confidence:
+                    mouse_button_text = "left"
+                elif gesture[0] == 2 and confidence[0] > self.gesture_confidence:
+                    mouse_button_text = "middle"
+                elif gesture[0] == 3 and confidence[0] > self.gesture_confidence:
+                    mouse_button_text = "right"
+
+            self.move_mouse(hands_location_on_screen, mouse_button_text)
+
+
         # write to CSV
         if self.gesture_vector[len(self.gesture_vector) - 1] == True:
             self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
@@ -181,7 +197,6 @@ class GetHands:
         hands_delay = (self.timer2 - self.timer1) / 1000
         total_delay = (timestamp_ms - self.last_timestamp) / 1000
         self.last_timestamp = timestamp_ms
-
 
         self.render_hands(
             result,
