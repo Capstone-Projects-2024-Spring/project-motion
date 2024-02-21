@@ -29,13 +29,14 @@ class Writer:
             hand = 0
             # add 21 landmarks
             for landmark in data[hand]:
-                row.append("{:.25f}".format(landmark.x))
-                row.append("{:.25f}".format(landmark.y))
-                row.append("{:.25f}".format(landmark.z))
+                #size is float32
+                row.append("{:.7f}".format(landmark.x))
+                row.append("{:.7f}".format(landmark.y))
+                row.append("{:.7f}".format(landmark.z))
 
             # add 2D velocity vector
 
-            row.append("{:.25f}".format(velocity[hand][0]))
-            row.append("{:.25f}".format(velocity[hand][1]))
+            row.append("{:.7f}".format(velocity[hand][0]))
+            row.append("{:.7f}".format(velocity[hand][1]))
 
             self.writer.writerow(row)
