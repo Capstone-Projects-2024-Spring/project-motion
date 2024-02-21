@@ -2,13 +2,19 @@ import torch.nn as nn
 import torch
 
 class NeuralNet(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
+
+    def __init__(self, modelName):
+
+        model,data= torch.load(modelName)
         super(NeuralNet, self).__init__()
+        input_size = data[0]
+        hidden_size = data[1]
+        num_classes = data[2]
         self.input_size = input_size
         self.l1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
         self.l2 = nn.Linear(hidden_size, num_classes)
-        self.load_state_dict(torch.load("pinchModel.pth"))
+        self.load_state_dict(model)
         self.eval()
 
     def forward(self, x):

@@ -73,8 +73,6 @@ class NeuralNet(nn.Module):
         self.l1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
         self.l2 = nn.Linear(hidden_size, num_classes)
-        self.relu = nn.ReLU()
-        self.l2 = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
         out = self.l1(x)
@@ -130,4 +128,4 @@ with torch.no_grad():
     acc = 100.0 * n_correct / n_samples
     print(f"Accuracy of the network on {int(dataset.__len__()*0.2)+1} test samples: {round(acc,3)} %")
 
-torch.save(model.state_dict(), "waveModel.pth")
+torch.save((model.state_dict(),[input_size, hidden_size, num_classes]), "waveModel.pth")

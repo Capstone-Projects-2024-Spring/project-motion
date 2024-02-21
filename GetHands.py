@@ -6,14 +6,11 @@ import mediapipe as mp
 import time
 import numpy as np
 from FeedForward import NeuralNet
-
-
 class GetHands:
     """
     Class that continuously gets frames and extracts hand data
     with a dedicated thread and Mediapipe
     """
-
     def __init__(
         self,
         render_hands,
@@ -68,12 +65,7 @@ class GetHands:
         self.move_mouse_flag = move_mouse_flag
         self.gesture_confidence = gesture_confidence
 
-        self.input_size = 65
-        self.hidden_size = 50
-        self.num_classes = 4
-        self.gesture_model = NeuralNet(
-            self.input_size, self.hidden_size, self.num_classes
-        )
+        self.gesture_model = NeuralNet("waveModel.pth")
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -186,7 +178,6 @@ class GetHands:
                     mouse_button_text = "right"
 
             self.move_mouse(hands_location_on_screen, mouse_button_text)
-
 
         # write to CSV
         if self.gesture_vector[len(self.gesture_vector) - 1] == True:

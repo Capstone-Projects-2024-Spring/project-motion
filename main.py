@@ -5,7 +5,6 @@ import pygame
 import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
-import random
 from Mouse import Mouse
 from Writer import Writer
 
@@ -33,10 +32,12 @@ def main():
     myRenderHands = RenderHands(hands_surface, 3)
 
     gesture_list = [
-        "not pinch",
-        "index pinch",
-        "middle pinch",
-        "ring pinch"
+        "fist",
+        "thumbs up",
+        "point",
+        "peace",
+        "stop",
+        "wave"
     ]
 
     myWriter = Writer(gesture_list=gesture_list)
@@ -55,6 +56,7 @@ def main():
     hands = GetHands(
         myRenderHands.render_hands,
         render_hands_mode,
+        show_window=True,
         surface=hands_surface,
         confidence=0.5,
         hands=number_of_hands,
