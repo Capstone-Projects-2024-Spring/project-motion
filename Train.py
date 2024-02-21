@@ -18,7 +18,6 @@ batch_size = 15
 learning_rate = 0.001
 filename = "wave_data.csv"
 
-
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
     labels = next(csv.reader(dataset_file))
