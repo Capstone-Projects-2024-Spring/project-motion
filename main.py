@@ -20,6 +20,8 @@ move_mouse_flag = [False]
 
 
 def main():
+    """Main driver method which initilizes all children and starts pygame render pipeline
+    """
 
     window_width = 1200
     window_height = 1000
@@ -32,12 +34,11 @@ def main():
     myRenderHands = RenderHands(hands_surface, 3)
 
     gesture_list = [
-        "fist",
-        "thumbs up",
-        "point",
-        "peace",
+        "shoot",
+        "west coast",
+        "point left",
+        "point right",
         "stop",
-        "wave"
     ]
 
     myWriter = Writer(gesture_list=gesture_list)
@@ -60,7 +61,7 @@ def main():
         surface=hands_surface,
         confidence=0.5,
         hands=number_of_hands,
-        control_mouse=mouse_controls.control,
+        control_mouse=None,
         write_csv=myWriter.write,
         gesture_vector=gesture_vector,
         gesture_list=gesture_list,
@@ -139,6 +140,18 @@ def game_loop(
     gesture_list,
     gesture_vector,
 ):
+    """Runs the pygame event loop and renders surfaces
+
+    Args:
+        window (_type_): The main pygame window
+        window_width (_type_): Width of the pygame window
+        window_height (_type_): Height of the pygame window
+        hands (_type_): The GetHands class
+        hands_surface (_type_): The surface that the hands are rendered on
+        menu (_type_): the main menu
+        gesture_list (_type_): the list of recognized gestures
+        gesture_vector (_type_): one hot encoded binary vector for writing the correct label output to csv
+    """
     hands.start()
     running = True
 

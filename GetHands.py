@@ -26,29 +26,25 @@ class GetHands:
         gesture_vector=None,
         gesture_list=None,
         move_mouse_flag=[False],
-        gesture_confidence=0.90,
+        gesture_confidence=0.50,
     ):
-        """
-        Class that continuously gets frames and extracts hand data
-        with a dedicated thread and
-
-        Start frame capture and hands processing by calling start() on this class
+        """Builds a Mediapipe hand model and a PyTorch gesture recognition model
 
         Args:
-            param render_hands (function): Mediapipe callback function
-                This is called whenever the current frame has finished proccessing.
-                The callback will recieve 3 parameters:
-                result: mp.tasks.vision.HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int
-
-            show_window (bool): Whether to display the webcam in a seperate window or not
-
-            hands (int): number hands to detect
-
-            confidence (float): Minimum hand detection confidence level
-
-            webcam_id (int): Camera device id for OpenCV Videocapture function
-
-            model_path (string): Path to Mediapipe hand landmarker model
+            render_hands (_type_): _description_
+            mode (_type_): _description_
+            surface (_type_, optional): _description_. Defaults to None.
+            show_window (bool, optional): _description_. Defaults to False.
+            hands (int, optional): _description_. Defaults to 1.
+            confidence (float, optional): _description_. Defaults to 0.5.
+            webcam_id (int, optional): _description_. Defaults to 0.
+            model_path (str, optional): _description_. Defaults to "hand_landmarker.task".
+            control_mouse (_type_, optional): _description_. Defaults to None.
+            write_csv (_type_, optional): _description_. Defaults to None.
+            gesture_vector (_type_, optional): _description_. Defaults to None.
+            gesture_list (_type_, optional): _description_. Defaults to None.
+            move_mouse_flag (list, optional): _description_. Defaults to [False].
+            gesture_confidence (float, optional): _description_. Defaults to 0.50.
         """
         self.surface = surface
         self.show_window = show_window
@@ -65,7 +61,7 @@ class GetHands:
         self.move_mouse_flag = move_mouse_flag
         self.gesture_confidence = gesture_confidence
 
-        self.gesture_model = NeuralNet("waveModel.pth")
+        self.gesture_model = NeuralNet("shootModel.pth")
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -136,6 +132,12 @@ class GetHands:
         return hands_location_on_screen, velocity
 
     def move_mouse(self, hands_location_on_screen, mouse_button_text):
+        """Wrapper method to control the mouse
+
+        Args:
+            hands_location_on_screen (_type_): _description_
+            mouse_button_text (_type_): _description_
+        """
         if callable(self.control_mouse):
             if hands_location_on_screen != []:
                 # (0,0) is the top left corner
@@ -201,10 +203,17 @@ class GetHands:
         )
 
     def start(self):
+        """Generates the Mediapipe thread
+
+        Returns:
+            _type_: _description_
+        """
         Thread(target=self.run, args=()).start()
         return self
 
     def run(self):
+        """Starts the Mediapipe thread
+        """
         while not self.stopped:
             if not self.grabbed:
                 self.stream.release()
@@ -220,6 +229,11 @@ class GetHands:
                 self.show()
 
     def detect_hands(self, frame):
+        """Detects hands in a given frame using Mediapipe
+
+        Args:
+            frame (_type_): OpenCV webcam frame
+        """
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         self.hands_detector.detect_async(
             mp_image, mp.Timestamp.from_seconds(time.time()).value
@@ -227,6 +241,8 @@ class GetHands:
         self.timer1 = mp.Timestamp.from_seconds(time.time()).value
 
     def show(self):
+        """Displays another window with the raw webcam stream
+        """
         cv2.imshow("Video", self.frame)
         if cv2.waitKey(1) == ord("q"):
             self.stopped = True
