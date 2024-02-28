@@ -61,7 +61,7 @@ class GetHands:
         self.move_mouse_flag = move_mouse_flag
         self.gesture_confidence = gesture_confidence
 
-        self.gesture_model = NeuralNet("shootModel.pth")
+        self.gesture_model = NeuralNet("waveModel.pth")
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)

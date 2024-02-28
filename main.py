@@ -41,7 +41,7 @@ def main():
         "stop",
     ]
 
-    myWriter = Writer(gesture_list=gesture_list)
+    myWriter = Writer(gesture_list=gesture_list, write_labels=False)
 
     mouse_controls = Mouse(mouse_scale=2)
 
