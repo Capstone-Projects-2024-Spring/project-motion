@@ -6,6 +6,7 @@ import pygame_menu
 from RenderHands import RenderHands
 from Writer import Writer
 from Reader import Reader
+from Player import Player
 import textwrap
 
 # global variables
@@ -118,6 +119,10 @@ def game_loop(
     instructions = "Press space to label current frame with a selected gesture. Up and down arrows to change frame multiplier. Left arrow to go back. Right arrow to not label frame with a gesutre."
     instructions = wrapper.wrap(text=instructions)
 
+    playingback = False
+    
+    myPlayer = Player(data_file="labeledData.csv", gesture_list=gesture_list)
+
     while running:
         window.fill((0, 0, 0))
         events = pygame.event.get()
@@ -155,6 +160,9 @@ def game_loop(
 
                     myRenderHands.render_hands(hand)
 
+                if event.key == pygame.K_p:
+                    playingback = not playingback
+
                 if event.key == pygame.K_0:
                     set_current_gesture(None, 0)
                 if event.key == pygame.K_1:
@@ -180,35 +188,50 @@ def game_loop(
             menu.update(events)
             menu.draw(window)
 
-        # frames per second
-        frame_number = font.render(
-            "Current frame: " + str(reader.frame_count), False, (255, 255, 255)
-        )
+        if not playingback:
 
-        for index, gesture in enumerate(gesture_list):
-            if gesture_vector[index] == "1":
-                current_gesture = gesture_list[index]
-                gesture_text = font.render(gesture_list[index], False, (255, 0, 0))
-                break
+            # frames per second
+            frame_number = font.render(
+                "Current frame: " + str(reader.frame_count), False, (255, 255, 255)
+            )
+
+            for index, gesture in enumerate(gesture_list):
+                if gesture_vector[index] == "1":
+                    current_gesture = gesture_list[index]
+                    gesture_text = font.render(gesture_list[index], False, (255, 0, 0))
+                    break
+                else:
+                    gesture_text = font.render("no gesture", False, (255, 0, 0))
+
+            frame_multiplier_text = font.render(
+                str(frame_multiplier) + " frame multplier", False, (255, 255, 255)
+            )
+            window.blit(gesture_text, (window_width - window_width // 2, 40))
+            window.blit(frame_multiplier_text, (window_width - window_width // 2, 80))
+            window.blit(frame_number, (window_width - window_width // 2, 0))
+
+            for index, instruc in enumerate(instructions):
+                instructoins_text = font.render(instruc, False, (0, 0, 255))
+                window.blit(instructoins_text, (0, index * 40))
+
+            
+
+        else:
+            print("playing back")
+            data = myPlayer.read()
+
+            if data:
+                landmarks, gesture_index = data
+                gesture_text = font.render(gesture_list[gesture_index], False, (255, 0, 0))
+                window.blit(gesture_text, (window_width - window_width // 2, 40))
+                myRenderHands.render_hands(landmarks)
+
             else:
-                gesture_text = font.render("no gesture", False, (255, 0, 0))
-
-        frame_multiplier_text = font.render(
-            str(frame_multiplier) + " frame multplier", False, (255, 255, 255)
-        )
-        window.blit(gesture_text, (window_width - window_width // 2, 40))
-        window.blit(frame_multiplier_text, (window_width - window_width // 2, 80))
-        window.blit(frame_number, (window_width - window_width // 2, 0))
-
-        for index, instruc in enumerate(instructions):
-            instructoins_text = font.render(instruc, False, (0, 0, 255))
-            window.blit(instructoins_text, (0, index * 40))
+                playingback = False
 
         window.blit(hands_surface, (0, 0))
-
         clock.tick(60)
         pygame.display.update()
-
 
 if __name__ == "__main__":
     main()
