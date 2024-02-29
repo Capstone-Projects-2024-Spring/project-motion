@@ -2,9 +2,15 @@ import pygame
 
 
 class RenderHands:
-    """Given the Mediapipe hands output data, renders the hands in a normilzed view or camera perspective view"""
+    """Given the Mediapipe hands output data, renders the hands in a normilzed view or camera perspective view on a pygame surface"""
 
-    def __init__(self, surface, hand_scale) -> None:
+    def __init__(self, surface, hand_scale):
+        """Create Render Hand object using a pygame surface and a scaling factor
+
+        Args:
+            surface (pygame.surface): pygame surface to render a hand on
+            hand_scale (float): multiplier to change the size at which the hand is rendered at
+        """
         self.surface = surface
         self.hand_scale = hand_scale
         self.font = pygame.font.Font("freesansbold.ttf", 30)
@@ -68,21 +74,28 @@ class RenderHands:
         self.render_line(xy[13], xy[17])
 
     def render_line(self, start, end):
+        """Wrapper function for pygame's render line. Will render a white line with width=5
+
+        Args:
+            start (int): line start position
+            end (int): line end position
+        """
         pygame.draw.line(self.surface, (255, 255, 255), start, end, 5)
 
     def render_hands(
         self, result, output_image, delay_ms, surface, mode, origins, velocity, pinch
     ):
-        """Used as function callback by Mediapipe hands model
-
-        This seems backwards, but:
-        result.hand_landmarks are the real world coordinates, in reference to the camera fov
-        result.hand_world_landmarks normalized to the origin of the hand
+        """ Renders the hands and other associated data from Mediapipe onto a pygame surface.
 
         Args:
-            result (Hands): list of hands and each hand's 21 landmarks
-            output_image (_type_): _description_
-            delay_ms ((float, float)): Webcam latency and AI processing latency
+            result (Mediapipe.hands.result): This contains handedness and 21 hand landmark locations in normilized and world coordinates
+            output_image (Mediapipe.Image): The image used to detect hands
+            delay_ms (float): time taken to process the hands image
+            surface (pygame.surface): pygame surface to render the hands on
+            mode (bool): wether to render hands in normalized or world coordinates
+            origins ((float,float)): an array of tuples containing the origins of one or more hands
+            velocity ((float,float)): an array of tuples containing the velocitys of one or more hands
+            pinch (str): gesture data
         """
         surface.fill((0, 0, 0))
         # Render hand landmarks
@@ -149,7 +162,7 @@ class RenderHands:
                         5,
                     )
                     for landmark in hand:
-                        self.render_hands_pygame(
+                        self.__render_hands_pygame(
                             colors[hand_color],
                             landmark.x,
                             landmark.y,
@@ -159,7 +172,17 @@ class RenderHands:
                         )
                     hand_color += 1
 
-    def render_hands_pygame(self, color, x, y, surface, delay_ms, mode):
+    def __render_hands_pygame(self, color, x, y, surface, delay_ms, mode):
+        """Renders a single landmark of a hand in pygame and scales the hand.
+
+        Args:
+            color (rgb()): color of points in hand
+            x (float): x coordinant of a point
+            y (float): y coordinant of a point
+            surface (pygame.surface): surface to render a hand on
+            delay_ms ((float, float)): contains webcam latency and Mediapipe hands model latency
+            mode (bool): True to render in normalized mode. False for world coordinates
+        """
 
         w, h = self.surface.get_size()
 

@@ -76,6 +76,11 @@ class GetHands:
         self.build_model(hands)
 
     def build_model(self, hands_num):
+        """Takes in option parameters for the Mediapipe hands model
+
+        Args:
+            hands_num (int): max number of hands for Mediapipe to find
+        """
         # mediapipe setup
         self.BaseOptions = mp.tasks.BaseOptions
         self.HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -95,6 +100,15 @@ class GetHands:
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
 
     def gesture_input(self, result, velocity):
+        """Converts Mediapipe landmarks and a velocity into a format usable by the gesture recognition model
+
+        Args:
+            result (Mediapipe.hands.result): The result object returned by Mediapipe
+            velocity ([(float, float)]): An array of tuples containing the velocity of hands
+
+        Returns:
+            array: An array of length 65
+        """
         model_input = []
 
         for hand in result.hand_world_landmarks:
@@ -110,6 +124,14 @@ class GetHands:
         return model_input
 
     def find_velocity_and_location(self, result):
+        """Given a Mediapipe result object, calculates the velocity and origin of hands.
+        
+        Args:
+            result (Mediapipe.hands.result): Direct output object from Mediapipe hands model
+
+        Returns:
+            (origins, velocity): A tuple containing an array of tuples representing hand origins, and an array of tuples containing hand velocitys
+        """
 
         normalized_origin_offset = []
         hands_location_on_screen = []
@@ -135,8 +157,8 @@ class GetHands:
         """Wrapper method to control the mouse
 
         Args:
-            hands_location_on_screen (_type_): _description_
-            mouse_button_text (_type_): _description_
+            hands_location_on_screen (origins): The origins result from find_velocity_and_location()
+            mouse_button_text (str): Type of click
         """
         if callable(self.control_mouse):
             if hands_location_on_screen != []:
@@ -153,8 +175,14 @@ class GetHands:
         output_image: mp.Image,
         timestamp_ms: int,
     ):
-        """
-        Wrapper function which finds the time taken to process the image, the origin of the hand, and velocity
+        """Wrapper callback function used by Mediapipe hands model. When called, recives the result of the
+        hands model and processes it to find velocity and origins. Then passes data to a gesture recognition model.
+        Using all this data will optionally control a mouse. Then will call a render funtion to render the hand.
+
+        Args:
+            result (mp.tasks.vision.HandLandmarkerResult): This result object contains handedness, hand world landmarks, and hand normalized landmarks
+            output_image (mp.Image): image that hands were detected on
+            timestamp_ms (int): time the image was taken
         """
 
         mouse_button_text = ""
@@ -203,16 +231,16 @@ class GetHands:
         )
 
     def start(self):
-        """Generates the Mediapipe thread
+        """Generates and starts the Mediapipe thread
 
         Returns:
-            _type_: _description_
+            self: new thread
         """
         Thread(target=self.run, args=()).start()
         return self
 
     def run(self):
-        """Starts the Mediapipe thread
+        """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands
         """
         while not self.stopped:
             if not self.grabbed:
@@ -229,10 +257,10 @@ class GetHands:
                 self.show()
 
     def detect_hands(self, frame):
-        """Detects hands in a given frame using Mediapipe
+        """Wrapper function for Mediapipe's hand detector in livestream mode
 
         Args:
-            frame (_type_): OpenCV webcam frame
+            frame (cv2.image): OpenCV webcam frame
         """
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         self.hands_detector.detect_async(

@@ -9,7 +9,8 @@ class Writer:
         """Generates a random name for the csv file and initilizes writing
 
         Args:
-            gesture_list (_type_): List of recognized gestures to write to file. The last index in the gesture list shall be a flag for determining if data needs to be written or not
+            gesture_list ([str,str,str,...]): List of recognized gestures to write to file. The last index in the gesture 
+                                                list shall be a flag for determining if data needs to be written or not
         """
         self.gesture_list = gesture_list
         self.data_file = None
@@ -28,9 +29,9 @@ class Writer:
         """Writes the labels, hand data, and velocity to file
 
         Args:
-            data (_type_): Normizlized hand data
-            velocity (_type_): velocity of a hand
-            gesture_vector (_type_): one hot encoded label to be written to file
+            data (results.worldHandLandmarks): Normizlized hand data
+            velocity ((float, float)): 2D velocity vector of a hand
+            gesture_vector ([0,0,0,...]): one hot encoded label to be written to file
         """
 
         if data != [] and gesture_vector != None:

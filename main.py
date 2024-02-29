@@ -212,4 +212,4 @@ def game_loop(
 
 
 if __name__ == "__main__":
-    pydoc.writedoc("main")
+    main()
