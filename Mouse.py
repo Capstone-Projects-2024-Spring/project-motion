@@ -6,6 +6,13 @@ class Mouse:
     def __init__(
         self, mouse_scale, click_threshold_time=0.2, drag_threshold_time=0.15
     ) -> None:
+        """Initialization of Mouse class.
+
+        Args:
+            mouse_scale (float): Scale factor for mouse movement.
+            click_threshold_time (float, optional): Threshold time for registering a click. Defaults to 0.2.
+            drag_threshold_time (float, optional): Threshold time for registering a drag. Defaults to 0.15.
+        """
         pyautogui.FAILSAFE = False
         pyautogui.PAUSE = 0
         self.mouse_scale = mouse_scale
@@ -51,6 +58,12 @@ class Mouse:
             self.click(x, y, mouse_button)
 
     def move(self, x, y):
+        """Move the mouse to the specified coordinates.
+
+        Args:
+            x (int): X-coordinate.
+            y (int): Y-coordinate.
+        """
         pyautogui.moveTo(
             x,
             y,
@@ -59,9 +72,14 @@ class Mouse:
         )
 
     def click(self, x, y, mouse_button):
+        """Handle mouse clicking.
 
-        # if it has been longer than threshold time
-        current_time = time.time()
+        Args:
+            x (int): X-coordinate.
+            y (int): Y-coordinate.
+            mouse_button (str): Mouse button to click.
+        """
+        current_time = time.time() # if it has been longer than threshold time
         if current_time - self.last_time > self.click_threshold_time:
             self.last_time = current_time
             print("click")
