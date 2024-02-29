@@ -1,6 +1,7 @@
 # https://developers.google.com/mediapipe/framework/getting_started/gpu_support
 # https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 # https://pygame-menu.readthedocs.io/en/latest/_source/add_widgets.html
+import pydoc
 import pygame
 import pygame_menu
 from GetHands import GetHands
@@ -19,9 +20,8 @@ number_of_hands = 1
 move_mouse_flag = [False]
 
 
-def main():
-    """Main driver method which initilizes all children and starts pygame render pipeline
-    """
+def main() -> None:
+    """Main driver method which initilizes all children and starts pygame render pipeline"""
 
     window_width = 1200
     window_height = 1000
@@ -65,7 +65,7 @@ def main():
         write_csv=myWriter.write,
         gesture_vector=gesture_vector,
         gesture_list=gesture_list,
-        move_mouse_flag = move_mouse_flag
+        move_mouse_flag=move_mouse_flag,
     )
 
     menu = pygame_menu.Menu(
@@ -92,7 +92,7 @@ def main():
         onchange=lambda value: hands.build_model(value),
     )
     menu.add.button("Close Menu", pygame_menu.events.CLOSE)
-    menu.add.button("Toggle Mouse",action=toggle_mouse)
+    menu.add.button("Toggle Mouse", action=toggle_mouse)
     menu.add.button("Quit", pygame_menu.events.EXIT)
     menu.enable()
 
@@ -110,21 +110,36 @@ def main():
 
     pygame.quit()
 
-def toggle_mouse():
+
+def toggle_mouse() -> None:
+    """Enable or disable mouse control"""
     move_mouse_flag[0] = not move_mouse_flag[0]
 
 
-def set_write_status():
+def set_write_status() -> None:
+    """Tell the the writer class to write data"""
     gesture_vector[len(gesture_vector) - 1] = not gesture_vector[
         len(gesture_vector) - 1
     ]
 
 
-def set_coords(value, mode):
+def set_coords(value, mode) -> None:
+    """Defines the coordinate space for rendering hands
+
+    Args:
+        value (_type_): used by pygame_menu
+        mode (_type_): True for normalized, False for world
+    """
     render_hands_mode[0] = mode
 
 
-def set_current_gesture(value, index):
+def set_current_gesture(value, index) -> None:
+    """Define the current gesutre of a matching gesture list
+
+    Args:
+        value (_type_): used by pygame_menu
+        index (_type_): index of gesture in gesture list
+    """
     for myIndex, gesture in enumerate(gesture_vector):
         gesture_vector[myIndex] = "0"
     gesture_vector[index] = "1"
@@ -180,14 +195,12 @@ def game_loop(
         else:
             saving_data = font.render("press space", False, (255, 255, 255))
 
-
         for index, gesture in enumerate(gesture_list):
             if gesture_vector[index] == "1":
                 gesture_text = font.render(gesture_list[index], False, (255, 255, 255))
                 break
             else:
                 gesture_text = font.render("no gesture", False, (255, 255, 255))
-
 
         window.blit(gesture_text, (window_width - window_width // 5, 0))
         window.blit(saving_data, (window_width - window_width // 5, 40))
@@ -199,4 +212,4 @@ def game_loop(
 
 
 if __name__ == "__main__":
-    main()
+    pydoc.writedoc("main")
