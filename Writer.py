@@ -17,21 +17,16 @@ class Writer:
         self.write_labels = write_labels
         # create file and write gesture list
 
-        filename = str(round(time.time(), 0)) + ".csv"
-
-        self.data_file = open(filename, "a", newline="", encoding="utf-8")
+        self.filename = str(round(time.time(), 0)) + ".csv"
+        open(self.filename, "x")
+        self.data_file = open(self.filename, "w", newline="", encoding="utf-8")
         self.writer = csv.writer(self.data_file)
         if self.write_labels:
             self.writer.writerow(self.gesture_list)
 
-    def write(self, data, velocity, gesture_vector):
-        """Writes the labels, hand data, and velocity to file
+    def write(self, data, gesture_vector):
 
-        Args:
-            data (_type_): Normizlized hand data
-            velocity (_type_): velocity of a hand
-            gesture_vector (_type_): one hot encoded label to be written to file
-        """
+        velocity = (data[21], data[22])
 
         if data != [] and gesture_vector != None:
             # add one-hot encoded gesture label
@@ -41,18 +36,33 @@ class Writer:
                 for index, gesture in enumerate(gesture_vector):
                     if gesture_vector[index] == "0" or gesture_vector[index] == "1":
                         row.append(gesture_vector[index])
-
-            hand = 0
             # add 21 landmarks
-            for landmark in data[hand]:
+            for index, landmark in enumerate(data):
                 # size is float32
                 row.append("{:.7f}".format(landmark.x))
                 row.append("{:.7f}".format(landmark.y))
                 row.append("{:.7f}".format(landmark.z))
+                if index == 20:
+                    break
 
             # add 2D velocity vector
 
-            row.append("{:.7f}".format(velocity[hand][0]))
-            row.append("{:.7f}".format(velocity[hand][1]))
-
+            row.append("{:.7f}".format(velocity[0]))
+            row.append("{:.7f}".format(velocity[1]))
             self.writer.writerow(row)
+            self.data_file.flush()
+
+    def remove_rows(self, num_of_rows_to_remove, current_frame):
+        self.data_file.close()
+        with open(self.filename, "r", newline="", encoding="utf-8") as file:
+            self.data_file = file
+            data = list(csv.reader(self.data_file))
+            del data[0]
+            for index in range(num_of_rows_to_remove):
+                del data[current_frame - index-1]
+
+        # Write the updated data back to the CSV file
+        self.data_file = open(self.filename, "w", newline="", encoding="utf-8")
+        self.writer = csv.writer(self.data_file)
+        self.writer.writerow(self.gesture_list)
+        self.writer.writerows(data)

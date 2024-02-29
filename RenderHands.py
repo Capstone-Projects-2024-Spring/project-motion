@@ -68,13 +68,13 @@ class RenderHands:
         hand_points = result
 
         pygame.draw.circle(self.surface, (255, 0, 255), (0.5 * w, 0.5 * h), 5)
-        # pygame.draw.line(
-        #     self.surface,
-        #     (255, 255, 0),
-        #     ((velocity[0] + 0.5) * w, (velocity[1] + 0.5) * h),
-        #     ((0.5) * w, (0.5) * h),
-        #     3,
-        # )
+        pygame.draw.line(
+            self.surface,
+            (255, 255, 0),
+            ((hand_points[21] + 0.5) * w, (hand_points[22] + 0.5) * h),
+            ((0.5) * w, (0.5) * h),
+            3,
+        )
 
         self.connections(hand_points)
         if hand_points:
