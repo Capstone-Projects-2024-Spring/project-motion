@@ -1,7 +1,4 @@
 import csv
-import time
-
-
 class Writer:
     """Generates a csv file containing a one hot encoded label of gestures and hand landmark point data"""
 
@@ -15,14 +12,26 @@ class Writer:
         self.data_file = None
         self.writer = None
         self.write_labels = write_labels
+        self.rows = 0
         # create file and write gesture list
 
-        self.filename = str(round(time.time(), 0)) + ".csv"
-        open(self.filename, "x")
-        self.data_file = open(self.filename, "w", newline="", encoding="utf-8")
-        self.writer = csv.writer(self.data_file)
-        if self.write_labels:
-            self.writer.writerow(self.gesture_list)
+        self.filename = "labeledData.csv"
+        try:
+            print("trying")
+            open(self.filename, "x")
+            self.data_file = open(self.filename, "a", newline="", encoding="utf-8")
+            self.writer = csv.writer(self.data_file)
+            if self.write_labels:
+                self.writer.writerow(self.gesture_list)
+        except:
+            with open(self.filename, "r", newline="", encoding="utf-8") as file:
+                self.data_file = file
+                data = list(csv.reader(self.data_file))
+                self.rows = len(data)-1
+            # Write the updated data back to the CSV file
+            self.data_file = open(self.filename, "a", newline="", encoding="utf-8")
+            self.writer = csv.writer(self.data_file)
+
 
     def write(self, data, gesture_vector):
 

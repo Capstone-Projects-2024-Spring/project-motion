@@ -36,6 +36,9 @@ def main():
     ]
 
     myWriter = Writer(gesture_list=gesture_list, write_labels=True)
+    if myWriter.rows != 0:
+        print(myWriter.rows)
+        myReader.go_to(myWriter.rows)
 
     gesture_menu_selection = []
 
