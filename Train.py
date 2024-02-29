@@ -6,7 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
-
+import pydoc
 # Device configuration
 
 """
@@ -82,7 +82,7 @@ class HandDataset(Dataset):
         """
         
         xy = np.loadtxt(
-            filename, delimiter=",", dtype=np.float32, skiprows=1
+           filename, delimiter=",", dtype=np.float32, skiprows=1
         )
         self.x = torch.from_numpy(xy[:, num_classes:])
         self.y = torch.from_numpy(np.argmax(xy[:, 0:num_classes], axis=1))
@@ -265,3 +265,4 @@ with torch.no_grad():
     print(f"Accuracy of the network on {int(dataset.__len__()*0.2)+1} test samples: {round(acc,3)} %")
 
 torch.save((model.state_dict(),[input_size, hidden_size, num_classes]), "waveModel.pth")
+pydoc.writedoc("Train.py")
