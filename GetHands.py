@@ -130,11 +130,11 @@ class GetHands:
         this_frame = np.array([this_frame], dtype="float32")
 
         #pop index zero, which is the oldest frame
-        self.model_input[0] = np.roll(self.model_input[0], -1)
-
+        self.model_input[0] = np.roll(self.model_input[0], -1, axis=0)
+        self.model_input[0, -1] = this_frame
         #the last index of the input vector is the newest frame
         #append our newest frame to the input
-        self.model_input[0][self.gesture_model.sequence_length-1] = this_frame
+
         #keep track of how many frames in the input buffer
 
         return True
@@ -208,7 +208,7 @@ class GetHands:
         if self.move_mouse_flag[0]:
             sequence = self.gesture_input(result, velocity)
             if sequence:
-                print(sequence)
+                #print(self.model_input)
                 confidence, gesture = self.gesture_model.get_gesture(self.model_input)
                 print(confidence[0], self.gesture_list[gesture[0]])
 
