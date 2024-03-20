@@ -7,11 +7,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import pandas as pd
+from torchsummary import summary
 
 # Device configuration
-# First checking if GPU is available
-device = torch.device("cpu")
-print("Training on " + str(device))
+# setting device on GPU if available, else CPU
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print('Using device:', device)
+print()
+
+#Additional Info when using cuda
+if device.type == 'cuda':
+    print(torch.cuda.get_device_name(0))
+    print('Memory Usage:')
+    print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+    print('Cached:   ', round(torch.cuda.memory_reserved(0)/1024**3,1), 'GB')
 
 # Hyper-parameters
 input_size = 65
@@ -27,10 +36,7 @@ with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
     labels = next(csv.reader(dataset_file))
     num_classes = len(labels)
 
-
 print("building dataset")
-
-
 class HandDataset(Dataset):
     def __init__(self):
         xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
@@ -129,7 +135,10 @@ warnings.filterwarnings("ignore")
 num_layers = 1  # number of stacked lstm layers
 
 lstm = LSTM(num_classes, input_size, hidden_size, num_layers).to(device)
-
+example = LSTM(num_classes, input_size, hidden_size, num_layers).to(device)
+example.to(device)
+# Use torchinfo to display the model summary
+summary(example)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
