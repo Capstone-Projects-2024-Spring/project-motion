@@ -5,7 +5,7 @@ import cv2
 import mediapipe as mp
 import time
 import numpy as np
-from FeedForward import NeuralNet
+from RNN import LSTM
 class GetHands:
     """
     Class that continuously gets frames and extracts hand data
@@ -61,8 +61,11 @@ class GetHands:
         self.move_mouse_flag = move_mouse_flag
         self.gesture_confidence = gesture_confidence
 
-        self.gesture_model = NeuralNet("waveModel.pth")
+        self.gesture_model = LSTM("gestureModel.pth")
 
+        self.model_input = np.zeros((1,self.gesture_model.sequence_length, 65), dtype="float32")
+
+        print("self.gesture_model.sequence_length"+str(self.gesture_model.sequence_length))
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
         # motion JPG format
@@ -109,19 +112,32 @@ class GetHands:
         Returns:
             array: An array of length 65
         """
-        model_input = []
+
+        this_frame = []
+
+        if result.handedness == []:
+            return False
 
         for hand in result.hand_world_landmarks:
             for point in hand:
-                model_input.append(point.x)
-                model_input.append(point.y)
-                model_input.append(point.z)
+                this_frame.append(point.x)
+                this_frame.append(point.y)
+                this_frame.append(point.z)
         if velocity != []:
-            model_input.append(velocity[0][0])
-            model_input.append(velocity[0][1])
+            this_frame.append(velocity[0][0])
+            this_frame.append(velocity[0][1])
 
-        model_input = np.array([model_input], dtype="float32")
-        return model_input
+        this_frame = np.array([this_frame], dtype="float32")
+
+        #pop index zero, which is the oldest frame
+        self.model_input[0] = np.roll(self.model_input[0], -1)
+
+        #the last index of the input vector is the newest frame
+        #append our newest frame to the input
+        self.model_input[0][self.gesture_model.sequence_length-1] = this_frame
+        #keep track of how many frames in the input buffer
+
+        return True
 
     def find_velocity_and_location(self, result):
         """Given a Mediapipe result object, calculates the velocity and origin of hands.
@@ -190,28 +206,32 @@ class GetHands:
         hands_location_on_screen, velocity = self.find_velocity_and_location(result)
 
         if self.move_mouse_flag[0]:
-            model_input = self.gesture_input(result, velocity)
+            sequence = self.gesture_input(result, velocity)
+            if sequence:
+                print(sequence)
+                confidence, gesture = self.gesture_model.get_gesture(self.model_input)
+                print(confidence[0], self.gesture_list[gesture[0]])
 
-            if model_input.size != 0:
-                confidence, gesture = self.gesture_model.get_gesture(model_input)
+        #     if model_input.size != 0:
+        #         confidence, gesture = self.gesture_model.get_gesture(model_input)
 
-                if confidence[0] > self.gesture_confidence:
-                    print(confidence[0], self.gesture_list[gesture[0]])
+        #         if confidence[0] > self.gesture_confidence:
+        #             print(confidence[0], self.gesture_list[gesture[0]])
 
-                if gesture[0] == 0 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = ""
-                elif gesture[0] == 1 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = "left"
-                elif gesture[0] == 2 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = "middle"
-                elif gesture[0] == 3 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = "right"
+        #         if gesture[0] == 0 and confidence[0] > self.gesture_confidence:
+        #             mouse_button_text = ""
+        #         elif gesture[0] == 1 and confidence[0] > self.gesture_confidence:
+        #             mouse_button_text = "left"
+        #         elif gesture[0] == 2 and confidence[0] > self.gesture_confidence:
+        #             mouse_button_text = "middle"
+        #         elif gesture[0] == 3 and confidence[0] > self.gesture_confidence:
+        #             mouse_button_text = "right"
 
-            self.move_mouse(hands_location_on_screen, mouse_button_text)
+        #     self.move_mouse(hands_location_on_screen, mouse_button_text)
 
-        # write to CSV
-        if self.gesture_vector[len(self.gesture_vector) - 1] == True:
-            self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
+        # # write to CSV
+        # if self.gesture_vector[len(self.gesture_vector) - 1] == True:
+        #     self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
 
         # timestamps are in microseconds so convert to ms
         self.timer2 = mp.Timestamp.from_seconds(time.time()).value
