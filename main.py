@@ -34,24 +34,17 @@ def main() -> None:
     myRenderHands = RenderHands(hands_surface, 3)
 
     gesture_list = [
-        "palm",
-        "lean",
-        "aim",
+        "control mouse",
         "point",
         "fist",
-        "pinky",
-        "pinched",
-        "thumb",
         "shoot",
         "jump",
         "swipe left",
         "swipe right",
-        "cut",
-        "come",
         "wave",
     ]
 
-    myWriter = Writer(gesture_list=gesture_list, write_labels=True)
+    myWriter = Writer(gesture_list=gesture_list, write_labels=False)
 
     mouse_controls = Mouse(mouse_scale=2)
 
@@ -92,17 +85,9 @@ def main() -> None:
     menu.add.dropselect(
         "Gesture :", gesture_menu_selection, onchange=set_current_gesture
     )
-    menu.add.range_slider(
-        "Hands",
-        2,
-        (1, 2, 3, 4),
-        1,
-        rangeslider_id="range_slider",
-        value_format=lambda x: str(int(x)),
-        onchange=lambda value: hands.build_model(value),
-    )
+
     menu.add.button("Close Menu", pygame_menu.events.CLOSE)
-    menu.add.button("Toggle Mouse", action=toggle_mouse)
+    menu.add.button("Turn On Model", action=toggle_mouse)
     menu.add.button("Quit", pygame_menu.events.EXIT)
     menu.enable()
 
