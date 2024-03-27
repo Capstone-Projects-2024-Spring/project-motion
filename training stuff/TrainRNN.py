@@ -30,7 +30,7 @@ num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
 sequence_length = 10
-filename = "data.csv"
+filename = "training stuff/data.csv"
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
@@ -46,10 +46,16 @@ class HandDataset(Dataset):
         # self.x_frames = torch.from_numpy(xy[:, num_classes:])
         self.y = np.argmax(xy[:, 0:num_classes], axis=1)
         print("Number of classification labels: " + str(num_classes))
+        print("Original number of datapoints: " + str(len(self.x)))
+        print("Sequence length: " + str(sequence_length))
 
+        #procress raw data
+        self.x = self.process_data(xy, num_classes, sequence_length)
         self.y = torch.from_numpy(self.y[sequence_length + 1 :])
 
-        self.x = self.process_data(xy, num_classes, sequence_length)
+        # #double the dataset by adding noise to each sample
+        self.x = torch.cat((self.x, self.process_data(xy, num_classes, sequence_length, noise_level=0.0005)), dim=0)
+        self.y = torch.cat((self.y, self.y), dim=0)
 
         print("Shape of x_tensor:", self.x.shape)
         print("Shape of y_tensor:", self.y.shape)
@@ -62,7 +68,7 @@ class HandDataset(Dataset):
     def __len__(self):
         return self.n_samples
 
-    def process_data(self, xy, num_classes, sequence_length):
+    def process_data(self, xy, num_classes, sequence_length, noise_level=0):
         df = pd.DataFrame(xy, columns=[f"feature_{i}" for i in range(80)])
 
         x_frames = df.iloc[:, num_classes:].values
@@ -72,13 +78,16 @@ class HandDataset(Dataset):
             dtype=np.float32,
         )
 
-        print(x.shape)
-
         for i in range(len(x_frames) - sequence_length - 1):
             x[i] = x_frames[i : i + sequence_length]
 
-        x_tensor = torch.tensor(x)
+        if noise_level > 0:
+            noise = np.random.normal(0, noise_level, size=x.shape)
+            x_augmented = x + noise
+            x_tensor = torch.tensor(x_augmented)
+            return x_tensor
 
+        x_tensor = torch.tensor(x)
         return x_tensor
 
 
