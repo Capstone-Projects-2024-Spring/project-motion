@@ -55,8 +55,5 @@ class MainMenu:
 
         return 
     
-<<<<<<< Updated upstream
+
 pydoc.writedoc("MainMenu")
-=======
-pydoc.writedoc('MainMenu')
->>>>>>> Stashed changes

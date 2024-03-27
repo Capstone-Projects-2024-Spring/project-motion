@@ -1,7 +1,7 @@
-import pygame
+import pygame_class
 import pydoc
 
-class pygame:
+class pygame_class:
     """
     The pygame class is where the mini-game(s) is initialized, launched/run, and terminated.
     Each component of the class is designed to operate via their respecitve functions.
@@ -37,4 +37,4 @@ class pygame:
         """
         return
     
-pydoc.writedoc(pygame)
+pydoc.writedoc("pygame_class.py")

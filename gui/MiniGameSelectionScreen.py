@@ -1,9 +1,5 @@
-import pygame
+import pygame_class
 import pydoc
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 class MiniGameSelectionScreen:
     """
     Represents a screen for selecting mini-games.
@@ -28,7 +24,7 @@ class MiniGameSelectionScreen:
         """
         pass
 
-<<<<<<< Updated upstream
+
     def handleSelection(self, selection: str):
         """
         Purpose: Processes the user's selection of a mini-game.
@@ -53,18 +49,12 @@ class MiniGameSelectionScreen:
         Pre-conditions: A mini-game must be running.
         Post-conditions: Resources are cleaned up and the mini-game is exited.
         """
-        pygame.quit()
+        pygame_class.quit()
 
-pydoc.writedoc("MiniGameSelectionScreen")
-=======
-    def handleSelection(selection:str):        
-        return 
-    
     def startSelectedGame(game:str):
         return 
     
     def exitGame():
-        pygame.quit()
+        pygame_class.quit()
 
-        
->>>>>>> Stashed changes
+pydoc.writedoc("MiniGameSelectionScreen")

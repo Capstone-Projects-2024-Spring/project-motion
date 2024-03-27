@@ -47,10 +47,5 @@ class PlayerSelectionScreen:
             ValueError: If the selection is not within the valid range of player options.
         """
         return 
-<<<<<<< Updated upstream
 
     pydoc.writedoc("PlayerSelectionScreen") 
-=======
-    
-    pydoc.writedoc('PlayerSelectionScreen')
->>>>>>> Stashed changes

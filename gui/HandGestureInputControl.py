@@ -1,4 +1,4 @@
-import pygame
+import pygame_class
 import pydoc
 
 class HandGestureInputControl:
