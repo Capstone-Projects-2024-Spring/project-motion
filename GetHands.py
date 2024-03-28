@@ -7,11 +7,14 @@ import time
 import numpy as np
 import math
 from FeedForward import NeuralNet
+
+
 class GetHands:
     """
     Class that continuously gets frames and extracts hand data
     with a dedicated thread and Mediapipe
     """
+
     def __init__(
         self,
         render_hands,
@@ -24,7 +27,7 @@ class GetHands:
         write_csv=None,
         gesture_list=None,
         gesture_confidence=0.50,
-        flags=None
+        flags=None,
     ):
         """Builds a Mediapipe hand model and a PyTorch gesture recognition model
 
@@ -53,13 +56,13 @@ class GetHands:
         self.last_origin = [(0, 0)]
         self.control_mouse = control_mouse
         self.write_csv = write_csv
-        self.gesture_vector = flags['gesture_vector']
+        self.gesture_vector = flags["gesture_vector"]
         self.gesture_list = gesture_list
         self.gesture_confidence = gesture_confidence
         self.flags = flags
         self.sensitinity = 0.05
 
-        self.gesture_model = NeuralNet("waveModel.pth")
+        self.gesture_model = NeuralNet("SimpleModel.pth")
 
         # OpenCV setup
         self.stream = cv2.VideoCapture(webcam_id)
@@ -71,7 +74,7 @@ class GetHands:
         self.timer1 = 0
         self.timer2 = 0
 
-        self.build_model(flags['number_of_hands'])
+        self.build_model(flags["number_of_hands"])
 
     def build_model(self, hands_num):
         """Takes in option parameters for the Mediapipe hands model
@@ -123,7 +126,7 @@ class GetHands:
 
     def find_velocity_and_location(self, result):
         """Given a Mediapipe result object, calculates the velocity and origin of hands.
-        
+
         Args:
             result (Mediapipe.hands.result): Direct output object from Mediapipe hands model
 
@@ -192,17 +195,18 @@ class GetHands:
 
             if model_input.size != 0:
                 confidence, gesture = self.gesture_model.get_gesture(model_input)
-                print(confidence[0], self.gesture_list[gesture[0]])
+                print("{:.2f}".format(confidence[0]), self.gesture_list[gesture[0]])
+                #print(confidence[0], self.gesture_model.labels[gesture[0]])
             else:
                 gesture[0] = 0
 
-        if self.flags['move_mouse_flag'] and result.hand_landmarks != []:
+        if self.flags["move_mouse_flag"] and result.hand_landmarks != []:
             hand = result.hand_world_landmarks[0]
             if self.is_clicking(hand[8], hand[4]):
                 mouse_button_text = "left"
             self.move_mouse(hands_location_on_screen, mouse_button_text)
         # write to CSV
-        #flag for writing is saved in the last index of this vector 
+        # flag for writing is saved in the last index of this vector
         if self.gesture_vector[len(self.gesture_vector) - 1] == True:
             self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
 
@@ -216,7 +220,7 @@ class GetHands:
             output_image,
             (total_delay, hands_delay),
             self.surface,
-            self.flags['render_hands_mode'],
+            self.flags["render_hands_mode"],
             hands_location_on_screen,
             velocity,
             mouse_button_text,
@@ -243,11 +247,9 @@ class GetHands:
         """
         Thread(target=self.run, args=()).start()
         return self
-    
 
     def run(self):
-        """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands
-        """
+        """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""
         while not self.stopped:
             if not self.grabbed:
                 self.stream.release()
@@ -275,8 +277,7 @@ class GetHands:
         self.timer1 = mp.Timestamp.from_seconds(time.time()).value
 
     def show(self):
-        """Displays another window with the raw webcam stream
-        """
+        """Displays another window with the raw webcam stream"""
         cv2.imshow("Video", self.frame)
         if cv2.waitKey(1) == ord("q"):
             self.stopped = True

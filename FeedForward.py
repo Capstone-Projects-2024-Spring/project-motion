@@ -15,6 +15,7 @@ class NeuralNet(nn.Module):
         input_size = data[0]
         hidden_size = data[1]
         num_classes = data[2]
+        self.labels = data[3]
         self.input_size = input_size
         self.l1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()

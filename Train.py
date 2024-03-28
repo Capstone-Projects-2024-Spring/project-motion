@@ -12,16 +12,18 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyper-parameters
 input_size = 65
-hidden_size = 15
-num_epochs = 5
-batch_size = 15
+hidden_size = 50
+num_epochs = 40
+batch_size = 100
 learning_rate = 0.001
-filename = "data.csv"
+filename = "simple.csv"
+labels = None
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
     labels = next(csv.reader(dataset_file))
     num_classes = len(labels)
+    print("labels: "+str(labels))
     
 
 class HandDataset(Dataset):
@@ -66,17 +68,20 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=Fa
 
 # Fully connected neural network with one hidden layer
 class NeuralNet(nn.Module):
-    def __init__(self,input_size, hid_size=30, num_classes=1):
+    def __init__(self, input_size, hidden_size, num_classes):
         super(NeuralNet, self).__init__()
-        self.hidden_size = hid_size
-        self.output_dim = num_classes
-        self.rnn = nn.LSTM(input_size=input_size, hidden_size=self.hidden_size, num_layers=1, batch_first=True)
-        self.fc1 = nn.Linear(self.hidden_size, self.output_dim)
+        self.input_size = input_size
+        self.l1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.l2 = nn.Linear(hidden_size, num_classes)
 
-    def forward(self, inputs):
-        rnn_out, _ = self.rnn(inputs)
-        output = self.fc1(rnn_out)
-        return output
+    def forward(self, x):
+        out = self.l1(x)
+        out = self.relu(out)
+        out = self.l2(out)
+        # no activation and no softmax at the end
+        return out
+
 
 
 model = NeuralNet(input_size, hidden_size, num_classes).to(device)
@@ -125,4 +130,4 @@ with torch.no_grad():
     acc = 100.0 * n_correct / n_samples
     print(f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %")
 
-torch.save((model.state_dict(),[input_size, hidden_size, num_classes]), "RnnModel.pth")
+torch.save((model.state_dict(),[input_size, hidden_size, num_classes, labels]), "SimpleModel.pth")

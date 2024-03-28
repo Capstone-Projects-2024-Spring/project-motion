@@ -30,17 +30,12 @@ def main() -> None:
     myRenderHands = RenderHands(hands_surface, 3)
 
     gesture_list = [
-        "control mouse",
-        "point",
         "fist",
-        "shoot",
-        "jump",
-        "swipe left",
-        "swipe right",
-        "wave",
+        "palm",
+        "pinky"
     ]
 
-    myWriter = Writer(gesture_list=gesture_list, write_labels=False)
+    myWriter = Writer(gesture_list=gesture_list, write_labels=True)
 
     mouse_controls = Mouse(mouse_scale=2)
 
