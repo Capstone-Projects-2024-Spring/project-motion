@@ -28,6 +28,7 @@ class GetHands:
         gesture_list=None,
         gesture_confidence=0.50,
         flags=None,
+        keyboard=None,
     ):
         """Builds a Mediapipe hand model and a PyTorch gesture recognition model
 
@@ -61,6 +62,7 @@ class GetHands:
         self.gesture_confidence = gesture_confidence
         self.flags = flags
         self.sensitinity = 0.05
+        self.keyboard = keyboard
 
         self.gesture_model = NeuralNet("SimpleModel.pth")
 
@@ -186,25 +188,35 @@ class GetHands:
             timestamp_ms (int): time the image was taken
         """
 
-        mouse_button_text = ""
+        
 
         hands_location_on_screen, velocity = self.find_velocity_and_location(result)
 
+        for i in range(len(self.gesture_vector)-1):
+            self.gesture_vector[i] = "0"
         if self.flags["run_model_flag"]:
             model_input = self.gesture_input(result, velocity)
-
             if model_input.size != 0:
                 confidence, gesture = self.gesture_model.get_gesture(model_input)
+                self.gesture_vector[gesture[0]] = "1"
                 print("{:.2f}".format(confidence[0]), self.gesture_list[gesture[0]])
-                #print(confidence[0], self.gesture_model.labels[gesture[0]])
-            else:
-                gesture[0] = 0
 
-        if self.flags["move_mouse_flag"] and result.hand_landmarks != []:
+                if gesture[0] == 0:
+                    self.keyboard.press("none")
+                if gesture[0] == 1:
+                    self.keyboard.press("space")
+                if gesture[0] == 2:
+                    self.keyboard.press("toggle")
+            
+
+
+        mouse_button_text = ""
+        if self.flags["move_mouse_flag"] and hands_location_on_screen != []:
             hand = result.hand_world_landmarks[0]
             if self.is_clicking(hand[8], hand[4]):
                 mouse_button_text = "left"
             self.move_mouse(hands_location_on_screen, mouse_button_text)
+
         # write to CSV
         # flag for writing is saved in the last index of this vector
         if self.gesture_vector[len(self.gesture_vector) - 1] == True:

@@ -8,6 +8,7 @@ from GetHands import GetHands
 from RenderHands import RenderHands
 from Mouse import Mouse
 from Writer import Writer
+from Keyboard import Keyboard
 
 # global variables
 pygame.init()
@@ -47,6 +48,8 @@ def main() -> None:
 
     flags['gesture_vector'].append(False)
 
+    keyboard = Keyboard(threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=toggle_mouse)
+
     # control_mouse=mouse_controls.control,
     hands = GetHands(
         myRenderHands.render_hands,
@@ -57,6 +60,7 @@ def main() -> None:
         write_csv=myWriter.write,
         gesture_list=gesture_list,
         flags=flags,
+        keyboard=keyboard,
     )
 
     menu = pygame_menu.Menu(
@@ -177,6 +181,9 @@ def game_loop(
 
                     set_write_status()
 
+                if event.key ==pygame.K_m:
+                    toggle_mouse()
+
         if menu.is_enabled():
             menu.update(events)
             menu.draw(window)
@@ -196,7 +203,7 @@ def game_loop(
                 gesture_text = font.render(gesture_list[index], False, (255, 255, 255))
                 break
             else:
-                gesture_text = font.render("no gesture", False, (255, 255, 255))
+                gesture_text = font.render("no gesture", False, (255, 255, 255)) 
 
         window.blit(gesture_text, (window_width - window_width // 5, 0))
         window.blit(saving_data, (window_width - window_width // 5, 40))
