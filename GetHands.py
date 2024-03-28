@@ -5,6 +5,7 @@ import cv2
 import mediapipe as mp
 import time
 import numpy as np
+import math
 from FeedForward import NeuralNet
 class GetHands:
     """
@@ -14,19 +15,16 @@ class GetHands:
     def __init__(
         self,
         render_hands,
-        mode,
         surface=None,
         show_window=False,
-        hands=1,
         confidence=0.5,
         webcam_id=0,
         model_path="hand_landmarker.task",
         control_mouse=None,
         write_csv=None,
-        gesture_vector=None,
         gesture_list=None,
-        move_mouse_flag=[False],
         gesture_confidence=0.50,
+        flags=None
     ):
         """Builds a Mediapipe hand model and a PyTorch gesture recognition model
 
@@ -50,16 +48,16 @@ class GetHands:
         self.show_window = show_window
         self.model_path = model_path
         self.render_hands = render_hands
-        self.render_hands_mode = mode
         self.confidence = confidence
         self.stopped = False
         self.last_origin = [(0, 0)]
         self.control_mouse = control_mouse
         self.write_csv = write_csv
-        self.gesture_vector = gesture_vector
+        self.gesture_vector = flags['gesture_vector']
         self.gesture_list = gesture_list
-        self.move_mouse_flag = move_mouse_flag
         self.gesture_confidence = gesture_confidence
+        self.flags = flags
+        self.sensitinity = 0.05
 
         self.gesture_model = NeuralNet("waveModel.pth")
 
@@ -73,7 +71,7 @@ class GetHands:
         self.timer1 = 0
         self.timer2 = 0
 
-        self.build_model(hands)
+        self.build_model(flags['number_of_hands'])
 
     def build_model(self, hands_num):
         """Takes in option parameters for the Mediapipe hands model
@@ -189,27 +187,22 @@ class GetHands:
 
         hands_location_on_screen, velocity = self.find_velocity_and_location(result)
 
-        if self.move_mouse_flag[0]:
+        if self.flags["run_model_flag"]:
             model_input = self.gesture_input(result, velocity)
 
             if model_input.size != 0:
                 confidence, gesture = self.gesture_model.get_gesture(model_input)
+                print(confidence[0], self.gesture_list[gesture[0]])
+            else:
+                gesture[0] = 0
 
-                if confidence[0] > self.gesture_confidence:
-                    print(confidence[0], self.gesture_list[gesture[0]])
-
-                if gesture[0] == 0 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = ""
-                elif gesture[0] == 1 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = "left"
-                elif gesture[0] == 2 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = "middle"
-                elif gesture[0] == 3 and confidence[0] > self.gesture_confidence:
-                    mouse_button_text = "right"
-
+        if self.flags['move_mouse_flag'] and result.hand_landmarks != []:
+            hand = result.hand_world_landmarks[0]
+            if self.is_clicking(hand[8], hand[4]):
+                mouse_button_text = "left"
             self.move_mouse(hands_location_on_screen, mouse_button_text)
-
         # write to CSV
+        #flag for writing is saved in the last index of this vector 
         if self.gesture_vector[len(self.gesture_vector) - 1] == True:
             self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
 
@@ -218,17 +211,29 @@ class GetHands:
         hands_delay = (self.timer2 - self.timer1) / 1000
         total_delay = (timestamp_ms - self.last_timestamp) / 1000
         self.last_timestamp = timestamp_ms
-
         self.render_hands(
             result,
             output_image,
             (total_delay, hands_delay),
             self.surface,
-            self.render_hands_mode,
+            self.flags['render_hands_mode'],
             hands_location_on_screen,
             velocity,
             mouse_button_text,
         )
+
+    def is_clicking(self, tip1, tip2):
+        distance = math.sqrt(
+            (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
+        )
+        if distance < self.sensitinity:
+            return True
+        else:
+            return False
+
+    def start(self):
+        Thread(target=self.run, args=()).start()
+        return self
 
     def start(self):
         """Generates and starts the Mediapipe thread
@@ -238,6 +243,7 @@ class GetHands:
         """
         Thread(target=self.run, args=()).start()
         return self
+    
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands

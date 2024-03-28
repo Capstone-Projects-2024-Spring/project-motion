@@ -12,6 +12,8 @@ class Reader:
         self.frame_count = 0
         self.data_file = open(data_file, "r")
         self.reader = csv.reader(self.data_file)
+        #skip first line
+        next(self.reader)
 
     def read(self):
         self.frame_count+=1

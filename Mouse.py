@@ -23,7 +23,7 @@ class Mouse:
         self.right_down = False
         self.last_time = time.time()
 
-    def control(self, x:float, y:float, mouse_button:str):
+    def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
 
         Args:
@@ -31,7 +31,6 @@ class Mouse:
             y (float): y coordinate between 0 and 1
             mouse_button (string): can be "", "left", "middle", or "right"
         """
-
         x = int(
             ((self.mouse_scale) * x - (self.mouse_scale - 1) / 2)
             * pyautogui.size().width
@@ -40,7 +39,6 @@ class Mouse:
             ((self.mouse_scale) * y - (self.mouse_scale - 1) / 2)
             * pyautogui.size().height
         )
-
         if mouse_button == "":
             # un-click
             if self.left_down:
@@ -79,7 +77,7 @@ class Mouse:
             y (int): Y-coordinate.
             mouse_button (str): Mouse button to click.
         """
-        current_time = time.time() # if it has been longer than threshold time
+        current_time = time.time()  # if it has been longer than threshold time
         if current_time - self.last_time > self.click_threshold_time:
             self.last_time = current_time
             print("click")

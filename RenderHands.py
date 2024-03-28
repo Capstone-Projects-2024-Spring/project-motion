@@ -85,6 +85,7 @@ class RenderHands:
     def render_hands(
         self, result, output_image, delay_ms, surface, mode, origins, velocity, pinch
     ):
+        
         """ Renders the hands and other associated data from Mediapipe onto a pygame surface.
 
         Args:
@@ -106,7 +107,7 @@ class RenderHands:
 
         w, h = surface.get_size()
         if result.handedness != []:
-            if mode[0]:
+            if mode:
                 hand_points = result.hand_world_landmarks
                 pygame.draw.circle(surface, (255, 0, 255), (0.5 * w, 0.5 * h), 5)
                 # pygame.draw.circle(
@@ -146,7 +147,7 @@ class RenderHands:
             else:
                 hand_points = result.hand_landmarks
 
-            self.connections(hand_points, mode[0])
+            self.connections(hand_points, mode)
             if hand_points:
                 # define colors for different hands
 
@@ -168,7 +169,7 @@ class RenderHands:
                             landmark.y,
                             surface,
                             delay_ms,
-                            mode[0],
+                            mode,
                         )
                     hand_color += 1
 

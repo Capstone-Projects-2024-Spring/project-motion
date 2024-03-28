@@ -8,6 +8,11 @@ from Writer import Writer
 from Reader import Reader
 from Player import Player
 import textwrap
+import os
+
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # global variables
 pygame.init()

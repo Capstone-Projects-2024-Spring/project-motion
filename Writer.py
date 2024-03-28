@@ -18,12 +18,12 @@ class Writer:
         self.write_labels = write_labels
         # create file and write gesture list
 
+    def makeCSV(self):
         filename = str(round(time.time(), 0)) + ".csv"
 
         self.data_file = open(filename, "a", newline="", encoding="utf-8")
         self.writer = csv.writer(self.data_file)
-        if self.write_labels:
-            self.writer.writerow(self.gesture_list)
+        self.writer.writerow(self.gesture_list)
 
     def write(self, data, velocity, gesture_vector):
         """Writes the labels, hand data, and velocity to file

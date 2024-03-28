@@ -14,11 +14,7 @@ pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
 clock = pygame.time.Clock()
 
-render_hands_mode = [True]
-gesture_vector = []
-number_of_hands = 1
-move_mouse_flag = [False]
-
+flags = {'render_hands_mode': True, 'gesture_vector': [], 'number_of_hands': 1, 'move_mouse_flag': False, 'run_model_flag': False}
 
 def main() -> None:
     """Main driver method which initilizes all children and starts pygame render pipeline"""
@@ -51,24 +47,21 @@ def main() -> None:
     gesture_menu_selection = []
 
     for index, gesture in enumerate(gesture_list):
-        gesture_vector.append("0")
+        flags['gesture_vector'].append("0")
         gesture_menu_selection.append((gesture_list[index], index))
 
-    gesture_vector.append(False)
+    flags['gesture_vector'].append(False)
 
     # control_mouse=mouse_controls.control,
     hands = GetHands(
         myRenderHands.render_hands,
-        render_hands_mode,
         show_window=True,
         surface=hands_surface,
         confidence=0.5,
-        hands=number_of_hands,
-        control_mouse=None,
+        control_mouse=mouse_controls.control,
         write_csv=myWriter.write,
-        gesture_vector=gesture_vector,
         gesture_list=gesture_list,
-        move_mouse_flag=move_mouse_flag,
+        flags=flags,
     )
 
     menu = pygame_menu.Menu(
@@ -87,7 +80,8 @@ def main() -> None:
     )
 
     menu.add.button("Close Menu", pygame_menu.events.CLOSE)
-    menu.add.button("Turn On Model", action=toggle_mouse)
+    menu.add.button("Turn On Model", action=toggle_model)
+    menu.add.button("Turn On Mouse", action=toggle_mouse)
     menu.add.button("Quit", pygame_menu.events.EXIT)
     menu.enable()
 
@@ -100,7 +94,8 @@ def main() -> None:
         hands_surface,
         menu,
         gesture_list,
-        gesture_vector,
+        flags['gesture_vector'],
+        myWriterMakeCSV=myWriter.makeCSV
     )
 
     pygame.quit()
@@ -108,13 +103,16 @@ def main() -> None:
 
 def toggle_mouse() -> None:
     """Enable or disable mouse control"""
-    move_mouse_flag[0] = not move_mouse_flag[0]
+    flags['move_mouse_flag'] = not flags['move_mouse_flag']
+
+def toggle_model() -> None:
+    flags['run_model_flag'] = not flags['run_model_flag']
 
 
 def set_write_status() -> None:
     """Tell the the writer class to write data"""
-    gesture_vector[len(gesture_vector) - 1] = not gesture_vector[
-        len(gesture_vector) - 1
+    flags['gesture_vector'][len(flags['gesture_vector']) - 1] = not flags['gesture_vector'][
+        len(flags['gesture_vector']) - 1
     ]
 
 
@@ -125,7 +123,7 @@ def set_coords(value, mode) -> None:
         value (_type_): used by pygame_menu
         mode (_type_): True for normalized, False for world
     """
-    render_hands_mode[0] = mode
+    flags['render_hands_mode'] = mode
 
 
 def set_current_gesture(value, index) -> None:
@@ -135,9 +133,9 @@ def set_current_gesture(value, index) -> None:
         value (_type_): used by pygame_menu
         index (_type_): index of gesture in gesture list
     """
-    for myIndex, gesture in enumerate(gesture_vector):
-        gesture_vector[myIndex] = "0"
-    gesture_vector[index] = "1"
+    for myIndex, gesture in enumerate(flags['gesture_vector']):
+        flags['gesture_vector'][myIndex] = "0"
+    flags['gesture_vector'][index] = "1"
 
 
 def game_loop(
@@ -149,6 +147,7 @@ def game_loop(
     menu,
     gesture_list,
     gesture_vector,
+    myWriterMakeCSV
 ):
     """Runs the pygame event loop and renders surfaces
 
@@ -165,6 +164,8 @@ def game_loop(
     hands.start()
     running = True
 
+    generatedCSV = False
+
     while running:
         window.fill((0, 0, 0))
         events = pygame.event.get()
@@ -174,6 +175,11 @@ def game_loop(
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+
+                    if not generatedCSV:
+                        generatedCSV = True
+                        myWriterMakeCSV()
+
                     set_write_status()
 
         if menu.is_enabled():
