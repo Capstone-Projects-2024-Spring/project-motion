@@ -28,50 +28,52 @@ class RenderHands:
 
         w, h = self.surface.get_size()
 
-        for hand in landmarks:
+        for index, hand in enumerate(landmarks):
+            xy.append([])
             for point in hand:
                 if mode:
-                    xy.append(
+                    xy[index].append(
                         (
                             (point.x * self.hand_scale + 0.5) * w,
                             (point.y * self.hand_scale + 0.5) * h,
                         )
                     )
                 else:
-                    xy.append(
+                    xy[index].append(
                         (
                             point.x * w,
                             point.y * h,
                         )
                     )
 
-        # thumb
-        self.render_line(xy[0], xy[1])
-        self.render_line(xy[1], xy[2])
-        self.render_line(xy[2], xy[3])
-        self.render_line(xy[3], xy[4])
-        # index
-        self.render_line(xy[0], xy[5])
-        self.render_line(xy[5], xy[6])
-        self.render_line(xy[6], xy[7])
-        self.render_line(xy[7], xy[8])
-        # middle
-        self.render_line(xy[9], xy[10])
-        self.render_line(xy[10], xy[11])
-        self.render_line(xy[11], xy[12])
-        # ring
-        self.render_line(xy[13], xy[14])
-        self.render_line(xy[14], xy[15])
-        self.render_line(xy[15], xy[16])
-        # pinky
-        self.render_line(xy[0], xy[17])
-        self.render_line(xy[17], xy[18])
-        self.render_line(xy[18], xy[19])
-        self.render_line(xy[19], xy[20])
-        # knuckle
-        self.render_line(xy[5], xy[9])
-        self.render_line(xy[9], xy[13])
-        self.render_line(xy[13], xy[17])
+        for hand in range(len(xy)):
+            # thumb
+            self.render_line(xy[hand][0], xy[hand][1])
+            self.render_line(xy[hand][1], xy[hand][2])
+            self.render_line(xy[hand][2], xy[hand][3])
+            self.render_line(xy[hand][3], xy[hand][4])
+            # index
+            self.render_line(xy[hand][0], xy[hand][5])
+            self.render_line(xy[hand][5], xy[hand][6])
+            self.render_line(xy[hand][6], xy[hand][7])
+            self.render_line(xy[hand][7], xy[hand][8])
+            # middle
+            self.render_line(xy[hand][9], xy[hand][10])
+            self.render_line(xy[hand][10], xy[hand][11])
+            self.render_line(xy[hand][11], xy[hand][12])
+            # ring
+            self.render_line(xy[hand][13], xy[hand][14])
+            self.render_line(xy[hand][14], xy[hand][15])
+            self.render_line(xy[hand][15], xy[hand][16])
+            # pinky
+            self.render_line(xy[hand][0], xy[hand][17])
+            self.render_line(xy[hand][17], xy[hand][18])
+            self.render_line(xy[hand][18], xy[hand][19])
+            self.render_line(xy[hand][19], xy[hand][20])
+            # knuckle
+            self.render_line(xy[hand][5], xy[hand][9])
+            self.render_line(xy[hand][9], xy[hand][13])
+            self.render_line(xy[hand][13], xy[hand][17])
 
     def render_line(self, start, end):
         """Wrapper function for pygame's render line. Will render a white line with width=5
@@ -110,12 +112,6 @@ class RenderHands:
             if mode:
                 hand_points = result.hand_world_landmarks
                 pygame.draw.circle(surface, (255, 0, 255), (0.5 * w, 0.5 * h), 5)
-                # pygame.draw.circle(
-                #     surface,
-                #     (255, 255, 0),
-                #     ((velocity[0][0] + 0.5) * w, (velocity[0][1] + 0.5) * h),
-                #     5,
-                # )
                 pygame.draw.line(
                     self.surface,
                     (255, 255, 0),
@@ -123,25 +119,6 @@ class RenderHands:
                     ((0.5) * w, (0.5) * h),
                     3,
                 )
-                # pygame.draw.line(
-                #     self.surface,
-                #     (255, 255, 0),
-                #     ((velocity[0][0] + 0.5) * w, (velocity[0][1] + 0.5) * h),
-                #     (
-                #         (self.last_velocity[0][0] + velocity[0][0] + 0.5) * w,
-                #         (self.last_velocity[0][1] + velocity[0][1] + 0.5) * h,
-                #     ),
-                #     3,
-                # )
-                # pygame.draw.circle(
-                #     surface,
-                #     (255, 255, 0),
-                #     (
-                #         (self.last_velocity[0][0] + velocity[0][0] + 0.5) * w,
-                #         (self.last_velocity[0][1] + velocity[0][1] + 0.5) * h,
-                #     ),
-                #     5,
-                # )
                 self.last_velocity = velocity
 
             else:

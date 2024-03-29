@@ -112,21 +112,26 @@ class GetHands:
         Returns:
             array: An array of length 65
         """
-        model_input = []
+        model_inputs = []
 
-        for hand in result.hand_world_landmarks:
+        for index, hand in enumerate(result.hand_world_landmarks):
+            model_inputs.append([])
             for point in hand:
-                model_input.append(point.x)
-                model_input.append(point.y)
-                model_input.append(point.z)
-        if velocity != []:
-            model_input.append(velocity[0][0])
-            model_input.append(velocity[0][1])
+                model_inputs[index].append(point.x)
+                model_inputs[index].append(point.y)
+                model_inputs[index].append(point.z)
+            if velocity != []:
+                model_inputs[index].append(velocity[index][0])
+                model_inputs[index].append(velocity[index][1])
 
-        model_input = np.array([model_input], dtype="float32")
-        return model_input
+        out = []
+        for input in model_inputs:
+            out.append(np.array([input], dtype="float32"))
+
+        return out
 
     def find_velocity_and_location(self, result):
+
         """Given a Mediapipe result object, calculates the velocity and origin of hands.
 
         Args:
@@ -172,43 +177,47 @@ class GetHands:
                     mouse_button_text,
                 )
 
+    def reset_gesture_vector(self):
+        for i in range(len(self.gesture_vector)-1):
+            self.gesture_vector[i] = "0"
+
     def results_callback(
         self,
         result: mp.tasks.vision.HandLandmarkerResult,
         output_image: mp.Image,
         timestamp_ms: int,
     ):
-        """Wrapper callback function used by Mediapipe hands model. When called, recives the result of the
-        hands model and processes it to find velocity and origins. Then passes data to a gesture recognition model.
-        Using all this data will optionally control a mouse. Then will call a render funtion to render the hand.
-
-        Args:
-            result (mp.tasks.vision.HandLandmarkerResult): This result object contains handedness, hand world landmarks, and hand normalized landmarks
-            output_image (mp.Image): image that hands were detected on
-            timestamp_ms (int): time the image was taken
-        """
-
-        
 
         hands_location_on_screen, velocity = self.find_velocity_and_location(result)
 
-        for i in range(len(self.gesture_vector)-1):
-            self.gesture_vector[i] = "0"
+        self.reset_gesture_vector()
+
         if self.flags["run_model_flag"]:
             model_input = self.gesture_input(result, velocity)
-            if model_input.size != 0:
-                confidence, gesture = self.gesture_model.get_gesture(model_input)
+
+            output_string = ""
+
+            for index, hand in enumerate(model_input):
+
+                output_string += f"Hand {index} ["
+
+                self.reset_gesture_vector()
+                confidence, gesture = self.gesture_model.get_gesture(hand)
                 self.gesture_vector[gesture[0]] = "1"
-                print("{:.2f}".format(confidence[0]), self.gesture_list[gesture[0]])
 
-                if gesture[0] == 0:
-                    self.keyboard.press("space")
-                if gesture[0] == 1:
-                    self.keyboard.press("none")
-                if gesture[0] == 2:
-                    self.keyboard.press("toggle")
-            
+                output_string += str(f"Confidence: {confidence[0]:>5.2f} Gesture: {self.gesture_list[gesture[0]]:>10}] ")
 
+                if index == 0:
+                    if gesture[0] == 0:
+                        self.keyboard.press("space")
+                    if gesture[0] == 1:
+                        self.keyboard.press("none")
+                    if gesture[0] == 2:
+                        self.keyboard.press("toggle")
+
+            print(output_string)
+
+                
 
         mouse_button_text = ""
         if self.flags["move_mouse_flag"] and hands_location_on_screen != []:
