@@ -7,6 +7,9 @@ import time
 import numpy as np
 import math
 from FeedForward import NeuralNet
+from rich.live import Live
+from rich.table import Table
+import traceback
 
 
 class GetHands:
@@ -63,6 +66,7 @@ class GetHands:
         self.flags = flags
         self.sensitinity = 0.05
         self.keyboard = keyboard
+        self.console_table: Live = None
 
         self.gesture_model = NeuralNet("SimpleModel.pth")
 
@@ -131,7 +135,6 @@ class GetHands:
         return out
 
     def find_velocity_and_location(self, result):
-
         """Given a Mediapipe result object, calculates the velocity and origin of hands.
 
         Args:
@@ -178,8 +181,19 @@ class GetHands:
                 )
 
     def reset_gesture_vector(self):
-        for i in range(len(self.gesture_vector)-1):
+        for i in range(len(self.gesture_vector) - 1):
             self.gesture_vector[i] = "0"
+
+    def generate_table(self, outputs: str) -> Table:
+        """Make a new table."""
+        table = Table()
+        table.add_column("Hand")
+        table.add_column("Confidence")
+        table.add_column("Gesture")
+
+        for output in outputs:
+            table.add_row(output[0], output[1], output[2])
+        return table
 
     def results_callback(
         self,
@@ -187,65 +201,76 @@ class GetHands:
         output_image: mp.Image,
         timestamp_ms: int,
     ):
+        # this try catch block is for debuggin. this code runs in a different thread and doesn't automatically raise its own exceptions
+        try:
+            hands_location_on_screen, velocity = self.find_velocity_and_location(result)
 
-        hands_location_on_screen, velocity = self.find_velocity_and_location(result)
+            self.reset_gesture_vector()
 
-        self.reset_gesture_vector()
+            if self.flags["run_model_flag"]:
+                model_input = self.gesture_input(result, velocity)
 
-        if self.flags["run_model_flag"]:
-            model_input = self.gesture_input(result, velocity)
+                table = []
 
-            output_string = ""
+                for index, hand in enumerate(model_input):
 
-            for index, hand in enumerate(model_input):
+                    row = []
 
-                output_string += f"Hand {index} ["
+                    row.append(str(index))
 
-                self.reset_gesture_vector()
-                confidence, gesture = self.gesture_model.get_gesture(hand)
-                self.gesture_vector[gesture[0]] = "1"
+                    self.reset_gesture_vector()
+                    confidence, gesture = self.gesture_model.get_gesture(hand)
 
-                output_string += str(f"Confidence: {confidence[0]:>5.2f} Gesture: {self.gesture_list[gesture[0]]:>10}] ")
+                    self.gesture_vector[gesture[0]] = "1"
 
-                if index == 0:
-                    if gesture[0] == 0:
-                        self.keyboard.press("space")
-                    if gesture[0] == 1:
-                        self.keyboard.press("none")
-                    if gesture[0] == 2:
-                        self.keyboard.press("toggle")
+                    row.append(str(f"{confidence[0]:.3f}"))
+                    row.append(self.gesture_list[gesture[0]])
 
-            print(output_string)
+                    if index == 0:
+                        if gesture[0] == 0:
+                            self.keyboard.press("space")
+                        if gesture[0] == 1:
+                            self.keyboard.press("none")
+                        if gesture[0] == 2:
+                            self.keyboard.press("toggle")
 
-                
+                    table.append(row)
 
-        mouse_button_text = ""
-        if self.flags["move_mouse_flag"] and hands_location_on_screen != []:
-            hand = result.hand_world_landmarks[0]
-            if self.is_clicking(hand[8], hand[4]):
-                mouse_button_text = "left"
-            self.move_mouse(hands_location_on_screen, mouse_button_text)
+                self.console_table.update(self.generate_table(table))
 
-        # write to CSV
-        # flag for writing is saved in the last index of this vector
-        if self.gesture_vector[len(self.gesture_vector) - 1] == True:
-            self.write_csv(result.hand_world_landmarks, velocity, self.gesture_vector)
+            mouse_button_text = ""
+            if self.flags["move_mouse_flag"] and hands_location_on_screen != []:
+                hand = result.hand_world_landmarks[0]
+                if self.is_clicking(hand[8], hand[4]):
+                    mouse_button_text = "left"
+                self.move_mouse(hands_location_on_screen, mouse_button_text)
 
-        # timestamps are in microseconds so convert to ms
-        self.timer2 = mp.Timestamp.from_seconds(time.time()).value
-        hands_delay = (self.timer2 - self.timer1) / 1000
-        total_delay = (timestamp_ms - self.last_timestamp) / 1000
-        self.last_timestamp = timestamp_ms
-        self.render_hands(
-            result,
-            output_image,
-            (total_delay, hands_delay),
-            self.surface,
-            self.flags["render_hands_mode"],
-            hands_location_on_screen,
-            velocity,
-            mouse_button_text,
-        )
+            # write to CSV
+            # flag for writing is saved in the last index of this vector
+            if self.gesture_vector[len(self.gesture_vector) - 1] == True:
+                self.write_csv(
+                    result.hand_world_landmarks, velocity, self.gesture_vector
+                )
+
+            # timestamps are in microseconds so convert to ms
+            self.timer2 = mp.Timestamp.from_seconds(time.time()).value
+            hands_delay = (self.timer2 - self.timer1) / 1000
+            total_delay = (timestamp_ms - self.last_timestamp) / 1000
+            self.last_timestamp = timestamp_ms
+            self.render_hands(
+                result,
+                output_image,
+                (total_delay, hands_delay),
+                self.surface,
+                self.flags["render_hands_mode"],
+                hands_location_on_screen,
+                velocity,
+                mouse_button_text,
+            )
+
+        except Exception as e:
+            traceback.print_exc()
+            quit()
 
     def is_clicking(self, tip1, tip2):
         distance = math.sqrt(
@@ -271,19 +296,21 @@ class GetHands:
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""
-        while not self.stopped:
-            if not self.grabbed:
-                self.stream.release()
-                cv2.destroyAllWindows()
-                self.stop()
-            else:
-                (self.grabbed, self.frame) = self.stream.read()
-                self.frame = cv2.flip(self.frame, 1)
+        with Live() as live:
+            self.console_table = live
+            while not self.stopped:
+                if not self.grabbed:
+                    self.stream.release()
+                    cv2.destroyAllWindows()
+                    self.stop()
+                else:
+                    (self.grabbed, self.frame) = self.stream.read()
+                    self.frame = cv2.flip(self.frame, 1)
 
-            # Detect hand landmarks
-            self.detect_hands(self.frame)
-            if self.show_window:
-                self.show()
+                # Detect hand landmarks
+                self.detect_hands(self.frame)
+                if self.show_window:
+                    self.show()
 
     def detect_hands(self, frame):
         """Wrapper function for Mediapipe's hand detector in livestream mode

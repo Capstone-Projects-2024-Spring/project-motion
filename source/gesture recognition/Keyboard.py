@@ -33,7 +33,6 @@ class Keyboard:
 
         # if its a new key set state to not pressed
         if key != self.last_key:
-            print("new key")
             self.key_presed = False
             self.toggle_key_pressed = False
             self.last_key = key
