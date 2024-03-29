@@ -9,13 +9,25 @@ from RenderHands import RenderHands
 from Mouse import Mouse
 from Writer import Writer
 from Keyboard import Keyboard
+import os
+
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # global variables
 pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
 clock = pygame.time.Clock()
 
-flags = {'render_hands_mode': True, 'gesture_vector': [], 'number_of_hands': 1, 'move_mouse_flag': False, 'run_model_flag': False}
+flags = {
+    "render_hands_mode": True,
+    "gesture_vector": [],
+    "number_of_hands": 1,
+    "move_mouse_flag": False,
+    "run_model_flag": False,
+}
+
 
 def main() -> None:
     """Main driver method which initilizes all children and starts pygame render pipeline"""
@@ -30,11 +42,7 @@ def main() -> None:
 
     myRenderHands = RenderHands(hands_surface, 3)
 
-    gesture_list = [
-        "fist",
-        "palm",
-        "pinky"
-    ]
+    gesture_list = ["fist", "palm", "pinky"]
 
     myWriter = Writer(gesture_list=gesture_list, write_labels=True)
 
@@ -43,12 +51,14 @@ def main() -> None:
     gesture_menu_selection = []
 
     for index, gesture in enumerate(gesture_list):
-        flags['gesture_vector'].append("0")
+        flags["gesture_vector"].append("0")
         gesture_menu_selection.append((gesture_list[index], index))
 
-    flags['gesture_vector'].append(False)
+    flags["gesture_vector"].append(False)
 
-    keyboard = Keyboard(threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=toggle_mouse)
+    keyboard = Keyboard(
+        threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=toggle_mouse
+    )
 
     # control_mouse=mouse_controls.control,
     hands = GetHands(
@@ -93,8 +103,8 @@ def main() -> None:
         hands_surface,
         menu,
         gesture_list,
-        flags['gesture_vector'],
-        myWriterMakeCSV=myWriter.makeCSV
+        flags["gesture_vector"],
+        myWriterMakeCSV=myWriter.makeCSV,
     )
 
     pygame.quit()
@@ -102,17 +112,18 @@ def main() -> None:
 
 def toggle_mouse() -> None:
     """Enable or disable mouse control"""
-    flags['move_mouse_flag'] = not flags['move_mouse_flag']
+    flags["move_mouse_flag"] = not flags["move_mouse_flag"]
+
 
 def toggle_model() -> None:
-    flags['run_model_flag'] = not flags['run_model_flag']
+    flags["run_model_flag"] = not flags["run_model_flag"]
 
 
 def set_write_status() -> None:
     """Tell the the writer class to write data"""
-    flags['gesture_vector'][len(flags['gesture_vector']) - 1] = not flags['gesture_vector'][
-        len(flags['gesture_vector']) - 1
-    ]
+    flags["gesture_vector"][len(flags["gesture_vector"]) - 1] = not flags[
+        "gesture_vector"
+    ][len(flags["gesture_vector"]) - 1]
 
 
 def set_coords(value, mode) -> None:
@@ -122,7 +133,7 @@ def set_coords(value, mode) -> None:
         value (_type_): used by pygame_menu
         mode (_type_): True for normalized, False for world
     """
-    flags['render_hands_mode'] = mode
+    flags["render_hands_mode"] = mode
 
 
 def set_current_gesture(value, index) -> None:
@@ -132,9 +143,9 @@ def set_current_gesture(value, index) -> None:
         value (_type_): used by pygame_menu
         index (_type_): index of gesture in gesture list
     """
-    for myIndex, gesture in enumerate(flags['gesture_vector']):
-        flags['gesture_vector'][myIndex] = "0"
-    flags['gesture_vector'][index] = "1"
+    for myIndex, gesture in enumerate(flags["gesture_vector"]):
+        flags["gesture_vector"][myIndex] = "0"
+    flags["gesture_vector"][index] = "1"
 
 
 def game_loop(
@@ -146,7 +157,7 @@ def game_loop(
     menu,
     gesture_list,
     gesture_vector,
-    myWriterMakeCSV
+    myWriterMakeCSV,
 ):
     """Runs the pygame event loop and renders surfaces
 
@@ -180,8 +191,8 @@ def game_loop(
                         myWriterMakeCSV()
 
                     set_write_status()
-  
-                if event.key ==pygame.K_m:
+
+                if event.key == pygame.K_m:
                     toggle_mouse()
 
         if menu.is_enabled():
@@ -203,7 +214,7 @@ def game_loop(
                 gesture_text = font.render(gesture_list[index], False, (255, 255, 255))
                 break
             else:
-                gesture_text = font.render("no gesture", False, (255, 255, 255)) 
+                gesture_text = font.render("no gesture", False, (255, 255, 255))
 
         window.blit(gesture_text, (window_width - window_width // 5, 0))
         window.blit(saving_data, (window_width - window_width // 5, 40))
