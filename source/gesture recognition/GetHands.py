@@ -202,9 +202,9 @@ class GetHands:
                 print("{:.2f}".format(confidence[0]), self.gesture_list[gesture[0]])
 
                 if gesture[0] == 0:
-                    self.keyboard.press("none")
-                if gesture[0] == 1:
                     self.keyboard.press("space")
+                if gesture[0] == 1:
+                    self.keyboard.press("none")
                 if gesture[0] == 2:
                     self.keyboard.press("toggle")
             

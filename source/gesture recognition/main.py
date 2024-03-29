@@ -180,7 +180,7 @@ def game_loop(
                         myWriterMakeCSV()
 
                     set_write_status()
-
+  
                 if event.key ==pygame.K_m:
                     toggle_mouse()
 
