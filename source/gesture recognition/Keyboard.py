@@ -1,10 +1,9 @@
 import pyautogui
 import time
-
-
+from Console import GestureConsole
 class Keyboard:
     def __init__(
-        self, threshold=0.0, toggle_key_threshold=0.15, toggle_key_toggle_time=1, toggle_mouse_func=None
+        self, threshold=0.0, toggle_key_threshold=0.15, toggle_key_toggle_time=1, toggle_mouse_func=None, console=None
     ) -> None:
         """_summary_
 
@@ -27,6 +26,7 @@ class Keyboard:
         self.key_presed = False
         self.toggle_mouse_func = toggle_mouse_func
         self.toggle_key_toggle_time = toggle_key_toggle_time
+        self.console = GestureConsole()
 
     def press(self, key: str):
         current_time = time.time()  # if it has been longer than threshold time
@@ -48,7 +48,6 @@ class Keyboard:
         if key == "toggle":
             if not self.toggle_key_pressed or current_time - self.last_time_toggle_key > self.toggle_key_toggle_time:
                 if current_time - self.last_time_toggle_key > self.toggle_key_threshold:
-                    print("toggling mouse control")
                     if self.toggle_mouse_func != None:
                         self.toggle_mouse_func()
                     self.toggle_key_pressed = True
@@ -57,5 +56,5 @@ class Keyboard:
         # if the non toggle key has been requested for longer than the normal threashold
         elif current_time - self.last_time > self.threshold and self.key_presed == False:
             self.key_presed = True
-            print("pressing key: " + key)
-            pyautogui.press(key)
+            self.console.print(f"pressing key: {key}")
+            pyautogui.press(key, _pause=False)

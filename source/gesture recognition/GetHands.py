@@ -7,10 +7,8 @@ import time
 import numpy as np
 import math
 from FeedForward import NeuralNet
-from rich.live import Live
-from rich.table import Table
 import traceback
-
+from Console import GestureConsole
 
 class GetHands:
     """
@@ -66,7 +64,7 @@ class GetHands:
         self.flags = flags
         self.sensitinity = 0.05
         self.keyboard = keyboard
-        self.console_table: Live = None
+        self.console = GestureConsole()
 
         self.gesture_model = NeuralNet("SimpleModel.pth")
 
@@ -184,17 +182,6 @@ class GetHands:
         for i in range(len(self.gesture_vector) - 1):
             self.gesture_vector[i] = "0"
 
-    def generate_table(self, outputs: str) -> Table:
-        """Make a new table."""
-        table = Table()
-        table.add_column("Hand")
-        table.add_column("Confidence")
-        table.add_column("Gesture")
-
-        for output in outputs:
-            table.add_row(output[0], output[1], output[2])
-        return table
-
     def results_callback(
         self,
         result: mp.tasks.vision.HandLandmarkerResult,
@@ -236,7 +223,7 @@ class GetHands:
 
                     table.append(row)
 
-                self.console_table.update(self.generate_table(table))
+                self.console.generate_table(table)
 
             mouse_button_text = ""
             if self.flags["move_mouse_flag"] and hands_location_on_screen != []:
@@ -296,21 +283,19 @@ class GetHands:
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""
-        with Live() as live:
-            self.console_table = live
-            while not self.stopped:
-                if not self.grabbed:
-                    self.stream.release()
-                    cv2.destroyAllWindows()
-                    self.stop()
-                else:
-                    (self.grabbed, self.frame) = self.stream.read()
-                    self.frame = cv2.flip(self.frame, 1)
+        while not self.stopped:
+            if not self.grabbed:
+                self.stream.release()
+                cv2.destroyAllWindows()
+                self.stop()
+            else:
+                (self.grabbed, self.frame) = self.stream.read()
+                self.frame = cv2.flip(self.frame, 1)
 
-                # Detect hand landmarks
-                self.detect_hands(self.frame)
-                if self.show_window:
-                    self.show()
+            # Detect hand landmarks
+            self.detect_hands(self.frame)
+            if self.show_window:
+                self.show()
 
     def detect_hands(self, frame):
         """Wrapper function for Mediapipe's hand detector in livestream mode

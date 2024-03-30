@@ -1,10 +1,9 @@
 import pyautogui
 import time
-
-
+from Console import GestureConsole
 class Mouse:
     def __init__(
-        self, mouse_scale, click_threshold_time=0.2, drag_threshold_time=0.15
+        self, mouse_scale, click_threshold_time=0.2, drag_threshold_time=0.15, console=None
     ) -> None:
         """Initialization of Mouse class.
 
@@ -22,6 +21,7 @@ class Mouse:
         self.middle_down = False
         self.right_down = False
         self.last_time = time.time()
+        self.console = GestureConsole()
 
     def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
@@ -80,7 +80,7 @@ class Mouse:
         current_time = time.time()  # if it has been longer than threshold time
         if current_time - self.last_time > self.click_threshold_time:
             self.last_time = current_time
-            print("click")
+            self.console.print("click")
             pyautogui.click(button=mouse_button, _pause=False)
         elif (
             (current_time - self.last_time > self.drag_threshold_time)

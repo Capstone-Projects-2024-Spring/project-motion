@@ -10,6 +10,7 @@ from Mouse import Mouse
 from Writer import Writer
 from Keyboard import Keyboard
 import os
+from Console import GestureConsole
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -23,11 +24,12 @@ clock = pygame.time.Clock()
 flags = {
     "render_hands_mode": True,
     "gesture_vector": [],
-    "number_of_hands": 1,
+    "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": False,
 }
 
+console = GestureConsole()
 
 def main() -> None:
     """Main driver method which initilizes all children and starts pygame render pipeline"""
@@ -36,10 +38,10 @@ def main() -> None:
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
-
+ 
     hands_surface = pygame.Surface((window_width, window_height))
     hands_surface.set_colorkey((0, 0, 0))
-
+                              
     myRenderHands = RenderHands(hands_surface, 3)
 
     gesture_list = ["fist", "palm", "pinky"]
@@ -112,10 +114,12 @@ def main() -> None:
 
 def toggle_mouse() -> None:
     """Enable or disable mouse control"""
+    console.print("toggling mouse control")
     flags["move_mouse_flag"] = not flags["move_mouse_flag"]
 
 
 def toggle_model() -> None:
+    console.print("toggling model")
     flags["run_model_flag"] = not flags["run_model_flag"]
 
 
@@ -223,7 +227,6 @@ def game_loop(
 
         clock.tick(60)
         pygame.display.update()
-
 
 if __name__ == "__main__":
     main()
