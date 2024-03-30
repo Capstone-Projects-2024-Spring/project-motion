@@ -14,7 +14,7 @@ from Console import GestureConsole
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
- 
+
 # global variables
 pygame.init()
 font = pygame.font.Font("freesansbold.ttf", 30)
@@ -30,6 +30,7 @@ flags = {
 
 console = GestureConsole()
 
+
 def main() -> None:
     """Main driver method which initilizes all children and starts pygame render pipeline"""
 
@@ -37,10 +38,10 @@ def main() -> None:
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
- 
+
     hands_surface = pygame.Surface((window_width, window_height))
     hands_surface.set_colorkey((0, 0, 0))
-                              
+
     myRenderHands = RenderHands(hands_surface, render_scale=3)
 
     mouse_controls = Mouse(mouse_scale=2)
@@ -52,7 +53,6 @@ def main() -> None:
     # control_mouse=mouse_controls.control,
     hands = GetHands(
         myRenderHands.render_hands,
-        confidence=0.5,
         control_mouse=mouse_controls.control,
         flags=flags,
         keyboard=keyboard,
@@ -82,7 +82,7 @@ def main() -> None:
         window_height,
         hands,
         hands_surface,
-        menu,            
+        menu,
     )
 
     pygame.quit()
@@ -98,6 +98,7 @@ def toggle_model() -> None:
     console.print("toggling model")
     flags["run_model_flag"] = not flags["run_model_flag"]
 
+
 def set_coords(value, mode) -> None:
     """Defines the coordinate space for rendering hands
 
@@ -107,11 +108,12 @@ def set_coords(value, mode) -> None:
     """
     flags["render_hands_mode"] = mode
 
+
 def game_loop(
     window,
     window_width,
     window_height,
-    hands:GetHands,
+    hands: GetHands,
     hands_surface,
     menu,
 ):
@@ -133,7 +135,7 @@ def game_loop(
     while running:
         window.fill((0, 0, 0))
         events = pygame.event.get()
-        for event in events: 
+        for event in events:
             if event.type == pygame.QUIT:
                 hands.stop()
                 running = False
@@ -151,15 +153,16 @@ def game_loop(
             str(round(clock.get_fps(), 1)) + "fps", False, (255, 255, 255)
         )
 
-        # index = hands.confidence_vector
-        # gesture_text = font.render(hands.gesture_list[index], False, (255, 255, 255))
+        for index in range(len(hands.gestures)):
+            gesture_text = font.render(hands.gestures[index], False, (255, 255, 255))
+            window.blit(gesture_text, (window_width - window_width // 5, index * 40))
 
-        # window.blit(gesture_text, (window_width - window_width // 5, 0))
         window.blit(hands_surface, (0, 0))
         window.blit(fps, (0, 0))
 
         clock.tick(60)
         pygame.display.update()
+
 
 if __name__ == "__main__":
     main()

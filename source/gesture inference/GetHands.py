@@ -14,7 +14,6 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-
 class GetHands:
     """
     Class that continuously gets frames and extracts hand data
@@ -24,28 +23,29 @@ class GetHands:
     def __init__(
         self,
         render_hands,
-        confidence=0.5,
-        model_path="hand_landmarker.task",
+        mediapipe_model="hand_landmarker.task",
+        gesture_model = "simple.pth",
         control_mouse=None,
         flags=None,
         keyboard=None,
+        click_sensitinity=0.5,
     ):
-        self.model_path = model_path
+        self.model_path = mediapipe_model
         self.render_hands = render_hands
-        self.confidence = confidence
+        self.confidence = 0.5
         self.stopped = False
         self.control_mouse = control_mouse
 
         self.flags = flags
-        self.sensitinity = 0.05
+        self.click_sensitinity = click_sensitinity
         self.keyboard = keyboard
         self.console = GestureConsole()
         self.camera = Webcam()
 
-        self.gesture_model = NeuralNet("simple.pth")
+        self.gesture_model = NeuralNet(gesture_model)
         self.gesture_list = self.gesture_model.labels
-        self.confidence_vector = self.gesture_model.confidence_vector
-        self.gestures = [""]
+        self.confidence_vectors = self.gesture_model.confidence_vector
+        self.gestures = ['no gesture']
 
         (self.grabbed, self.frame) = self.camera.read()
 
@@ -103,6 +103,18 @@ class GetHands:
     ):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
+
+            if len(result.hand_world_landmarks) == 0:
+                self.render_hands(
+                    result,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                )
+                return
+
             location, velocity = self.gesture_model.find_velocity_and_location(result)
 
             if self.flags["run_model_flag"]:
@@ -110,17 +122,32 @@ class GetHands:
                 # get all the hands and format them
                 model_inputs = self.gesture_model.gesture_input(result, velocity)
 
-                # pytorch can run multiple inputs simutaniously
-                if len(model_inputs) > 0:
-                    self.confidence_vector, indexs = self.gesture_model.get_gesture_confidence(
-                        model_inputs
-                    )
+                # for some reason parrellization with batches makes the model super slow
+                # if len(model_inputs) > 0:
+                #     self.confidence_vector, indexs = self.gesture_model.get_gesture_confidence(model_inputs)
+                #     # only take inputs from the first hand, subsequent hands can't control the keyboard
+                #     self.keyboard.gesture_input(self.confidence_vector[0])
+
+                # serialized input
+                hand_confidences = [] #prepare data for console table
+                gestures = [] #store gesture output as text
+                for index, hand in enumerate(model_inputs):
+                    confidences, predicted, predicted_confidence = (
+                        self.gesture_model.get_gesture([hand], print_table=False)
+                    )   
+                    gestures.append(self.gesture_list[predicted[0]]) # save gesture
+                    hand_confidences.append(confidences[0])
                     # only take inputs from the first hand, subsequent hands can't control the keyboard
 
-                    self.keyboard.gesture_input(self.confidence_vector[0])
+                self.gestures = gestures
+                self.confidence_vectors = hand_confidences
+                self.keyboard.gesture_input(self.confidence_vectors[0])
 
-            mouse_button_text = ""
+                self.console.table(self.gesture_list, hand_confidences)
+
+            
             if self.flags["move_mouse_flag"] and location != []:
+                mouse_button_text = ""
                 hand = result.hand_world_landmarks[0]
                 if self.is_clicking(hand[8], hand[4]):
                     mouse_button_text = "left"
@@ -138,7 +165,6 @@ class GetHands:
                 self.flags["render_hands_mode"],
                 location,
                 velocity,
-                mouse_button_text,
             )
 
         except Exception as e:
@@ -149,7 +175,7 @@ class GetHands:
         distance = math.sqrt(
             (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
         )
-        if distance < self.sensitinity:
+        if distance < self.click_sensitinity:
             return True
         else:
             return False

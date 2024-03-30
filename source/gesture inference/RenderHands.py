@@ -88,7 +88,7 @@ class RenderHands:
         pygame.draw.line(self.surface, (255, 255, 255), start, end, 5)
 
     def render_hands(
-        self, result, output_image, delay_ms, mode, origins, velocity, pinch
+        self, result, output_image, delay_ms, mode, origins, velocity
     ):
         
         """ Renders the hands and other associated data from Mediapipe onto a pygame surface.
@@ -105,10 +105,6 @@ class RenderHands:
         """
         self.surface.fill((0, 0, 0))
         # Render hand landmarks
-        # print(delay_ms)
-        if pinch != "":
-            text = self.font.render(pinch, False, (255, 255, 255))
-            self.surface.blit(text, (0, 90))
 
         w, h = self.surface.get_size()
         if result.handedness != []:

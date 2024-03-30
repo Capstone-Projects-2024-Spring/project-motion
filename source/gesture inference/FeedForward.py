@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from Console import GestureConsole
 
+
 class NeuralNet(nn.Module):
 
     def __init__(self, modelName):
@@ -10,7 +11,7 @@ class NeuralNet(nn.Module):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model, data = torch.load(modelName, map_location=device)
 
-        #model hyperparameters, saved in the model file with its statedict from my train program
+        # model hyperparameters, saved in the model file with its statedict from my train program
         input_size = data[0]
         hidden_size = data[1]
         num_classes = data[2]
@@ -22,7 +23,7 @@ class NeuralNet(nn.Module):
         self.console = GestureConsole()
         self.console.print(device)
 
-        #model definition
+        # model definition
         super(NeuralNet, self).__init__()
         self.l1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
@@ -45,35 +46,24 @@ class NeuralNet(nn.Module):
         # no activation and no softmax at the end
         return out
 
-    def get_gesture_confidence(self, model_input, print_table=True):
-        hands = torch.from_numpy(model_input)
+    def get_gesture(self, model_input, print_table=True):
+        """ One hand input shape should be (1,65)
+
+            Two hand input shape should be (2, 65)
+        """
+        hands = torch.from_numpy(np.asarray(model_input, dtype="float32"))
         outputs = self(hands)
         probs = torch.nn.functional.softmax(outputs.data, dim=1)
-        
+
         self.confidence_vector = probs
 
-        #print table
+        # print table
         if print_table:
             self.console.table(self.labels, probs.tolist())
 
         confidence, classes = torch.max(probs, 1)
-        return probs.tolist(), classes.numpy()
-    
-    def get_gesture(self, model_input, print_table=True):
-        hands = torch.from_numpy(model_input)
-        outputs = self(hands)
-        probs = torch.nn.functional.softmax(outputs.data, dim=1)
-        
-        self.confidence_vector = probs
-        #print table
-        if print_table:
-            self.console.table(self.labels, probs)
+        return probs.tolist(), classes.numpy().tolist(), confidence.tolist()
 
-        #return the highest probabilty gesture and its confiddence
-        confidence, classes = torch.max(probs, 1)
-        return confidence.numpy(), classes.numpy()
-
-    
     def find_velocity_and_location(self, result):
         """Given a Mediapipe result object, calculates the velocity and origin of hands.
 
@@ -103,7 +93,7 @@ class NeuralNet(nn.Module):
             self.last_origin = hands_location_on_screen
 
         return hands_location_on_screen, velocity
-    
+
     def gesture_input(self, result, velocity):
         """Converts Mediapipe landmarks and a velocity into a format usable by the gesture recognition model
 
