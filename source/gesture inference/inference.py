@@ -69,13 +69,30 @@ def main() -> None:
         "Render Mode :", [("Normalized", True), ("World", False)], onchange=set_coords
     )
 
+    def change_hands_num(value):
+
+        flags["number_of_hands"] = value[1] + 1
+        nonlocal hands
+        hands.stop()
+        hands.join()
+        hands = GetHands(
+            myRenderHands.render_hands,
+            control_mouse=mouse_controls.control,
+            flags=flags,
+            keyboard=keyboard,
+        )
+        hands.start()
+
+    menu.add.dropselect(
+        "Number of hands :", ["1", "2", "3", "4"], onchange=change_hands_num
+    )
+
     menu.add.button("Close Menu", pygame_menu.events.CLOSE)
     menu.add.button("Turn On Model", action=toggle_model)
     menu.add.button("Turn On Mouse", action=toggle_mouse)
     menu.add.button("Quit", pygame_menu.events.EXIT)
     menu.enable()
 
-    print("game loop")
     game_loop(
         window,
         window_width,
@@ -138,6 +155,7 @@ def game_loop(
         for event in events:
             if event.type == pygame.QUIT:
                 hands.stop()
+                hands.join()
                 running = False
             if event.type == pygame.KEYDOWN:
 

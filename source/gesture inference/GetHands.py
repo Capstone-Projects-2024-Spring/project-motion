@@ -14,7 +14,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-class GetHands:
+class GetHands(Thread):
     """
     Class that continuously gets frames and extracts hand data
     with a dedicated thread and Mediapipe
@@ -28,8 +28,10 @@ class GetHands:
         control_mouse=None,
         flags=None,
         keyboard=None,
-        click_sensitinity=0.5,
+        click_sensitinity=0.05,
     ):
+        Thread.__init__(self) 
+
         self.model_path = mediapipe_model
         self.render_hands = render_hands
         self.confidence = 0.5
@@ -179,19 +181,6 @@ class GetHands:
             return True
         else:
             return False
-
-    def start(self):
-        Thread(target=self.run, args=()).start()
-        return self
-
-    def start(self):
-        """Generates and starts the Mediapipe thread
-
-        Returns:
-            self: new thread
-        """
-        Thread(target=self.run, args=()).start()
-        return self
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""

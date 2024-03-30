@@ -10,8 +10,12 @@ class Webcam:
         self,
         webcam_id=0,
     ):
+        self.webcam_id = webcam_id
+        self.start()
+
+    def start(self):
         # OpenCV setup
-        self.stream = cv2.VideoCapture(webcam_id)
+        self.stream = cv2.VideoCapture(self.webcam_id)
         # motion JPG format
         self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
         (self.grabbed, self.frame) = self.stream.read()
