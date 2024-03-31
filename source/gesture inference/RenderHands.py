@@ -88,21 +88,9 @@ class RenderHands:
         pygame.draw.line(self.surface, (255, 255, 255), start, end, 5)
 
     def render_hands(
-        self, result, output_image, delay_ms, mode, origins, velocity
+        self, result, mode, origins, velocity
     ):
-        
-        """ Renders the hands and other associated data from Mediapipe onto a pygame surface.
 
-        Args:
-            result (Mediapipe.hands.result): This contains handedness and 21 hand landmark locations in normilized and world coordinates
-            output_image (Mediapipe.Image): The image used to detect hands
-            delay_ms (float): time taken to process the hands image
-            surface (pygame.surface): pygame surface to render the hands on
-            mode (bool): wether to render hands in normalized or world coordinates
-            origins ((float,float)): an array of tuples containing the origins of one or more hands
-            velocity ((float,float)): an array of tuples containing the velocitys of one or more hands
-            pinch (str): gesture data
-        """
         self.surface.fill((0, 0, 0))
         # Render hand landmarks
 
@@ -143,12 +131,11 @@ class RenderHands:
                             colors[hand_color],
                             landmark.x,
                             landmark.y,
-                            delay_ms,
                             mode,
                         )
                     hand_color += 1
 
-    def __render_hands_pygame(self, color, x, y, delay_ms, mode):
+    def __render_hands_pygame(self, color, x, y, mode):
         """Renders a single landmark of a hand in pygame and scales the hand.
 
         Args:
@@ -169,11 +156,4 @@ class RenderHands:
             y += 0.5
 
         pygame.draw.circle(self.surface, color, (x * w, y * h), 5)
-        delay_cam = self.font.render(
-            str(round(delay_ms[0], 1)) + "ms", False, (255, 255, 255)
-        )
-        delay_AI = self.font.render(
-            str(round(delay_ms[1], 1)) + "ms", False, (255, 255, 255)
-        )
-        self.surface.blit(delay_cam, (0, 30))
-        self.surface.blit(delay_AI, (0, 60))
+

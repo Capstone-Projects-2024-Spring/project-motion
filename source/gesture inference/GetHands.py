@@ -48,12 +48,11 @@ class GetHands(Thread):
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
         self.gestures = ['no gesture']
+        self.delay = 0
 
         (self.grabbed, self.frame) = self.camera.read()
 
-        self.last_timestamp = mp.Timestamp.from_seconds(time.time()).value
-        self.timer1 = 0
-        self.timer2 = 0
+        self.timer = 0
 
         self.build_model(flags["number_of_hands"])
 
@@ -112,8 +111,6 @@ class GetHands(Thread):
                     None,
                     None,
                     None,
-                    None,
-                    None,
                 )
                 return
 
@@ -156,14 +153,13 @@ class GetHands(Thread):
                 self.move_mouse(location, mouse_button_text)
 
             # timestamps are in microseconds so convert to ms
-            self.timer2 = mp.Timestamp.from_seconds(time.time()).value
-            hands_delay = (self.timer2 - self.timer1) / 1000
-            total_delay = (timestamp_ms - self.last_timestamp) / 1000
-            self.last_timestamp = timestamp_ms
+
+            current_time = time.time()
+            self.delay = (current_time - self.timer) * 1000
+            self.timer = current_time
+
             self.render_hands(
                 result,
-                output_image,
-                (total_delay, hands_delay),
                 self.flags["render_hands_mode"],
                 location,
                 velocity,
@@ -190,6 +186,7 @@ class GetHands(Thread):
                 self.stop()
             else:
                 (self.grabbed, self.frame) = self.camera.read()
+                
 
             # Detect hand landmarks
             self.detect_hands(self.frame)
@@ -204,7 +201,6 @@ class GetHands(Thread):
         self.hands_detector.detect_async(
             mp_image, mp.Timestamp.from_seconds(time.time()).value
         )
-        self.timer1 = mp.Timestamp.from_seconds(time.time()).value
 
     def stop(self):
         self.stopped = True
