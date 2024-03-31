@@ -1,4 +1,5 @@
 import math
+import random
 import pygame
 
 #pygame.init()
@@ -101,9 +102,39 @@ class Bullet(object):
           if self.x < -50 or self.x > SCREEN_WIDTH or self.y > SCREEN_HEIGHT or self.y < -50:
                         return True    
 
+class Asteroid(object):
+     def __init__(self, rank):
+          self.rank = rank
+          if self.rank ==1:
+                 self.image = asteroid1
+          elif self.rank ==2:
+                 self.image = asteroid2
+          else:
+                 self.image = asteroid3
+          self.w = 50 * rank
+          self.h = 50 * rank
+          self.ran_point = random.choice([(random.randrange(0, SCREEN_WIDTH-self.w), random.choice([-1*self.h - 5, SCREEN_HEIGHT + 5])), (random.choice([-1*self.w - 5, SCREEN_WIDTH + 5]), random.randrange(0, SCREEN_HEIGHT - self.h))])
+          self.x, self.y = self.ran_point
+          if self.x < SCREEN_WIDTH//2:
+               self.xdir = 1
+          else:
+               self.xdir = -1
+          if self.y < SCREEN_HEIGHT//2:
+               self.ydir = 1
+          else:
+               self.ydir = -1
+          self.xv = self.xdir * random.randrange(1,3)
+          self.yv = self.ydir * random.randrange(1,3)
+
+     def draw(self, window):
+          window.blit(self.image, (self.x, self.y))                      
+
+
 def redraw_window():
         window.blit(bg,(0,0))
         player.draw(window)
+        for a in asteroids:
+             a.draw(window)
         for b in player_bullets:
             b.draw(window)
 
@@ -111,16 +142,51 @@ def redraw_window():
 
 player = Player()
 player_bullets = []
+asteroids = []
+count = 0
 # game loop
 while run:
     clock.tick(60)
+    count +=1
     if not game_over: 
+         if count%50 == 0:
+              ran = random.choice([1,1,1,2,2,3])
+              asteroids.append(Asteroid(ran))
          player.update_location()
          for b in player_bullets:
               b.move()
               if b.check_off_screen():
                   player_bullets.pop(player_bullets.index(b))
 
+
+         for a in asteroids:
+              a.x += a.xv
+              a.y += a.yv
+               # breaking larger asteroids into smaller ones when shot at
+              for b in player_bullets:
+                  if (b.x >= a.x and b.x <= a.x + a.w) or b.x + b.w >= a.x and b.x + b.w <= a.x + a.w:
+                      if (b.y >= a.y and b.y <= a.y + a.h) or b.y + b.h >= a.y and b.y + b.h <= a.y + a.h:
+                           if a.rank ==3:
+                                na1 = Asteroid(2)
+                                na2 = Asteroid(2)
+                                na1.x = a.x
+                                na2.x = a.x
+                                na1.y = a.y
+                                na2.y = a.y 
+                                asteroids.append(na1)
+                                asteroids.append(na2)
+                           elif a.rank ==2:
+                                na1 = Asteroid(1)
+                                na2 = Asteroid(1)
+                                na1.x = a.x
+                                na2.x = a.x
+                                na1.y = a.y
+                                na2.y = a.y 
+                                asteroids.append(na1)
+                                asteroids.append(na2)
+                           asteroids.pop(asteroids.index(a))
+                           player_bullets.pop(player_bullets.index(b))
+                           
 
          keys = pygame.key.get_pressed()
          if keys[pygame.K_LEFT]:
