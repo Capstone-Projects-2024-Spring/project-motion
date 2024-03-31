@@ -57,10 +57,10 @@ class Player():
         # process key presses
         key = pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
-            dx = -5
+            dx = -10
             self.flip = True
         if key[pygame.K_RIGHT]:
-            dx = 5
+            dx = 10
             self.flip = False
         
         # gravity
@@ -118,6 +118,10 @@ class Platform(pygame.sprite.Sprite):
         # update platforms vertical position
         self.rect.y += scroll
 
+        # check if platform has gone off the screen
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
 
 # player instance
 jumpy = Player(SCREEN_WIDTH//2, SCREEN_HEIGHT - 150)
@@ -125,13 +129,9 @@ jumpy = Player(SCREEN_WIDTH//2, SCREEN_HEIGHT - 150)
 # create sprite groups
 platform_group = pygame.sprite.Group()
 
-#create temp platforms
-for p in range(MAX_PLATFORMS):
-    p_w = random.randint(40, 60)
-    p_x = random.randint(15, SCREEN_WIDTH - p_w - 10)
-    p_y = p * random.randint(80, 100)
-    platform = Platform(p_x, p_y, p_w)
-    platform_group.add(platform)
+# create starting platform
+platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100)
+platform_group.add(platform)
 
 # game loop
 run = True
@@ -147,8 +147,14 @@ while run:
         bg_scroll = 0
     draw_bg(bg_scroll)
 
-    # draw temp scroll threshold
-    pygame.draw.line(screen, WHITE, (0, SCROLL_THRESH), (SCREEN_WIDTH, SCROLL_THRESH))
+    # generate platforms
+    if len(platform_group) < MAX_PLATFORMS:
+        p_w = random.randint(50,70)
+        p_x =  random.randint(0, SCREEN_WIDTH - p_w)
+        p_y = platform.rect.y - random.randint(80, 120)
+        platform = Platform(p_x, p_y, p_w)
+        platform_group.add(platform)
+
 
     # update platforms
     platform_group.update(scroll)
