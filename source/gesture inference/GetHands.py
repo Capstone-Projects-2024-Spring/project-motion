@@ -25,7 +25,6 @@ class GetHands(Thread):
         self,
         render_hands,
         mediapipe_model="hand_landmarker.task",
-        gesture_model="simple.pth",
         control_mouse=None,
         flags=None,
         keyboard=None,
@@ -46,7 +45,8 @@ class GetHands(Thread):
 
         self.camera = Webcam()
 
-        self.gesture_model = NeuralNet(gesture_model)
+        self.set_gesture_model(flags["gesture_model_path"])
+        
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
         self.gestures = ["no gesture"]
@@ -59,9 +59,12 @@ class GetHands(Thread):
 
         self.timer = 0
 
-        self.build_model(flags["number_of_hands"])
+        self.build_mediapipe_model(flags["number_of_hands"])
+        
+    def set_gesture_model(self, path):
+        self.gesture_model = NeuralNet(path)
 
-    def build_model(self, hands_num):
+    def build_mediapipe_model(self, hands_num):
         """Takes in option parameters for the Mediapipe hands model
 
         Args:

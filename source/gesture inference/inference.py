@@ -29,6 +29,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
+    "gesture_model_path": "motion.pth",
     "hands": None,
 }
 
@@ -86,11 +87,25 @@ def main() -> None:
     )
 
     def change_hands_num(value):
+        flags["number_of_hands"] = value[1] + 1
+        build_hands()
+
+    menu.add.dropselect(
+        "Number of hands :", ["1", "2", "3", "4"], onchange=change_hands_num
+    )
+
+    models = find_files_with_ending(".pth")
+
+    def change_gesture_model(value):
+        flags["gesture_model_path"] = value[0][0] #tuple within a list for some reason
+        build_hands()
+
+    menu.add.dropselect("Use Gesture Model :", models, onchange=change_gesture_model)
+
+    def build_hands():
         nonlocal hands
         nonlocal mouse_controls
         nonlocal keyboard
-        flags["number_of_hands"] = value[1] + 1
-        flags["move_mouse_flag"] = False
         hands.stop()
         hands.join()
         hands = GetHands(
@@ -101,10 +116,6 @@ def main() -> None:
         )
         flags["hands"] = hands
         hands.start()
-
-    menu.add.dropselect(
-        "Number of hands :", ["1", "2", "3", "4"], onchange=change_hands_num
-    )
 
     menu.add.button("Close Menu", pygame_menu.events.CLOSE)
     menu.add.button("Turn On Model", action=toggle_model)
@@ -121,6 +132,11 @@ def main() -> None:
     )
 
     pygame.quit()
+
+
+def find_files_with_ending(ending: str, directory_path=os.getcwd()):
+    files = [(file,) for file in os.listdir(directory_path) if file.endswith(ending)]
+    return files
 
 
 def toggle_mouse() -> None:
@@ -167,11 +183,11 @@ def game_loop(
     is_fullscreen = False
 
     while running:
-        
-        #changing GetHands parameters creates a new hands object
+
+        # changing GetHands parameters creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
-        
+
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
         events = pygame.event.get()
@@ -199,7 +215,7 @@ def game_loop(
                 if event.key == pygame.K_F11:
                     is_fullscreen = not is_fullscreen
                     pygame.display.toggle_fullscreen()
-                    
+
         location = hands.mouse_location.copy()
         if len(location) == 1:
             # console.print(location)
@@ -249,7 +265,7 @@ def game_loop(
 
         window.blit(hand_surface_copy, (0, 0))
 
-        #clock.tick(pygame.display.get_current_refresh_rate())
+        # clock.tick(pygame.display.get_current_refresh_rate())
         clock.tick(60)
         pygame.display.update()
 
