@@ -25,10 +25,9 @@ class GetHands(Thread):
         self,
         render_hands,
         mediapipe_model="hand_landmarker.task",
-        control_mouse=None,
+        mouse=None,
         flags=None,
         keyboard=None,
-        click_sensitinity=0.05,
     ):
         Thread.__init__(self)
 
@@ -36,10 +35,10 @@ class GetHands(Thread):
         self.render_hands = render_hands
         self.confidence = 0.5
         self.stopped = False
-        self.control_mouse = control_mouse
+        self.mouse = mouse
 
         self.flags = flags
-        self.click_sensitinity = click_sensitinity
+        self.click_sensitinity = flags["click_sense"]
         self.keyboard = keyboard
         self.console = GestureConsole()
 
@@ -158,7 +157,7 @@ class GetHands(Thread):
             if self.flags["move_mouse_flag"] and location != []:
                 mouse_button_text = ""
                 hand = result.hand_world_landmarks[0]
-                if self.is_clicking(hand[8], hand[4]):
+                if self.mouse.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
                     mouse_button_text = "left"
 
                 self.click = mouse_button_text
@@ -181,15 +180,6 @@ class GetHands(Thread):
         except Exception as e:
             traceback.print_exc()
             quit()
-
-    def is_clicking(self, tip1, tip2):
-        distance = math.sqrt(
-            (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
-        )
-        if distance < self.click_sensitinity:
-            return True
-        else:
-            return False
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""

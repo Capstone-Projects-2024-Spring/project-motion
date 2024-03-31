@@ -29,7 +29,8 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "motion.pth",
+    "gesture_model_path": "simple.pth",
+    "click_sense": 0.06,
     "hands": None,
 }
 
@@ -49,7 +50,7 @@ def main() -> None:
 
     myRenderHands = RenderHands(hands_surface, render_scale=3)
 
-    mouse_controls = Mouse(mouse_sensitivity=2)
+    mouse = Mouse(mouse_sensitivity=2)
 
     keyboard = Keyboard(
         threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=toggle_mouse
@@ -58,7 +59,7 @@ def main() -> None:
     # control_mouse=mouse_controls.control,
     hands = GetHands(
         myRenderHands.render_hands,
-        control_mouse=mouse_controls.control,
+        mouse=mouse,
         flags=flags,
         keyboard=keyboard,
     )
@@ -75,14 +76,15 @@ def main() -> None:
     )
 
     def change_mouse_smooth(value, smooth):
-        nonlocal mouse_controls
-        mouse_controls.x_window = []
-        mouse_controls.y_window = []
-        mouse_controls.window_size = smooth
+        nonlocal mouse
+        mouse.x_window = []
+        mouse.y_window = []
+        mouse.window_size = smooth
 
     menu.add.selector(
         "Mouse Smoothing :",
         [("None", 1), ("Low", 2), ("Medium", 6), ("High", 12), ("Max", 24)],
+        default=3,
         onchange=change_mouse_smooth,
     )
 
@@ -97,27 +99,39 @@ def main() -> None:
     models = find_files_with_ending(".pth")
 
     def change_gesture_model(value):
-        flags["gesture_model_path"] = value[0][0] #tuple within a list for some reason
+        flags["gesture_model_path"] = value[0][0]  # tuple within a list for some reason
         build_hands()
 
     menu.add.dropselect("Use Gesture Model :", models, onchange=change_gesture_model)
 
+    def set_click_sense(value, **kwargs):
+        nonlocal hands
+        flags["click_sense"] = value / 100
+        hands.click_sensitinity = flags["click_sense"]
+
+    menu.add.range_slider(
+        "Click Sensitivity",
+        default=60,
+        range_values=(1, 100),
+        increment=0.01,
+        onchange=set_click_sense,
+    )
+
     def build_hands():
         nonlocal hands
-        nonlocal mouse_controls
+        nonlocal mouse
         nonlocal keyboard
         hands.stop()
         hands.join()
         hands = GetHands(
             myRenderHands.render_hands,
-            control_mouse=mouse_controls.control,
+            mouse=mouse,
             flags=flags,
             keyboard=keyboard,
         )
         flags["hands"] = hands
         hands.start()
 
-    menu.add.button("Close Menu", pygame_menu.events.CLOSE)
     menu.add.button("Turn On Model", action=toggle_model)
     menu.add.button("Turn On Mouse", action=toggle_mouse)
     menu.add.button("Quit", pygame_menu.events.EXIT)
@@ -128,13 +142,15 @@ def main() -> None:
         hands,
         hands_surface,
         menu,
-        mouse_controls,
+        mouse,
     )
 
     pygame.quit()
 
 
 def find_files_with_ending(ending: str, directory_path=os.getcwd()):
+    """returns a list of tuples of the strings found
+    """
     files = [(file,) for file in os.listdir(directory_path) if file.endswith(ending)]
     return files
 
@@ -181,8 +197,10 @@ def game_loop(
     is_webcam_fullscreen = False
 
     is_fullscreen = False
-
+    counter = 0
+    delay_AI = None
     while running:
+        counter += 1
 
         # changing GetHands parameters creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
@@ -252,12 +270,15 @@ def game_loop(
         for index in range(len(hands.gestures)):
             gesture_text = font.render(hands.gestures[index], False, (255, 255, 255))
             window.blit(gesture_text, (window_width - window_width // 5, index * 40))
-
-        delay_AI = font.render(
-            str(round(hands.delay, 1)) + "ms", False, (255, 255, 255)
-        )
+            
+        if hands.delay != 0 and counter%60==0:
+            delay_AI = font.render(
+                "Webcam: "+str(round(1000/hands.delay, 1)) + "fps", False, (255, 255, 255)
+            )
+        if delay_AI != None:    
+            window.blit(delay_AI, (0, 40))
         window.blit(fps, (0, 0))
-        window.blit(delay_AI, (0, 40))
+        
 
         if menu.is_enabled():
             menu.update(events)
@@ -265,8 +286,8 @@ def game_loop(
 
         window.blit(hand_surface_copy, (0, 0))
 
-        # clock.tick(pygame.display.get_current_refresh_rate())
-        clock.tick(60)
+        clock.tick(pygame.display.get_current_refresh_rate())
+        # clock.tick(60)
         pygame.display.update()
 
 
