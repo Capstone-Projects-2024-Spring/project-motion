@@ -22,15 +22,27 @@ MAX_PLATFORMS = 10
 SCROLL_THRESH = 200
 scroll = 0
 bg_scroll = 0
+game_over = False
+score = 0
 
 
 # define colors
 WHITE = (255, 255, 255)
 
+# define font
+font_small = pygame.font.SysFont('Lucida Sans', 20)
+font_big = pygame.font.SysFont('Lucida Sans', 24)
+
 # load images
 bg_image = pygame.image.load('platformerGame/assets/bg.png').convert_alpha()
 jumpy_image = pygame.image.load('platformerGame/assets/jump.png').convert_alpha()
 platform_image = pygame.image.load('platformerGame/assets/wood.png').convert_alpha()
+
+# function for outputting the text on the sceen
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x,y))
+
 
 # function for drawing the background
 def draw_bg(bg_scroll):
@@ -83,12 +95,8 @@ class Player():
                         self.rect.bottom = platform.rect.top
                         dy = 0
                         self.vel_y = -20
-        
-        # check collision with ground
-        if self.rect.bottom + dy > SCREEN_HEIGHT:
-            dy = 0
-            self.vel_y = -20
 
+       
         # check if the player has bounced to the top of the screen
         if self.rect.top <= SCROLL_THRESH:
             # if player is jumping
@@ -139,37 +147,59 @@ while run:
 
     clock.tick(FPS)
 
-    scroll = jumpy.move()
+    if not game_over:
 
-    # draw background
-    bg_scroll += scroll
-    if bg_scroll >= 600:
-        bg_scroll = 0
-    draw_bg(bg_scroll)
+        scroll = jumpy.move()
 
-    # generate platforms
-    if len(platform_group) < MAX_PLATFORMS:
-        p_w = random.randint(50,70)
-        p_x =  random.randint(0, SCREEN_WIDTH - p_w)
-        p_y = platform.rect.y - random.randint(80, 120)
-        platform = Platform(p_x, p_y, p_w)
-        platform_group.add(platform)
+        # draw background
+        bg_scroll += scroll
+        if bg_scroll >= 600:
+            bg_scroll = 0
+        draw_bg(bg_scroll)
 
-
-    # update platforms
-    platform_group.update(scroll)
-
-    # draw characters
-    platform_group.draw(screen)
-    jumpy.draw()
+        # generate platforms
+        if len(platform_group) < MAX_PLATFORMS:
+            p_w = random.randint(50,70)
+            p_x =  random.randint(0, SCREEN_WIDTH - p_w)
+            p_y = platform.rect.y - random.randint(80, 120)
+            platform = Platform(p_x, p_y, p_w)
+            platform_group.add(platform)
 
 
+        # update platforms
+        platform_group.update(scroll)
 
+        # draw characters
+        platform_group.draw(screen)
+        jumpy.draw()
+
+        # check game over
+        if jumpy.rect.top > SCREEN_HEIGHT:
+            game_over = True
+    
+    else:
+        draw_text("GAME OVER!", font_big, WHITE, 130, 200)
+        draw_text("SCORE: " + str(score), font_big, WHITE, 150, 250)
+        draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 40, 300)
+        key = pygame.key.get_pressed()
+        if key[pygame.K_SPACE]:
+            # reset variables:
+            game_over = False
+            score = 0
+            scroll = 0
+            # reposition player
+            jumpy.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-150)
+            # reset platforms
+            platform_group.empty()
+            # recreate starting platform 
+            platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100)
+            platform_group.add(platform)
 
     # event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+
 
     # update display
     pygame.display.update()
