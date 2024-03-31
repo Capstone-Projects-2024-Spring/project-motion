@@ -3,7 +3,10 @@ import time
 from Console import GestureConsole
 class Mouse:
     def __init__(
-        self, mouse_scale, click_threshold_time=0.2, drag_threshold_time=0.15, console=None
+        self,
+        mouse_sensitivity=2,
+        click_threshold_time=0.2,
+        drag_threshold_time=0.15,
     ) -> None:
         """Initialization of Mouse class.
 
@@ -14,7 +17,7 @@ class Mouse:
         """
         pyautogui.FAILSAFE = False
         pyautogui.PAUSE = 0
-        self.mouse_scale = mouse_scale
+        self.mouse_sensitivity = mouse_sensitivity
         self.click_threshold_time = click_threshold_time
         self.drag_threshold_time = drag_threshold_time
         self.left_down = False
@@ -22,6 +25,12 @@ class Mouse:
         self.right_down = False
         self.last_time = time.time()
         self.console = GestureConsole()
+
+        # expontial moving average stuff
+        self.x_window = []
+        self.y_window = []
+        self.window_size = 4
+        self.alpha = 0.2
 
     def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
@@ -32,28 +41,42 @@ class Mouse:
             mouse_button (string): can be "", "left", "middle", or "right"
         """
         x = int(
-            ((self.mouse_scale) * x - (self.mouse_scale - 1) / 2)
+            ((self.mouse_sensitivity) * x - (self.mouse_sensitivity - 1) / 2)
             * pyautogui.size().width
         )
         y = int(
-            ((self.mouse_scale) * y - (self.mouse_scale - 1) / 2)
+            ((self.mouse_sensitivity) * y - (self.mouse_sensitivity - 1) / 2)
             * pyautogui.size().height
         )
-        if mouse_button == "":
-            # un-click
-            if self.left_down:
-                pyautogui.mouseUp(button="left", _pause=False)
-                self.left_down = False
-            if self.middle_down:
-                pyautogui.mouseUp(button="middle", _pause=False)
-                self.middle_down = False
-            if self.right_down:
-                pyautogui.mouseUp(button="right", _pause=False)
-                self.right_down = False
-            self.move(x, y)
-        else:
-            # click or click and drag
-            self.click(x, y, mouse_button)
+
+        self.x_window.append(x)
+        self.y_window.append(y)
+
+        x = self.exponential_moving_average(self.x_window)
+        y = self.exponential_moving_average(self.y_window)
+
+        if len(self.x_window) > self.window_size:
+            self.x_window.pop(0)
+            self.y_window.pop(0)
+            if mouse_button == "":
+                # un-click
+                if self.left_down:
+                    pyautogui.mouseUp(button="left", _pause=False)
+                    self.left_down = False
+                if self.middle_down:
+                    pyautogui.mouseUp(button="middle", _pause=False)
+                    self.middle_down = False
+                if self.right_down:
+                    pyautogui.mouseUp(button="right", _pause=False)
+                    self.right_down = False
+                self.move(x, y)
+            else:
+                # click or click and drag
+                self.click(
+                    x,
+                    y,
+                    mouse_button,
+                )
 
     def move(self, x, y):
         """Move the mouse to the specified coordinates.
@@ -108,3 +131,9 @@ class Mouse:
                     self.right_down = True
 
             self.move(x, y)
+
+    def exponential_moving_average(self, data):
+        ema = [data[0]]
+        for i in range(1, len(data)):
+            ema.append(self.alpha * data[i] + (1 - self.alpha) * ema[i - 1])
+        return ema[len(data) - 1]
