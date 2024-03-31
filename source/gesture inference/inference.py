@@ -2,8 +2,9 @@
 # https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 # https://pygame-menu.readthedocs.io/en/latest/_source/add_widgets.html
 import pydoc
-#this is the community edition of pygame
-#pygame-ce 
+
+# this is the community edition of pygame
+# pygame-ce
 import pygame
 import pygame_menu
 from GetHands import GetHands
@@ -28,6 +29,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
+    "hands": None,
 }
 
 console = GestureConsole()
@@ -71,10 +73,24 @@ def main() -> None:
         "Render Mode :", [("World", False), ("Normalized", True)], onchange=set_coords
     )
 
-    def change_hands_num(value):
+    def change_mouse_smooth(value, smooth):
+        nonlocal mouse_controls
+        mouse_controls.x_window = []
+        mouse_controls.y_window = []
+        mouse_controls.window_size = smooth
 
-        flags["number_of_hands"] = value[1] + 1
+    menu.add.selector(
+        "Mouse Smoothing :",
+        [("None", 1), ("Low", 2), ("Medium", 6), ("High", 12), ("Max", 24)],
+        onchange=change_mouse_smooth,
+    )
+
+    def change_hands_num(value):
         nonlocal hands
+        nonlocal mouse_controls
+        nonlocal keyboard
+        flags["number_of_hands"] = value[1] + 1
+        flags["move_mouse_flag"] = False
         hands.stop()
         hands.join()
         hands = GetHands(
@@ -83,6 +99,7 @@ def main() -> None:
             flags=flags,
             keyboard=keyboard,
         )
+        flags["hands"] = hands
         hands.start()
 
     menu.add.dropselect(
@@ -132,7 +149,7 @@ def game_loop(
     hands: GetHands,
     hands_surface: pygame.Surface,
     menu: pygame_menu.Menu,
-    mouse_controls:Mouse
+    mouse_controls: Mouse,
 ):
     """Runs the pygame event loop and renders surfaces
 
@@ -150,7 +167,11 @@ def game_loop(
     is_fullscreen = False
 
     while running:
-        # window_width, window_height = menu.get_window_size() # what? idk
+        
+        #changing GetHands parameters creates a new hands object
+        if flags["hands"] != None and hands != flags["hands"]:
+            hands = flags["hands"]
+        
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
         events = pygame.event.get()
@@ -175,13 +196,14 @@ def game_loop(
                 if event.key == pygame.K_F1:
                     is_webcam_fullscreen = not is_webcam_fullscreen
 
-                if event.key == pygame.K_F11:  
+                if event.key == pygame.K_F11:
                     is_fullscreen = not is_fullscreen
                     pygame.display.toggle_fullscreen()
                     
-        if hands.mouse_location != []:
-            #print(hands.mouse_location)
-            location = hands.mouse_location[0]
+        location = hands.mouse_location.copy()
+        if len(location) == 1:
+            # console.print(location)
+            location = location[0]
             mouse_controls.control(location[0], location[1], hands.click)
 
         # frames per second
@@ -189,10 +211,8 @@ def game_loop(
             str(round(clock.get_fps(), 1)) + "fps", False, (255, 255, 255)
         )
 
-        frame = hands.frame
-        img_pygame = pygame.image.frombuffer(
-            frame.tostring(), frame.shape[1::-1], "BGR"
-        )
+        frame = hands.frame.copy()
+        img_pygame = pygame.image.frombuffer(frame.tobytes(), frame.shape[1::-1], "BGR")
         img_width = img_pygame.get_width()
         img_height = img_pygame.get_height()
 
@@ -201,9 +221,9 @@ def game_loop(
         )
         img_pygame = pygame.transform.scale(
             img_pygame, (img_width * 0.5, img_height * 0.5)
-        ) 
+        )
 
-        if is_webcam_fullscreen: 
+        if is_webcam_fullscreen:
             img_pygame = pygame.transform.scale(
                 img_pygame, (window_width, window_height)
             )
@@ -224,12 +244,13 @@ def game_loop(
         window.blit(delay_AI, (0, 40))
 
         if menu.is_enabled():
-            menu.update(events)  
+            menu.update(events)
             menu.draw(window)
 
         window.blit(hand_surface_copy, (0, 0))
 
-        clock.tick(pygame.display.get_current_refresh_rate())
+        #clock.tick(pygame.display.get_current_refresh_rate())
+        clock.tick(60)
         pygame.display.update()
 
 

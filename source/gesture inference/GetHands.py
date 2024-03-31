@@ -14,6 +14,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
+
 class GetHands(Thread):
     """
     Class that continuously gets frames and extracts hand data
@@ -24,13 +25,13 @@ class GetHands(Thread):
         self,
         render_hands,
         mediapipe_model="hand_landmarker.task",
-        gesture_model = "simple.pth",
+        gesture_model="simple.pth",
         control_mouse=None,
         flags=None,
         keyboard=None,
         click_sensitinity=0.05,
     ):
-        Thread.__init__(self) 
+        Thread.__init__(self)
 
         self.model_path = mediapipe_model
         self.render_hands = render_hands
@@ -42,15 +43,16 @@ class GetHands(Thread):
         self.click_sensitinity = click_sensitinity
         self.keyboard = keyboard
         self.console = GestureConsole()
+
         self.camera = Webcam()
 
         self.gesture_model = NeuralNet(gesture_model)
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
-        self.gestures = ['no gesture']
+        self.gestures = ["no gesture"]
         self.delay = 0
-        
-        self.click = ''
+
+        self.click = ""
         self.mouse_location = []
 
         (self.grabbed, self.frame) = self.camera.read()
@@ -107,11 +109,11 @@ class GetHands(Thread):
     ):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
-            
+
             self.mouse_location = []
-            self.click = ''
+            self.click = ""
             if len(result.hand_world_landmarks) == 0:
-                
+
                 self.render_hands(
                     result,
                     None,
@@ -134,13 +136,13 @@ class GetHands(Thread):
                 #     self.keyboard.gesture_input(self.confidence_vector[0])
 
                 # serialized input
-                hand_confidences = [] #prepare data for console table
-                gestures = [] #store gesture output as text
+                hand_confidences = []  # prepare data for console table
+                gestures = []  # store gesture output as text
                 for index, hand in enumerate(model_inputs):
                     confidences, predicted, predicted_confidence = (
                         self.gesture_model.get_gesture([hand], print_table=False)
-                    )   
-                    gestures.append(self.gesture_list[predicted[0]]) # save gesture
+                    )
+                    gestures.append(self.gesture_list[predicted[0]])  # save gesture
                     hand_confidences.append(confidences[0])
                     # only take inputs from the first hand, subsequent hands can't control the keyboard
 
@@ -155,10 +157,10 @@ class GetHands(Thread):
                 hand = result.hand_world_landmarks[0]
                 if self.is_clicking(hand[8], hand[4]):
                     mouse_button_text = "left"
-                    
+
                 self.click = mouse_button_text
                 self.mouse_location = location
-                #self.move_mouse(location, mouse_button_text)
+                # self.move_mouse(location, mouse_button_text)
 
             # timestamps are in microseconds so convert to ms
 
@@ -194,7 +196,6 @@ class GetHands(Thread):
                 self.stop()
             else:
                 (self.grabbed, self.frame) = self.camera.read()
-                
 
             # Detect hand landmarks
             self.detect_hands(self.frame)
