@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module HandGestureInputControl</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>HandGestureInputControl</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/giamaio/Desktop/College/Spring%202024/CIS%204398/project-motion/gui/HandGestureInputControl.py">/Users/giamaio/Desktop/College/Spring 2024/CIS 4398/project-motion/gui/HandGestureInputControl.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="pydoc.html">pydoc</a><br>
+</td><td width="25%" valign=top><a href="pygame.html">pygame</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="HandGestureInputControl.html#HandGestureInputControl">HandGestureInputControl</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="HandGestureInputControl">class <strong>HandGestureInputControl</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>A&nbsp;class&nbsp;to&nbsp;handle&nbsp;hand&nbsp;gesture&nbsp;inputs&nbsp;for&nbsp;controlling&nbsp;game&nbsp;actions.<br>
+&nbsp;<br>
+This&nbsp;class&nbsp;is&nbsp;designed&nbsp;to&nbsp;capture&nbsp;hand&nbsp;gestures&nbsp;using&nbsp;a&nbsp;camera&nbsp;or&nbsp;sensor&nbsp;input,<br>
+interpret&nbsp;these&nbsp;gestures&nbsp;as&nbsp;commands,&nbsp;and&nbsp;perform&nbsp;actions&nbsp;based&nbsp;on&nbsp;the&nbsp;interpreted&nbsp;gestures.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;gesture&nbsp;(str):&nbsp;The&nbsp;current&nbsp;hand&nbsp;gesture&nbsp;recognized&nbsp;by&nbsp;the&nbsp;system.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="HandGestureInputControl-__init__"><strong>__init__</strong></a>(self)</dt><dd><tt>Purpose:&nbsp;Initializes&nbsp;the&nbsp;<a href="#HandGestureInputControl">HandGestureInputControl</a>&nbsp;class&nbsp;with&nbsp;default&nbsp;gesture.<br>
+Post-conditions:&nbsp;The&nbsp;<a href="#HandGestureInputControl">HandGestureInputControl</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;is&nbsp;created&nbsp;with&nbsp;the&nbsp;default&nbsp;gesture.</tt></dd></dl>
+
+<dl><dt><a name="HandGestureInputControl-captureGesture"><strong>captureGesture</strong></a>(self)</dt><dd><tt>Purpose:&nbsp;Captures&nbsp;and&nbsp;updates&nbsp;the&nbsp;current&nbsp;hand&nbsp;gesture.<br>
+Post-conditions:&nbsp;The&nbsp;current&nbsp;hand&nbsp;gesture&nbsp;is&nbsp;updated.</tt></dd></dl>
+
+<dl><dt><a name="HandGestureInputControl-mapGestureToAction"><strong>mapGestureToAction</strong></a>(self, gesture: str)</dt><dd><tt>Purpose:&nbsp;Maps&nbsp;the&nbsp;captured&nbsp;hand&nbsp;gesture&nbsp;to&nbsp;a&nbsp;specific&nbsp;game&nbsp;action.<br>
+Pre-conditions:&nbsp;A&nbsp;hand&nbsp;gesture&nbsp;must&nbsp;be&nbsp;captured.<br>
+Post-conditions:&nbsp;The&nbsp;hand&nbsp;gesture&nbsp;is&nbsp;mapped&nbsp;to&nbsp;a&nbsp;game&nbsp;action.<br>
+Parameters:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;gesture&nbsp;(str):&nbsp;The&nbsp;hand&nbsp;gesture&nbsp;to&nbsp;map&nbsp;to&nbsp;an&nbsp;action.</tt></dd></dl>
+
+<dl><dt><a name="HandGestureInputControl-performClickAction"><strong>performClickAction</strong></a>(self)</dt><dd><tt>Purpose:&nbsp;Performs&nbsp;a&nbsp;click&nbsp;action&nbsp;based&nbsp;on&nbsp;the&nbsp;current&nbsp;hand&nbsp;gesture.<br>
+Pre-conditions:&nbsp;A&nbsp;hand&nbsp;gesture&nbsp;must&nbsp;be&nbsp;captured&nbsp;and&nbsp;mapped&nbsp;to&nbsp;a&nbsp;game&nbsp;action.<br>
+Post-conditions:&nbsp;The&nbsp;click&nbsp;action&nbsp;is&nbsp;performed&nbsp;based&nbsp;on&nbsp;the&nbsp;current&nbsp;hand&nbsp;gesture.</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table>
+</body></html>

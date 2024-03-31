@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module PlayerSelectionScreen</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title">PlayerSelectionScreen</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:/Users/zaina/Documents/GitHub/project-motion/gui/PlayerSelectionScreen.py">/Users/zaina/Documents/GitHub/project-motion/gui/PlayerSelectionScreen.py</a></td></tr></table>
+    <p></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="pydoc.html">pydoc</a><br>
+</td><td class="multicolumn"><a href="pygame.html">pygame</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor index-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Classes</strong></td></tr>
+    
+<tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl>
+<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+</dt><dd>
+<dl>
+<dt class="heading-text"><a href="PlayerSelectionScreen.html#PlayerSelectionScreen">PlayerSelectionScreen</a>
+</dt></dl>
+</dd>
+</dl>
+ <p>
+<table class="section">
+<tr class="decor title-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><a name="PlayerSelectionScreen">class <strong>PlayerSelectionScreen</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+    
+<tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
+<td class="decor title-decor" colspan=2><span class="code"><a href="#PlayerSelectionScreen">PlayerSelectionScreen</a>(numOfPlayers:&nbsp;int)<br>
+&nbsp;<br>
+<a href="#PlayerSelectionScreen">PlayerSelectionScreen</a>&nbsp;class&nbsp;manages&nbsp;the&nbsp;player&nbsp;selection&nbsp;interface&nbsp;of&nbsp;the&nbsp;application.<br>
+It&nbsp;displays&nbsp;the&nbsp;number&nbsp;of&nbsp;player&nbsp;options&nbsp;and&nbsp;handles&nbsp;user&nbsp;selection.<br>
+&nbsp;<br>
+Attributes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;numOfPlayers&nbsp;(int):&nbsp;The&nbsp;number&nbsp;of&nbsp;player&nbsp;options&nbsp;to&nbsp;display.<br>&nbsp;</span></td></tr>
+<tr><td>&nbsp;</td>
+<td class="singlecolumn">Methods defined here:<br>
+<dl><dt><a name="PlayerSelectionScreen-__init__"><strong>__init__</strong></a>(self, numOfPlayers: int)</dt><dd><span class="code">Initializes&nbsp;the&nbsp;<a href="#PlayerSelectionScreen">PlayerSelectionScreen</a>&nbsp;instance&nbsp;with&nbsp;the&nbsp;number&nbsp;of&nbsp;players.<br>
+&nbsp;<br>
+Parameters:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;numOfPlayers&nbsp;(int):&nbsp;number&nbsp;of&nbsp;players&nbsp;being&nbsp;used&nbsp;in&nbsp;the&nbsp;game.</span></dd></dl>
+
+<dl><dt><a name="PlayerSelectionScreen-displayOptions"><strong>displayOptions</strong></a>(self)</dt><dd><span class="code">Displays&nbsp;the&nbsp;player&nbsp;options&nbsp;(single&nbsp;player&nbsp;or&nbsp;multiplayer)&nbsp;based&nbsp;on&nbsp;the&nbsp;number&nbsp;of&nbsp;players.<br>
+No&nbsp;pre-conditions.<br>
+Post-conditions:&nbsp;Player&nbsp;options&nbsp;are&nbsp;displayed&nbsp;to&nbsp;the&nbsp;user.</span></dd></dl>
+
+<dl><dt><a name="PlayerSelectionScreen-handleSelection"><strong>handleSelection</strong></a>(selection: int)</dt><dd><span class="code">Determines&nbsp;the&nbsp;game's&nbsp;mode&nbsp;(single&nbsp;player&nbsp;or&nbsp;multiplayer)&nbsp;based&nbsp;off&nbsp;of&nbsp;the&nbsp;number&nbsp;of&nbsp;players.<br>
+&nbsp;<br>
+Pre-conditions:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;displayOptions&nbsp;has&nbsp;been&nbsp;called,&nbsp;and&nbsp;user&nbsp;input&nbsp;has&nbsp;been&nbsp;received.<br>
+Post-conditions:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;action&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;user's&nbsp;selection&nbsp;is&nbsp;executed.<br>
+Parameters:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;selection&nbsp;(int):&nbsp;The&nbsp;user's&nbsp;selection&nbsp;of&nbsp;the&nbsp;number&nbsp;of&nbsp;players.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Returns:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Nothing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+Raises:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ValueError:&nbsp;If&nbsp;the&nbsp;selection&nbsp;is&nbsp;not&nbsp;within&nbsp;the&nbsp;valid&nbsp;range&nbsp;of&nbsp;player&nbsp;options.</span></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
+</dl>
+</td></tr></table></td></tr></table>
+</body></html>
