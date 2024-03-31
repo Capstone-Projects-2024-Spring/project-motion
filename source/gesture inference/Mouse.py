@@ -29,8 +29,8 @@ class Mouse:
         # expontial moving average stuff
         self.x_window = []
         self.y_window = []
-        self.window_size = 4
-        self.alpha = 0.2
+        self.window_size = 10
+        self.alpha = 0.3
 
     def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly

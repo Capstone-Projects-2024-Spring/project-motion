@@ -2,6 +2,8 @@
 # https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 # https://pygame-menu.readthedocs.io/en/latest/_source/add_widgets.html
 import pydoc
+#this is the community edition of pygame
+#pygame-ce 
 import pygame
 import pygame_menu
 from GetHands import GetHands
@@ -98,6 +100,7 @@ def main() -> None:
         hands,
         hands_surface,
         menu,
+        mouse_controls,
     )
 
     pygame.quit()
@@ -129,6 +132,7 @@ def game_loop(
     hands: GetHands,
     hands_surface: pygame.Surface,
     menu: pygame_menu.Menu,
+    mouse_controls:Mouse
 ):
     """Runs the pygame event loop and renders surfaces
 
@@ -171,9 +175,14 @@ def game_loop(
                 if event.key == pygame.K_F1:
                     is_webcam_fullscreen = not is_webcam_fullscreen
 
-                if event.key == pygame.K_F11:
+                if event.key == pygame.K_F11:  
                     is_fullscreen = not is_fullscreen
                     pygame.display.toggle_fullscreen()
+                    
+        if hands.mouse_location != []:
+            #print(hands.mouse_location)
+            location = hands.mouse_location[0]
+            mouse_controls.control(location[0], location[1], hands.click)
 
         # frames per second
         fps = font.render(
@@ -192,11 +201,9 @@ def game_loop(
         )
         img_pygame = pygame.transform.scale(
             img_pygame, (img_width * 0.5, img_height * 0.5)
-        )
+        ) 
 
-
-
-        if is_webcam_fullscreen:
+        if is_webcam_fullscreen: 
             img_pygame = pygame.transform.scale(
                 img_pygame, (window_width, window_height)
             )
@@ -217,12 +224,12 @@ def game_loop(
         window.blit(delay_AI, (0, 40))
 
         if menu.is_enabled():
-            menu.update(events)
+            menu.update(events)  
             menu.draw(window)
 
         window.blit(hand_surface_copy, (0, 0))
 
-        clock.tick(60)
+        clock.tick(pygame.display.get_current_refresh_rate())
         pygame.display.update()
 
 

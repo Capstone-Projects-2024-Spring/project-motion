@@ -49,6 +49,9 @@ class GetHands(Thread):
         self.confidence_vectors = self.gesture_model.confidence_vector
         self.gestures = ['no gesture']
         self.delay = 0
+        
+        self.click = ''
+        self.mouse_location = []
 
         (self.grabbed, self.frame) = self.camera.read()
 
@@ -104,8 +107,11 @@ class GetHands(Thread):
     ):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
-
+            
+            self.mouse_location = []
+            self.click = ''
             if len(result.hand_world_landmarks) == 0:
+                
                 self.render_hands(
                     result,
                     None,
@@ -144,13 +150,15 @@ class GetHands(Thread):
 
                 self.console.table(self.gesture_list, hand_confidences)
 
-            
             if self.flags["move_mouse_flag"] and location != []:
                 mouse_button_text = ""
                 hand = result.hand_world_landmarks[0]
                 if self.is_clicking(hand[8], hand[4]):
                     mouse_button_text = "left"
-                self.move_mouse(location, mouse_button_text)
+                    
+                self.click = mouse_button_text
+                self.mouse_location = location
+                #self.move_mouse(location, mouse_button_text)
 
             # timestamps are in microseconds so convert to ms
 
