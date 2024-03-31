@@ -24,10 +24,12 @@ scroll = 0
 bg_scroll = 0
 game_over = False
 score = 0
+fade_counter = 0
 
 
 # define colors
 WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
 
 # define font
 font_small = pygame.font.SysFont('Lucida Sans', 20)
@@ -178,15 +180,21 @@ while run:
             game_over = True
     
     else:
+        if fade_counter < SCREEN_WIDTH:
+            fade_counter += 5
+            for y in range(0, 6, 2):
+                pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, SCREEN_HEIGHT/6))
+                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, SCREEN_HEIGHT/6))
         draw_text("GAME OVER!", font_big, WHITE, 130, 200)
-        draw_text("SCORE: " + str(score), font_big, WHITE, 150, 250)
-        draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 40, 300)
+        draw_text("SCORE: " + str(score), font_big, WHITE, 130, 250)
+        draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 70, 300)
         key = pygame.key.get_pressed()
         if key[pygame.K_SPACE]:
             # reset variables:
             game_over = False
             score = 0
             scroll = 0
+            fade_counter = 0
             # reposition player
             jumpy.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-150)
             # reset platforms
