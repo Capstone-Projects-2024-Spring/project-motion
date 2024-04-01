@@ -23,42 +23,38 @@ class GetHands(Thread):
 
     def __init__(
         self,
-        render_hands,
         mediapipe_model="hand_landmarker.task",
-        mouse=None,
         flags=None,
-        keyboard=None,
     ):
         Thread.__init__(self)
 
         self.model_path = mediapipe_model
-        self.render_hands = render_hands
         self.confidence = 0.8
         self.stopped = False
-        self.mouse = mouse
 
         self.flags = flags
-        self.keyboard = keyboard
         self.console = GestureConsole()
-
         self.camera = Webcam()
 
         self.set_gesture_model(flags["gesture_model_path"])
-        
+
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
         self.gestures = ["no gesture"]
         self.delay = 0
+        self.result = None
 
         self.click = ""
-        self.mouse_location = []
+        self.location = []
+        self.velocity = []
+        self.num_hands_deteced = 0
 
         (self.grabbed, self.frame) = self.camera.read()
 
         self.timer = 0
 
         self.build_mediapipe_model(flags["number_of_hands"])
-        
+
     def set_gesture_model(self, path):
         self.gesture_model = NeuralNet(path)
 
@@ -86,22 +82,6 @@ class GetHands(Thread):
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
 
-    def move_mouse(self, location, button: str):
-        """Wrapper method to control the mouse
-
-        Args:
-            hands_location_on_screen (origins): The origins result from find_velocity_and_location()
-            mouse_button_text (str): Type of click
-        """
-        if callable(self.control_mouse):
-            if location != []:
-                # (0,0) is the top left corner
-                self.control_mouse(
-                    location[0][0],
-                    location[0][1],
-                    button,
-                )
-
     def results_callback(
         self,
         result: mp.tasks.vision.HandLandmarkerResult,
@@ -111,19 +91,19 @@ class GetHands(Thread):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
 
-            self.mouse_location = []
+            self.location = []
             self.click = ""
-            if len(result.hand_world_landmarks) == 0:
-
-                self.render_hands(
-                    result,
-                    None,
-                    None,
-                    None,
-                )
+            self.velocity = []
+            self.num_hands_deteced = len(result.hand_world_landmarks)
+            if self.num_hands_deteced == 0:
+                self.result = []
                 return
 
+            self.result = result
+
             location, velocity = self.gesture_model.find_velocity_and_location(result)
+            self.location = location
+            self.velocity = velocity
 
             if self.flags["run_model_flag"]:
 
@@ -150,31 +130,13 @@ class GetHands(Thread):
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
 
-                self.keyboard.gesture_input(self.confidence_vectors[0])
-
                 self.console.table(self.gesture_list, hand_confidences)
-
-            if self.flags["move_mouse_flag"] and location != []:
-                mouse_button_text = ""
-                hand = result.hand_world_landmarks[0]
-                if self.mouse.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
-                    mouse_button_text = "left"
-
-                self.click = mouse_button_text
-                self.mouse_location = location
 
             # timestamps are in microseconds so convert to ms
 
             current_time = time.time()
             self.delay = (current_time - self.timer) * 1000
             self.timer = current_time
-
-            self.render_hands(
-                result,
-                self.flags["render_hands_mode"],
-                location,
-                velocity,
-            )
 
         except Exception as e:
             traceback.print_exc()
