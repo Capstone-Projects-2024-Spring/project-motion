@@ -363,6 +363,25 @@ while run:
                       asteroids.clear()
                       alien_bullets.clear()
                       stars.clear()
+                      
+             elif event.key == pygame.K_p: 
+                 paused = True
+                 while paused:
+                     for pause_event in pygame.event.get():
+                         if pause_event.type == pygame.QUIT:
+                             pygame.quit()
+                             exit()  
+                         elif pause_event.type == pygame.KEYDOWN:  
+                              if pause_event.key == pygame.K_p:  
+                                  paused = False
+                              elif pause_event.key == pygame.K_q:  
+                                  pygame.quit()
+                                  exit()  #
+                
+                     pygame.time.wait(100)  
+             elif event.key == pygame.K_q:
+                 pygame.quit()
+                 exit()  
 
     redraw_window()
 pygame.quit()
