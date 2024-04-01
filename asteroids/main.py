@@ -153,6 +153,47 @@ class Star(object):
      def draw(self, window):
           window.blit(self.img, (self.x,self.y))
 
+class Alien(object):
+     def __init__(self):
+         self.img = alien
+         self.w = self.img.get_width()
+         self.h = self.img.get_height()
+         self.ran_point = random.choice([(random.randrange(0, SCREEN_WIDTH - self.w), random.choice([-1 * self.h - 5, SCREEN_HEIGHT + 5])),
+                                       (random.choice([-1 * self.w - 5, SCREEN_WIDTH + 5]), random.randrange(0, SCREEN_HEIGHT - self.h))])
+         self.x, self.y = self.ran_point
+         if self.x < SCREEN_WIDTH//2:
+               self.xdir = 1
+         else:
+               self.xdir = -1
+         if self.y < SCREEN_HEIGHT//2:
+               self.ydir = 1
+         else:
+               self.ydir = -1
+         self.xv = self.xdir * 2
+         
+         self.yv = self.ydir * 2
+     def draw(self, window):
+          window.blit(self.img, (self.x, self.y)) 
+class AlienBullet(object):
+     def __init__(self, x ,y):
+          self.x = x
+          self.y = y
+          self. w = 4
+          self.h = 4
+          self.dx, self.dy = player.x - self.x, player.y - self.y
+          self.dist = math.hypot(self.dx, self.dy)
+          self.dx, self.dy = self.dx/ self.dist, self.dy / self.dist
+          self.xv = self.dx * 5
+          self.yv = self.dy * 5
+     def draw(self,window):
+          pygame.draw.rect(window, (255,255,255), [self.x,self.y,self.w,self.h])     
+
+     
+
+
+
+
+
 
 def redraw_window():
         window.blit(bg,(0,0))
@@ -167,6 +208,11 @@ def redraw_window():
             b.draw(window)
         for s in stars:
              s.draw(window)
+        for a in aliens:
+             a.draw(window)
+        for b in alien_bullets:
+             b.draw(window)
+                       
         if rapid_fire:
             pygame.draw.rect(window, (0, 0, 0), [SCREEN_WIDTH//2 - 51, 19, 102, 22])
             pygame.draw.rect(window, (255, 255, 255), [SCREEN_WIDTH//2 - 50, 20, 100 - 100*(count - rapid_fire_start)/500, 20]) 
@@ -180,7 +226,10 @@ player = Player()
 player_bullets = []
 asteroids = []
 count = 0
-stars = [Star()]
+stars = []
+aliens = []
+alien_bullets = []
+
 # game loop
 while run:
     clock.tick(60)
@@ -191,6 +240,33 @@ while run:
               asteroids.append(Asteroid(ran))
          if count % 1000 == 0:
               stars.append(Star())
+         if count % 750 == 0:
+              aliens.append(Alien())
+         for i, a in enumerate(aliens):
+              a.x += a.xv
+              a.y += a.yv
+              if a.x > SCREEN_WIDTH + 150 or a.x + a.w < -100 or a.y > SCREEN_HEIGHT + 150 or a.y + a.h < -100:
+                  aliens.pop(i)
+              if count % 60 == 0:
+                   alien_bullets.append(AlienBullet(a.x + a.w//2, a.y + a.h//2))
+              for b in player_bullets:
+                  if (b.x >= a.x and b.x <= a.x + a.w) or b.x + b.w >= a.x and b.x + b.w <= a.x + a.w:
+                      if (b.y >= a.y and b.y <= a.y + a.h) or b.y + b.h >= a.y and b.y + b.h <= a.y + a.h:
+                           aliens.pop(i)
+                           score += 50
+         for i, b in enumerate(alien_bullets):
+              b.x += b.xv
+              b.y += b.yv 
+          
+              if (b.x >= player.x - player.width//2 and b.x <= player.x + player.width//2) or b.x + b.w >= player.x - player.width//2 and b.x + b.w <= player.x + player.width//2:
+                  if (b.y >= player.y-player.height//2 and b.y <= player.y + player.height//2) or b.y + b.h >= player.y - player.height//2 and b.y + b.h <= player.y + player.height//2:
+                       lives -= 1
+                       alien_bullets.pop(i)
+                       break
+
+
+                  
+                       
          player.update_location()
          for b in player_bullets:
               b.move()
@@ -203,11 +279,11 @@ while run:
               a.y += a.yv
 
 
-              if (player.x >= a.x and player.x <= a.x +a.w) or (player.x + player.width >= a.x and player.x + player.width <= a.x + a.w):
-                   if (player.y >= a.y and player.y <= a.y +a.h) or (player.y + player.height >= a.y and player.y + player.height <= a.y +a.h ):
-                       lives -= 1
-                       asteroids.pop(asteroids.index(a))
-                       break
+              if (a.x >= player.x - player.width//2 and a.x <= player.x + player.width//2) or (a.x + a.w <= player.x + player.width//2 and a.x + a.w >= player.x - player.width//2):
+                  if(a.y >= player.y - player.height//2 and a.y <= player.y + player.height//2) or (a.y  +a.h >= player.y - player.height//2 and a.y + a.h <= player.y + player.height//2):
+                     lives -= 1
+                     asteroids.pop(asteroids.index(a))
+                     break
 
                # breaking larger asteroids into smaller ones when shot at
               for b in player_bullets:
@@ -285,6 +361,8 @@ while run:
                       lives = 3
                       score = 0
                       asteroids.clear()
+                      alien_bullets.clear()
+                      stars.clear()
 
     redraw_window()
 pygame.quit()
