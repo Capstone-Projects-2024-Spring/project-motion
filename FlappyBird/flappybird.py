@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import random
 
+
 pygame.init()
 
 #fps variables
@@ -37,6 +38,35 @@ bg = pygame.image.load('FlappyBird/img/bg.png')
 ground_img = pygame.image.load('FlappyBird/img/ground.png')
 restart_button_img = pygame.image.load('FlappyBird/img/restart.png')
 exit_button_img = pygame.image.load('FlappyBird/img/exit.png')
+
+def getHighScore():
+    try:
+        # Open the text file in read mode
+        with open('FlappyBird/highscore.txt', 'r') as file:
+            # Read the first number from the file
+            high_score = int(file.readline())
+            return f"Highscore: {high_score}"
+    except FileNotFoundError:
+        return "Highscore: No high score recorded yet"
+
+def highscore_check(score):
+    try:
+        # Open the text file in read mode
+        with open('FlappyBird/highscore.txt', 'r') as file:
+            # Read the first number from the file
+            current_score = int(file.readline())
+    except FileNotFoundError:
+        # If the file doesn't exist, create it with the initial score
+        with open('FlappyBird/highscore.txt', 'w') as file:
+            file.write(str(score))
+        return
+
+    # Compare the current score with the new score
+    if score > current_score:
+        # If the new score is greater, update the score in the file
+        with open('FlappyBird/highscore.txt', 'w') as file:
+            file.write(str(score))
+        # print("New high score updated!")
 
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
@@ -184,7 +214,9 @@ while run:
                 pass_pipe = False
 
     
-    draw_text(str(score), font, white, int(screen_width/2), 20)
+    draw_text(getHighScore(), font, white, int(screen_width/2 - 100), 20)
+    draw_text(str(score), font, white, int(screen_width/2), 75)
+    
 
 
     # look for collition
@@ -218,6 +250,7 @@ while run:
     # check for game over and reset
     if game_over == True:
         # check high score and save it here
+        highscore_check(score)
 
         if restart_button.draw() == True:
             game_over = False
@@ -228,7 +261,7 @@ while run:
     if paused == True and game_over == False:
         if restart_button.draw() == True:
             # check high score and save it here
-            
+            highscore_check(score)
             score = reset_game()
             paused = False
         if exit_button.draw() == True:
