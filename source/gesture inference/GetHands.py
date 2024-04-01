@@ -33,12 +33,11 @@ class GetHands(Thread):
 
         self.model_path = mediapipe_model
         self.render_hands = render_hands
-        self.confidence = 0.5
+        self.confidence = 0.8
         self.stopped = False
         self.mouse = mouse
 
         self.flags = flags
-        self.click_sensitinity = flags["click_sense"]
         self.keyboard = keyboard
         self.console = GestureConsole()
 
@@ -79,7 +78,7 @@ class GetHands(Thread):
             num_hands=hands_num,
             min_hand_detection_confidence=self.confidence,
             min_hand_presence_confidence=self.confidence,
-            min_tracking_confidence=self.confidence,
+            min_tracking_confidence=0.5,
             running_mode=self.VisionRunningMode.LIVE_STREAM,
             result_callback=self.results_callback,
         )
@@ -150,6 +149,7 @@ class GetHands(Thread):
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
+
                 self.keyboard.gesture_input(self.confidence_vectors[0])
 
                 self.console.table(self.gesture_list, hand_confidences)
@@ -162,7 +162,6 @@ class GetHands(Thread):
 
                 self.click = mouse_button_text
                 self.mouse_location = location
-                # self.move_mouse(location, mouse_button_text)
 
             # timestamps are in microseconds so convert to ms
 

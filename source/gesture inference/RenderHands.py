@@ -15,6 +15,7 @@ class RenderHands:
         self.hand_scale = render_scale
         self.font = pygame.font.Font("freesansbold.ttf", 30)
         self.last_velocity = [(0.5, 0.5)]
+        self.thickness = 15
 
     def set_render_scale(self, scale:float):
         self.hand_scale = scale
@@ -85,7 +86,7 @@ class RenderHands:
             start (int): line start position
             end (int): line end position
         """
-        pygame.draw.line(self.surface, (255, 255, 255), start, end, 5)
+        pygame.draw.line(self.surface, (255, 255, 255), start, end, self.thickness)
 
     def render_hands(
         self, result, mode, origins, velocity
@@ -98,13 +99,13 @@ class RenderHands:
         if result.handedness != []:
             if mode:
                 hand_points = result.hand_world_landmarks
-                pygame.draw.circle(self.surface, (255, 0, 255), (0.5 * w, 0.5 * h), 5)
+                pygame.draw.circle(self.surface, (255, 0, 255), (0.5 * w, 0.5 * h), 10)
                 pygame.draw.line(
                     self.surface,
                     (255, 255, 0),
                     ((velocity[0][0] + 0.5) * w, (velocity[0][1] + 0.5) * h),
                     ((0.5) * w, (0.5) * h),
-                    3,
+                    10,
                 )
                 self.last_velocity = velocity
 
@@ -155,5 +156,5 @@ class RenderHands:
             x += 0.5
             y += 0.5
 
-        pygame.draw.circle(self.surface, color, (x * w, y * h), 5)
+        pygame.draw.circle(self.surface, color, (x * w, y * h), self.thickness//2)
 

@@ -13,6 +13,7 @@ from Mouse import Mouse
 from Keyboard import Keyboard
 import os
 from Console import GestureConsole
+import textwrap
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -24,13 +25,13 @@ font = pygame.font.Font("freesansbold.ttf", 30)
 clock = pygame.time.Clock()
 
 flags = {
-    "render_hands_mode": False,
+    "render_hands_mode": True,
     "gesture_vector": [],
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
     "gesture_model_path": "simple.pth",
-    "click_sense": 0.06,
+    "click_sense": 0.05,
     "hands": None,
 }
 
@@ -50,7 +51,7 @@ def main() -> None:
 
     myRenderHands = RenderHands(hands_surface, render_scale=3)
 
-    mouse = Mouse(mouse_sensitivity=2)
+    mouse = Mouse()
 
     keyboard = Keyboard(
         threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=toggle_mouse
@@ -72,7 +73,7 @@ def main() -> None:
     )
 
     menu.add.selector(
-        "Render Mode :", [("World", False), ("Normalized", True)], onchange=set_coords
+        "Render Mode :", [("Normalized", True),("World", False)], onchange=set_coords
     )
 
     def change_mouse_smooth(value, smooth):
@@ -106,19 +107,19 @@ def main() -> None:
 
     def set_click_sense(value, **kwargs):
         nonlocal hands
-        flags["click_sense"] = value / 100
-        hands.click_sensitinity = flags["click_sense"]
+        print(value)
+        flags["click_sense"] = value / 1000
 
-    menu.add.range_slider(
+    menu.add.range_slider( 
         "Click Sensitivity",
-        default=60,
-        range_values=(1, 100),
-        increment=0.01,
+        default=70,
+        range_values=(1, 150),
+        increment=1,
         onchange=set_click_sense,
     )
 
     def build_hands():
-        nonlocal hands
+        nonlocal hands 
         nonlocal mouse
         nonlocal keyboard
         hands.stop()
@@ -143,14 +144,14 @@ def main() -> None:
         hands_surface,
         menu,
         mouse,
+        keyboard,
     )
 
     pygame.quit()
 
 
 def find_files_with_ending(ending: str, directory_path=os.getcwd()):
-    """returns a list of tuples of the strings found
-    """
+    """returns a list of tuples of the strings found"""
     files = [(file,) for file in os.listdir(directory_path) if file.endswith(ending)]
     return files
 
@@ -181,7 +182,8 @@ def game_loop(
     hands: GetHands,
     hands_surface: pygame.Surface,
     menu: pygame_menu.Menu,
-    mouse_controls: Mouse,
+    mouse: Mouse,
+    keyboard: Keyboard
 ):
     """Runs the pygame event loop and renders surfaces
 
@@ -194,11 +196,16 @@ def game_loop(
     hands.start()
     running = True
     is_menu_showing = True
-    is_webcam_fullscreen = False
-
+    webcam_mode = 0
+    show_debug_text = True
     is_fullscreen = False
     counter = 0
     delay_AI = None
+    
+    wrapper = textwrap.TextWrapper(width=20)
+    instructions = "F1 to change webcam place. F2 to hide this text. F3 to change hand render mode. 'M' to toggle mouse control. 'G' to toggle gesture model." 
+    instructions = wrapper.wrap(text=instructions)
+    
     while running:
         counter += 1
 
@@ -228,17 +235,29 @@ def game_loop(
                         menu.enable()
 
                 if event.key == pygame.K_F1:
-                    is_webcam_fullscreen = not is_webcam_fullscreen
+                    webcam_mode += 1
+                    
+                if event.key == pygame.K_F2:
+                    show_debug_text = not show_debug_text
+                    
+                if event.key == pygame.K_F3:
+                    flags["render_hands_mode"] = not flags["render_hands_mode"]
 
                 if event.key == pygame.K_F11:
                     is_fullscreen = not is_fullscreen
                     pygame.display.toggle_fullscreen()
+                    
+                if event.key == pygame.K_m:
+                    keyboard.press('m')
+                    
+                if event.key == pygame.K_g:
+                    flags["run_model_flag"] = not flags["run_model_flag"]
 
         location = hands.mouse_location.copy()
-        if len(location) == 1:
+        if len(location) > 0:
             # console.print(location)
             location = location[0]
-            mouse_controls.control(location[0], location[1], hands.click)
+            mouse.control(location[0], location[1], hands.click)
 
         # frames per second
         fps = font.render(
@@ -253,37 +272,48 @@ def game_loop(
         hand_surface_copy = pygame.transform.scale(
             hands_surface.copy(), (img_width * 0.5, img_height * 0.5)
         )
-        img_pygame = pygame.transform.scale(
-            img_pygame, (img_width * 0.5, img_height * 0.5)
-        )
 
-        if is_webcam_fullscreen:
+        #fullscreen webcam
+        if webcam_mode%3==0:
             img_pygame = pygame.transform.scale(
                 img_pygame, (window_width, window_height)
             )
             hand_surface_copy = pygame.transform.scale(
                 hands_surface.copy(), (window_width, window_height)
             )
-
-        window.blit(img_pygame, (0, 0))
-
-        for index in range(len(hands.gestures)):
-            gesture_text = font.render(hands.gestures[index], False, (255, 255, 255))
-            window.blit(gesture_text, (window_width - window_width // 5, index * 40))
-            
-        if hands.delay != 0 and counter%60==0:
-            delay_AI = font.render(
-                "Webcam: "+str(round(1000/hands.delay, 1)) + "fps", False, (255, 255, 255)
+            window.blit(img_pygame, (0, 0))
+        #window
+        elif webcam_mode%3==1:
+            img_pygame = pygame.transform.scale(
+            img_pygame, (img_width * 0.5, img_height * 0.5)
             )
-        if delay_AI != None:    
-            window.blit(delay_AI, (0, 40))
-        window.blit(fps, (0, 0))
-        
+            window.blit(img_pygame, (0, 0))
+        #no webcam
+        elif webcam_mode%3==2:
+            pass
+
+        if show_debug_text:
+            for index in range(len(hands.gestures)):
+                gesture_text = font.render(hands.gestures[index], False, (255, 255, 255))
+                window.blit(gesture_text, (0, index * 40 + 80))
+
+            if hands.delay != 0 and counter % 60 == 0:
+                delay_AI = font.render(
+                    "Webcam: " + str(round(1000 / hands.delay, 1)) + "fps",
+                    False,
+                    (255, 255, 255),
+                )
+            if delay_AI != None:
+                window.blit(delay_AI, (0, 40))
+            window.blit(fps, (0, 0))
+            
+            for index, instruc in enumerate(instructions):
+                instructoins_text = font.render(instruc, False, (255, 255, 255))
+                window.blit(instructoins_text, (0, 400+index * 40))
 
         if menu.is_enabled():
-            menu.update(events)
+            menu.update(events) 
             menu.draw(window)
-
         window.blit(hand_surface_copy, (0, 0))
 
         clock.tick(pygame.display.get_current_refresh_rate())

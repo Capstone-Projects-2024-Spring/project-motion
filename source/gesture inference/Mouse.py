@@ -7,9 +7,13 @@ import math
 class Mouse:
     def __init__(
         self,
-        mouse_sensitivity=2,
+        mouse_sensitivity=1,
         click_threshold_time=0.22,
         drag_threshold_time=0.2,
+        x_scale=1.3,
+        y_scale=1.5,
+        alpha=0.15,
+        deadzone=15,
     ) -> None:
         """Initialization of Mouse class.
 
@@ -29,7 +33,11 @@ class Mouse:
 
         pyautogui.FAILSAFE = False
         pyautogui.PAUSE = 0
-        self.mouse_sensitivity = mouse_sensitivity
+        self.mouse_sensitivity = float(mouse_sensitivity)
+        self.x_scale = float(x_scale)
+        self.y_scale = float(y_scale)
+        self.deadzone = deadzone
+
         self.click_threshold_time = click_threshold_time
         self.drag_threshold_time = drag_threshold_time
         self.left_down = False
@@ -42,7 +50,7 @@ class Mouse:
         self.x_window = []
         self.y_window = []
         self.window_size = 12
-        self.alpha = 0.2
+        self.alpha = alpha
 
     def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
@@ -53,13 +61,26 @@ class Mouse:
             mouse_button (string): can be "", "left", "middle", or "right"
         """
         x = int(
-            ((self.mouse_sensitivity) * x - (self.mouse_sensitivity - 1) / 2)
+            (
+                (self.x_scale * self.mouse_sensitivity) * x
+                - (self.x_scale * self.mouse_sensitivity - 1) / 2
+            )
             * pyautogui.size().width
         )
         y = int(
-            ((self.mouse_sensitivity) * y - (self.mouse_sensitivity - 1.5) / 1.5)
+            (
+                (self.y_scale * self.mouse_sensitivity) * y
+                - (self.y_scale * self.mouse_sensitivity - 1) / 2
+            )
             * pyautogui.size().height
         )
+
+        # Check if the movement is smaller than the specified radius
+        last_x, last_y = pyautogui.position()
+        distance = math.sqrt((x - last_x) ** 2 + (y - last_y) ** 2)
+
+        # Specify the radius distance (you can adjust this value)
+        ignore_small_movement = distance <= self.deadzone
 
         self.x_window.append(x)
         self.y_window.append(y)
@@ -81,7 +102,8 @@ class Mouse:
                 if self.right_down:
                     pyautogui.mouseUp(button="right", _pause=False)
                     self.right_down = False
-                self.move(x, y)
+                if not ignore_small_movement:
+                    self.move(x, y)
             else:
                 # click or click and drag
                 self.click(
