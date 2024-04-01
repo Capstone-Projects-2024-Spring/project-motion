@@ -25,6 +25,8 @@ clock = pygame.time.Clock()
 game_over = False
 lives = 3
 score = 0
+rapid_fire = False
+rapid_fire_start = -1
 
 class Player(object):
      def __init__(self):
@@ -131,6 +133,26 @@ class Asteroid(object):
      def draw(self, window):
           window.blit(self.image, (self.x, self.y))                      
 
+class Star(object):
+     def __init__(self):
+          self.img = star
+          self.w = self.img.get_width()
+          self.h = self.img.get_height()
+          self.ran_point = random.choice([(random.randrange(0, SCREEN_WIDTH-self.w), random.choice([-1*self.h - 5, SCREEN_HEIGHT + 5])), (random.choice([-1*self.w - 5, SCREEN_WIDTH + 5]), random.randrange(0, SCREEN_HEIGHT - self.h))])
+          self. x, self.y = self.ran_point
+          if self.x < SCREEN_WIDTH//2:
+               self.xdir = 1
+          else:
+               self.xdir = -1
+          if self.y < SCREEN_HEIGHT//2:
+               self.ydir = 1
+          else:
+               self.ydir = -1
+          self.xv = self.xdir * 2
+          self.yv = self.ydir * 2
+     def draw(self, window):
+          window.blit(self.img, (self.x,self.y))
+
 
 def redraw_window():
         window.blit(bg,(0,0))
@@ -143,6 +165,11 @@ def redraw_window():
              a.draw(window)
         for b in player_bullets:
             b.draw(window)
+        for s in stars:
+             s.draw(window)
+        if rapid_fire:
+            pygame.draw.rect(window, (0, 0, 0), [SCREEN_WIDTH//2 - 51, 19, 102, 22])
+            pygame.draw.rect(window, (255, 255, 255), [SCREEN_WIDTH//2 - 50, 20, 100 - 100*(count - rapid_fire_start)/500, 20]) 
         if game_over:
             window.blit(playe_again_text,(SCREEN_WIDTH//2-playe_again_text.get_width()//2, SCREEN_HEIGHT//2 - playe_again_text.get_height()//2))
         window.blit(score_text,(SCREEN_WIDTH-score_text.get_width()-25,25))
@@ -153,6 +180,7 @@ player = Player()
 player_bullets = []
 asteroids = []
 count = 0
+stars = [Star()]
 # game loop
 while run:
     clock.tick(60)
@@ -161,6 +189,8 @@ while run:
          if count%50 == 0:
               ran = random.choice([1,1,1,2,2,3])
               asteroids.append(Asteroid(ran))
+         if count % 1000 == 0:
+              stars.append(Star())
          player.update_location()
          for b in player_bullets:
               b.move()
@@ -207,9 +237,29 @@ while run:
                                 score += 30     
                            asteroids.pop(asteroids.index(a))
                            player_bullets.pop(player_bullets.index(b))
-
+                           break
+         for s in stars:
+              s.x += s.xv 
+              s.y += s.yv
+              if s.x < -100 or s.x > SCREEN_WIDTH + 100 or s.y > SCREEN_HEIGHT + 100 or s.y < -100 - SCREEN_HEIGHT:
+                   stars.pop(stars.index(s))
+                   break
+              for b in player_bullets:
+                  if (b.x >= s.x and b.x <= s.x + s.w) or b.x + b.w >= s.x and b.x + b.w <= s.x + s.w:
+                      if (b.y >= s.y and b.y <= s.y + s.h) or b.y + b.h >= s.y and b.y + b.h <= s.y + s.h:
+                           rapid_fire = True
+                           rapid_fire_start = count
+                           stars.pop(stars.index(s))
+                           player_bullets.pop(player_bullets.index(b))
+                           break
+                   
          if lives <= 0:
-              game_over = True                  
+              game_over = True
+         if rapid_fire_start != -1:
+              if count - rapid_fire_start > 500:
+                   rapid_fire = False
+                   rapid_fire_start = -1
+                                    
 
          keys = pygame.key.get_pressed()
          if keys[pygame.K_LEFT]:
@@ -218,6 +268,9 @@ while run:
               player.turn_right()
          if keys[pygame.K_UP]:  
               player.move_forward()
+         if keys[pygame.K_SPACE]:
+              if rapid_fire:
+                   player_bullets.append(Bullet())     
                     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -225,7 +278,8 @@ while run:
         if event.type == pygame.KEYDOWN:
              if event.key == pygame.K_SPACE:
                  if not game_over: 
-                     player_bullets.append(Bullet()) 
+                     if not rapid_fire:          
+                         player_bullets.append(Bullet()) 
                  else:
                       game_over = False
                       lives = 3
