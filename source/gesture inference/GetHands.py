@@ -92,11 +92,13 @@ class GetHands(Thread):
         try:
 
             self.location = []
-            self.click = ""
+            self.click = "" 
             self.velocity = []
             self.num_hands_deteced = len(result.hand_world_landmarks)
             if self.num_hands_deteced == 0:
                 self.result = []
+                self.confidence_vectors=[]
+                self.console.table(self.gesture_list, self.confidence_vectors) #clear table
                 return
 
             self.result = result
@@ -130,7 +132,7 @@ class GetHands(Thread):
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
 
-                self.console.table(self.gesture_list, hand_confidences)
+            self.console.table(self.gesture_list, self.confidence_vectors)
 
             # timestamps are in microseconds so convert to ms
 

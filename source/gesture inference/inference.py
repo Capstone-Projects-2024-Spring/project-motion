@@ -113,8 +113,6 @@ def main() -> None:
 
     def build_hands():
         nonlocal hands
-        nonlocal mouse
-        nonlocal keyboard
         hands.stop()
         hands.join()
         hands = GetHands(
@@ -195,9 +193,17 @@ def game_loop(
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
 
+
         window_width, window_height = pygame.display.get_surface().get_size()
 
         window.fill((0, 0, 0))
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            console.table(["key pressed"], [["space"]], table_number=1)
+        else:
+            console.table(["key pressed"], [[""]], table_number=1)
+
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
@@ -232,7 +238,7 @@ def game_loop(
 
                 if event.key == pygame.K_m:
                     keyboard.press("m")
-
+       
                 if event.key == pygame.K_g:
                     flags["run_model_flag"] = not flags["run_model_flag"]
 
@@ -249,6 +255,8 @@ def game_loop(
         if flags["run_model_flag"] and len(hands.confidence_vectors) > 0:
             # send only the first hand confidence vector the gesture model output
             keyboard.gesture_input(hands.confidence_vectors[0])
+        else:
+            keyboard.release()
 
         # frames per second
         fps = font.render(
