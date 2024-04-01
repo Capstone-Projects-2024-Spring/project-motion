@@ -2,9 +2,17 @@ import pyautogui
 import time
 from Console import GestureConsole
 import numpy as np
+
+
 class Keyboard:
     def __init__(
-        self, threshold=0.0, toggle_key_threshold=0.15, toggle_key_toggle_time=1, toggle_mouse_func=None, flags=None, toggle_key=''
+        self,
+        threshold=0.0,
+        toggle_key_threshold=0.15,
+        toggle_key_toggle_time=1,
+        toggle_mouse_func=None,
+        flags=None,
+        toggle_key="",
     ) -> None:
         """_summary_
 
@@ -24,15 +32,18 @@ class Keyboard:
         self.last_time_toggle_key = time.time()
         self.last_key = ""
         self.toggle_key_pressed = False
-        self.key_presed = False
+        self.key_pressed = False
         self.toggle_mouse_func = toggle_mouse_func
         self.toggle_key_toggle_time = toggle_key_toggle_time
         self.console = GestureConsole()
         self.flags = flags
         self.toggle_key = toggle_key
 
-    def gesture_input(self, confidences):
+    def release(self):
+        if self.key_pressed == True:
+            pyautogui.keyUp(self.last_key)
 
+    def gesture_input(self, confidences):
         max_value = np.max(confidences)
         max_index = np.argmax(confidences)
         if max_index == 0:
@@ -50,6 +61,7 @@ class Keyboard:
             self.toggle_key_pressed = False
             self.last_key = key
             if key == "none":
+                pyautogui.keyUp(self.last_key)  # Release the last key
                 return
             if key == self.toggle_key:
                 self.last_time_toggle_key = current_time
@@ -61,10 +73,13 @@ class Keyboard:
         elif current_time - self.last_time > self.threshold and not self.key_pressed:
             self.key_pressed = True
             self.console.print(f"pressing key: {key}")
-            pyautogui.press(key, _pause=False)
+            pyautogui.keyDown(key)
 
     def handle_toggle_key(self, current_time):
-        if not self.toggle_key_pressed or current_time - self.last_time_toggle_key > self.toggle_key_toggle_time:
+        if (
+            not self.toggle_key_pressed
+            or current_time - self.last_time_toggle_key > self.toggle_key_toggle_time
+        ):
             if current_time - self.last_time_toggle_key > self.toggle_key_threshold:
                 if self.toggle_mouse_func is not None:
                     self.toggle_mouse_func()
