@@ -2,7 +2,6 @@ import pygame
 from pygame.locals import *
 import random
 
-
 pygame.init()
 
 #fps variables
@@ -32,12 +31,14 @@ pipe_frequency = 1500 # milliseconds
 last_pipe = pygame.time.get_ticks() - pipe_frequency
 score = 0
 pass_pipe = False
+started = False
 
 #load image
 bg = pygame.image.load('FlappyBird/img/bg.png')
 ground_img = pygame.image.load('FlappyBird/img/ground.png')
 restart_button_img = pygame.image.load('FlappyBird/img/restart.png')
 exit_button_img = pygame.image.load('FlappyBird/img/exit.png')
+start_img = pygame.image.load('FlappyBird/img/start.png')
 
 def getHighScore():
     try:
@@ -171,7 +172,16 @@ class Button():
         screen.blit(self.image, (self.rect.x, self.rect.y))
 
         return action
+    
+class Show():
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
+    def draw(self):
+        #draw button
+        screen.blit(self.image, (self.rect.x, self.rect.y))
 
 bird_group = pygame.sprite.Group()
 pipe_group = pygame.sprite.Group()
@@ -182,6 +192,7 @@ bird_group.add(flappy)
 #create restart button instance
 restart_button = Button(screen_width // 2 - 50, screen_height // 2 - 125, restart_button_img)
 exit_button = Button(screen_width // 2 - 50, screen_height // 2 - 50, exit_button_img)
+start_image = Show((screen_width // 2 - start_img.get_width() // 2), (screen_height // 2 - start_img.get_height() // 2), start_img)
 
 run = True
 while run:
@@ -217,6 +228,8 @@ while run:
     draw_text(getHighScore(), font, white, int(screen_width/2 - 100), 20)
     draw_text(str(score), font, white, int(screen_width/2), 75)
     
+    if started == False and game_over == False and flying == False:
+        start_image.draw()
 
 
     # look for collition
@@ -272,6 +285,7 @@ while run:
             run = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and flying == False and game_over == False:
             flying = True
+            started = True
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_p:
                 paused = not paused
