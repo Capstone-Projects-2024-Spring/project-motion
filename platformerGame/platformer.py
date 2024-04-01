@@ -1,5 +1,6 @@
 import pygame
 import random
+import os
 
 # initialize pygame
 pygame.init()
@@ -26,14 +27,21 @@ game_over = False
 score = 0
 fade_counter = 0
 
+if os.path.exists('platformerGame/score.txt'):
+    with open('platformerGame/score.txt', 'r') as file:
+        high_score = int(file.read())
+else:
+    high_score = 0
+
 
 # define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+PANEL = (153, 217, 234)
 
 # define font
-font_small = pygame.font.SysFont('Lucida Sans', 20)
-font_big = pygame.font.SysFont('Lucida Sans', 24)
+font_small = pygame.font.Font('platformerGame/Catfiles.ttf', 24)
+font_big = pygame.font.Font('platformerGame/Catfiles.ttf', 30)
 
 # load images
 bg_image = pygame.image.load('platformerGame/assets/bg.png').convert_alpha()
@@ -45,6 +53,11 @@ def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x,y))
 
+# function for drawing info panel
+def draw_panel():
+    pygame.draw.rect(screen, PANEL, (0,0, SCREEN_WIDTH, 30))
+    pygame.draw.line(screen, BLACK, (0, 30), (SCREEN_WIDTH, 30), 2)
+    draw_text('SCORE: ' + str(score), font_small, BLACK, 0, 0)
 
 # function for drawing the background
 def draw_bg(bg_scroll):
@@ -113,7 +126,7 @@ class Player():
 
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x - 12, self.rect.y - 5))
-        pygame.draw.rect(screen, WHITE, self.rect, 2)
+        # pygame.draw.rect(screen, WHITE, self.rect, 2)
 
 # platform class
 class Platform(pygame.sprite.Sprite):
@@ -171,9 +184,19 @@ while run:
         # update platforms
         platform_group.update(scroll)
 
+        # update score
+        if scroll > 0:
+            score += scroll
+        
+        # draw line at previous high score
+        pygame.draw.line(screen, BLACK, (0, score-high_score + SCROLL_THRESH), (SCREEN_WIDTH, score-high_score + SCROLL_THRESH), 3)
+        draw_text('HIGH SCORE', font_small, BLACK, SCREEN_WIDTH-130, score-high_score + SCROLL_THRESH)
         # draw characters
         platform_group.draw(screen)
         jumpy.draw()
+
+        # draw panel
+        draw_panel()
 
         # check game over
         if jumpy.rect.top > SCREEN_HEIGHT:
@@ -185,27 +208,38 @@ while run:
             for y in range(0, 6, 2):
                 pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, SCREEN_HEIGHT/6))
                 pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, SCREEN_HEIGHT/6))
-        draw_text("GAME OVER!", font_big, WHITE, 130, 200)
-        draw_text("SCORE: " + str(score), font_big, WHITE, 130, 250)
-        draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 70, 300)
-        key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE]:
-            # reset variables:
-            game_over = False
-            score = 0
-            scroll = 0
-            fade_counter = 0
-            # reposition player
-            jumpy.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-150)
-            # reset platforms
-            platform_group.empty()
-            # recreate starting platform 
-            platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100)
-            platform_group.add(platform)
+        else:
+            draw_text("GAME OVER!", font_big, WHITE, 100, 200)
+            draw_text("SCORE: " + str(score), font_big, WHITE, 125, 250)
+            draw_text('PRESS SPACE', font_big, WHITE, 100, 300)
+            draw_text('TO PLAY AGAIN', font_big, WHITE, 80, 350)
+            # update high score
+            if score > high_score:
+                high_score = score
+                with open('platformerGame/score.txt', 'w') as file:
+                    file.write(str(high_score))
+            key = pygame.key.get_pressed()
+            if key[pygame.K_SPACE]:
+                # reset variables:
+                game_over = False
+                score = 0
+                scroll = 0
+                fade_counter = 0
+                # reposition player
+                jumpy.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-150)
+                # reset platforms
+                platform_group.empty()
+                # recreate starting platform 
+                platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100)
+                platform_group.add(platform)
 
     # event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            if score > high_score:
+                high_score = score
+                with open('platformerGame/score.txt', 'w') as file:
+                    file.write(str(high_score))
             run = False
 
 
