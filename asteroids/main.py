@@ -2,7 +2,7 @@ import math
 import random
 import pygame
 
-#pygame.init()
+pygame.init()
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
@@ -23,6 +23,8 @@ window = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 run = True
 clock = pygame.time.Clock()
 game_over = False
+lives = 3
+score = 0
 
 class Player(object):
      def __init__(self):
@@ -132,12 +134,19 @@ class Asteroid(object):
 
 def redraw_window():
         window.blit(bg,(0,0))
+        font = pygame.font.SysFont('arial',20)
+        livesText = font.render('Lives: ' + str(lives),1,(255,255,255))
+        playe_again_text = font.render('Press the Space Bar to Player Again!', 1, (255,255,255))
+        score_text = font.render('Score: ' + str(score),1,(255,255,255))
         player.draw(window)
         for a in asteroids:
              a.draw(window)
         for b in player_bullets:
             b.draw(window)
-
+        if game_over:
+            window.blit(playe_again_text,(SCREEN_WIDTH//2-playe_again_text.get_width()//2, SCREEN_HEIGHT//2 - playe_again_text.get_height()//2))
+        window.blit(score_text,(SCREEN_WIDTH-score_text.get_width()-25,25))
+        window.blit(livesText,(25,25))
         pygame.display.update()
 
 player = Player()
@@ -162,11 +171,20 @@ while run:
          for a in asteroids:
               a.x += a.xv
               a.y += a.yv
+
+
+              if (player.x >= a.x and player.x <= a.x +a.w) or (player.x + player.width >= a.x and player.x + player.width <= a.x + a.w):
+                   if (player.y >= a.y and player.y <= a.y +a.h) or (player.y + player.height >= a.y and player.y + player.height <= a.y +a.h ):
+                       lives -= 1
+                       asteroids.pop(asteroids.index(a))
+                       break
+
                # breaking larger asteroids into smaller ones when shot at
               for b in player_bullets:
                   if (b.x >= a.x and b.x <= a.x + a.w) or b.x + b.w >= a.x and b.x + b.w <= a.x + a.w:
                       if (b.y >= a.y and b.y <= a.y + a.h) or b.y + b.h >= a.y and b.y + b.h <= a.y + a.h:
                            if a.rank ==3:
+                                score += 10
                                 na1 = Asteroid(2)
                                 na2 = Asteroid(2)
                                 na1.x = a.x
@@ -176,6 +194,7 @@ while run:
                                 asteroids.append(na1)
                                 asteroids.append(na2)
                            elif a.rank ==2:
+                                score +=20
                                 na1 = Asteroid(1)
                                 na2 = Asteroid(1)
                                 na1.x = a.x
@@ -184,9 +203,13 @@ while run:
                                 na2.y = a.y 
                                 asteroids.append(na1)
                                 asteroids.append(na2)
+                           else:
+                                score += 30     
                            asteroids.pop(asteroids.index(a))
                            player_bullets.pop(player_bullets.index(b))
-                           
+
+         if lives <= 0:
+              game_over = True                  
 
          keys = pygame.key.get_pressed()
          if keys[pygame.K_LEFT]:
@@ -202,6 +225,12 @@ while run:
         if event.type == pygame.KEYDOWN:
              if event.key == pygame.K_SPACE:
                  if not game_over: 
-                     player_bullets.append(Bullet())   
+                     player_bullets.append(Bullet()) 
+                 else:
+                      game_over = False
+                      lives = 3
+                      score = 0
+                      asteroids.clear()
+
     redraw_window()
 pygame.quit()
