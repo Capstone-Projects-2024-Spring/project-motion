@@ -101,7 +101,6 @@ def main() -> None:
 
     def set_click_sense(value, **kwargs):
         nonlocal hands
-        print(value)
         flags["click_sense"] = value / 1000
 
     menu.add.range_slider(
@@ -248,8 +247,7 @@ def game_loop(
             mouse.control(location[0], location[1], mouse_button_text)
 
         if flags["run_model_flag"] and len(hands.confidence_vectors) > 0:
-            console.print(hands.confidence_vectors)
-            #send only the first hand confidence vector the gesture model output
+            # send only the first hand confidence vector the gesture model output
             keyboard.gesture_input(hands.confidence_vectors[0])
 
         # frames per second
@@ -289,8 +287,8 @@ def game_loop(
         elif webcam_mode % 3 == 2:
             pass
         # use this again for putting hands in the corners
-        img_width = img_pygame.get_width()
-        img_height = img_pygame.get_height()
+        img_width = hand_surfaces[0].get_width()
+        img_height = hand_surfaces[0].get_height()
 
         if hands.location != []:
             for index in range(hands.num_hands_deteced):

@@ -29,7 +29,7 @@ class GetHands(Thread):
         Thread.__init__(self)
 
         self.model_path = mediapipe_model
-        self.confidence = 0.8
+        self.confidence = 0.5
         self.stopped = False
 
         self.flags = flags
@@ -74,7 +74,7 @@ class GetHands(Thread):
             num_hands=hands_num,
             min_hand_detection_confidence=self.confidence,
             min_hand_presence_confidence=self.confidence,
-            min_tracking_confidence=0.5,
+            min_tracking_confidence=self.confidence,
             running_mode=self.VisionRunningMode.LIVE_STREAM,
             result_callback=self.results_callback,
         )
