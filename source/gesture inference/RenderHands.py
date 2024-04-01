@@ -14,7 +14,7 @@ class RenderHands:
         self.hand_scale = render_scale
         self.font = pygame.font.Font("freesansbold.ttf", 30)
         self.last_velocity = [(0.5, 0.5)]
-        self.thickness = 15
+        self.thickness = 20
         self.colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (255, 255, 255)]
 
     def set_render_scale(self, scale: float):

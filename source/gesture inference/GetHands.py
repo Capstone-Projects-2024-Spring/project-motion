@@ -47,7 +47,7 @@ class GetHands(Thread):
         self.click = ""
         self.location = []
         self.velocity = []
-        self.num_hands_deteced = 0
+        self.num_hands_detected = 0
 
         (self.grabbed, self.frame) = self.camera.read()
 
@@ -94,8 +94,8 @@ class GetHands(Thread):
             self.location = []
             self.click = "" 
             self.velocity = []
-            self.num_hands_deteced = len(result.hand_world_landmarks)
-            if self.num_hands_deteced == 0:
+            self.num_hands_detected = len(result.hand_world_landmarks)
+            if self.num_hands_detected == 0:
                 self.result = []
                 self.confidence_vectors=[]
                 self.console.table(self.gesture_list, self.confidence_vectors) #clear table
