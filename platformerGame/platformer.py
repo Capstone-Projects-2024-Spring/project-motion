@@ -130,14 +130,30 @@ class Player():
 
 # platform class
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, x, y, width):
+    def __init__(self, x, y, width, moving):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.transform.scale(platform_image, (width, 10))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.moving = moving
+        self.move_counter = random.randint(0, 50)
+        self.direction = random.choice([-1,1])
+        self.speed = random.randint(1,2)
     
     def update(self, scroll):
+        # move moving platforms side to side
+        if self.moving == True:
+            self.move_counter += 1
+            self.rect.x += self.direction * self.speed
+            
+
+
+        # change platform direction if it has moved fully
+        if self.move_counter >= 100 or self.rect.left < 0 or self.rect.right > SCREEN_WIDTH:
+            self.direction *= -1
+            self.move_counter = 0
+
         # update platforms vertical position
         self.rect.y += scroll
 
@@ -153,7 +169,7 @@ jumpy = Player(SCREEN_WIDTH//2, SCREEN_HEIGHT - 150)
 platform_group = pygame.sprite.Group()
 
 # create starting platform
-platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100)
+platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
 platform_group.add(platform)
 
 # game loop
@@ -177,7 +193,12 @@ while run:
             p_w = random.randint(50,70)
             p_x =  random.randint(0, SCREEN_WIDTH - p_w)
             p_y = platform.rect.y - random.randint(80, 120)
-            platform = Platform(p_x, p_y, p_w)
+            p_type = random.randint(1,2)
+            if p_type == 1 and score > 1000:
+                p_moving = True
+            else:
+                p_moving = False
+            platform = Platform(p_x, p_y, p_w, p_moving)
             platform_group.add(platform)
 
 
@@ -190,7 +211,7 @@ while run:
         
         # draw line at previous high score
         pygame.draw.line(screen, BLACK, (0, score-high_score + SCROLL_THRESH), (SCREEN_WIDTH, score-high_score + SCROLL_THRESH), 3)
-        draw_text('HIGH SCORE', font_small, BLACK, SCREEN_WIDTH-130, score-high_score + SCROLL_THRESH)
+        draw_text('HIGH SCORE', font_small, BLACK, SCREEN_WIDTH-200, score-high_score + SCROLL_THRESH)
         # draw characters
         platform_group.draw(screen)
         jumpy.draw()
@@ -210,8 +231,8 @@ while run:
                 pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, SCREEN_HEIGHT/6))
         else:
             draw_text("GAME OVER!", font_big, WHITE, 100, 200)
-            draw_text("SCORE: " + str(score), font_big, WHITE, 125, 250)
-            draw_text('PRESS SPACE', font_big, WHITE, 100, 300)
+            draw_text("SCORE: " + str(score), font_big, WHITE, 115, 250)
+            draw_text('PRESS SPACE', font_big, WHITE, 95, 300)
             draw_text('TO PLAY AGAIN', font_big, WHITE, 80, 350)
             # update high score
             if score > high_score:
@@ -230,7 +251,7 @@ while run:
                 # reset platforms
                 platform_group.empty()
                 # recreate starting platform 
-                platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100)
+                platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
                 platform_group.add(platform)
 
     # event handler
