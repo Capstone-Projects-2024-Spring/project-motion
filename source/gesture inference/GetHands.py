@@ -22,7 +22,7 @@ class GetHands(Thread):
 
     def __init__(
         self,
-        mediapipe_model="hand_landmarker.task",
+        mediapipe_model="models\hand_landmarker.task",
         flags=None,
     ):
         Thread.__init__(self)

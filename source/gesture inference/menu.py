@@ -11,6 +11,7 @@ class Menu:
             theme=pygame_menu.themes.THEME_BLUE,
         )
         self.flags = flags
+        self.models_folder = "models/"
         self.setup_menu()
 
     def setup_menu(self):
@@ -27,7 +28,7 @@ class Menu:
             "Number of hands :", ["1", "2", "3", "4"], onchange=self.change_hands_num
         )
 
-        models = self.find_files_with_ending(".pth")
+        models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
         self.menu.add.dropselect("Use Gesture Model :", models, onchange=self.change_gesture_model)
 
         self.menu.add.range_slider(
@@ -72,7 +73,7 @@ class Menu:
         self.flags["hands"].start()
 
     def change_gesture_model(self, value):
-        self.flags["gesture_model_path"] = value[0][0]  # tuple within a list for some reason
+        self.flags["gesture_model_path"] = self.models_folder + value[0][0]  # tuple within a list for some reason
         self.flags["hands"].stop()
         self.flags["hands"].join()
         self.flags["hands"] = GetHands(flags=self.flags)
