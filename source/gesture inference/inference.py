@@ -12,6 +12,8 @@ import os
 from Console import GestureConsole
 from menu import Menu
 from Renderer import Renderer
+from FlappyBird import flappybird
+from EventHandler import GestureEventHandler
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -31,21 +33,23 @@ flags = {
     "gesture_model_path": "simple.pth",
     "click_sense": 0.05,
     "hands": None,
+    "running": True,
 }
 
 console = GestureConsole()
+
 
 def main() -> None:
     window_width = 1200
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
-    
+
     mouse = Mouse()
     hands = GetHands(flags=flags)
     flags["mouse"] = mouse
     flags["hands"] = hands
-    
+
     menu = Menu(window_width, window_height, flags)
     keyboard = Keyboard(
         threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=menu.toggle_mouse
@@ -54,6 +58,7 @@ def main() -> None:
     game_loop(window, hands, menu, mouse, keyboard)
 
     pygame.quit()
+
 
 def game_loop(
     window: pygame.display,
@@ -64,79 +69,29 @@ def game_loop(
 ):
     """Runs the pygame event loop and renders surfaces"""
     hands.start()
-    running = True
-    is_menu_showing = True
-    webcam_mode = 1
-    show_debug_text = True
-    is_fullscreen = False
     window_width, window_height = pygame.display.get_surface().get_size()
-    menu_pygame = menu.menu
     renderer = Renderer(font, window, flags)
+    menu_pygame = menu.menu
 
-    while running:
+    flappy_surface = pygame.Surface((window_width, window_height))
+    flappy_game = flappybird.FlappyBirdGame(flappy_surface, window_width, window_height)
+    primitives = flappy_game.primitives
 
+    event_handler = GestureEventHandler(hands, menu, mouse, keyboard, flags)
+
+    while flags["running"]:
         # changing GetHands parameters creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
 
-
         window_width, window_height = pygame.display.get_surface().get_size()
-
         window.fill((0, 0, 0))
 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            console.table(["key pressed"], [["space"]], table_number=1)
-        else:
-            console.table(["key pressed"], [[""]], table_number=1)
+
+        print_keyboard_table(pygame.key.get_pressed())
 
         events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                hands.stop()
-                hands.join()
-                running = False
-            if event.type == pygame.KEYDOWN:
-
-                if event.key == pygame.K_m:
-                    menu.toggle_mouse()
-
-                if event.key == pygame.K_ESCAPE:
-                    if is_menu_showing:
-                        is_menu_showing = False
-                        menu_pygame.disable()
-                    else:
-                        is_menu_showing = True
-                        menu_pygame.enable()
-
-                if event.key == pygame.K_F1:
-                    webcam_mode += 1
-
-                if event.key == pygame.K_F2:
-                    show_debug_text = not show_debug_text
-
-                if event.key == pygame.K_F3:
-                    flags["render_hands_mode"] = not flags["render_hands_mode"]
-
-                if event.key == pygame.K_F11:
-                    is_fullscreen = not is_fullscreen
-                    pygame.display.toggle_fullscreen()
-
-                if event.key == pygame.K_m:
-                    keyboard.press("m")
-       
-                if event.key == pygame.K_g:
-                    flags["run_model_flag"] = not flags["run_model_flag"]
-
-        location = hands.location.copy()
-
-        if flags["move_mouse_flag"] and location != []:
-            mouse_button_text = ""
-            hand = hands.result.hand_world_landmarks[0]
-            if mouse.is_clicking(hand[8], hand[4], flags["click_sense"]):
-                mouse_button_text = "left"
-            location = location[0]
-            mouse.control(location[0], location[1], mouse_button_text)
+        event_handler.handle_events(events, window, renderer, clock, font)
 
         if flags["run_model_flag"] and len(hands.confidence_vectors) > 0:
             # send only the first hand confidence vector the gesture model output
@@ -144,23 +99,51 @@ def game_loop(
         else:
             keyboard.release()
 
-        # frames per second
+        if flags["move_mouse_flag"] and hands.location != []:
+            event_handler.handle_mouse_control()
+
         fps = font.render(
             str(round(clock.get_fps(), 1)) + "fps", False, (255, 255, 255)
         )
-
+        
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                flags["running"] = False
+            if (
+                event.type == pygame.KEYDOWN
+                and event.key == pygame.K_SPACE
+                and primitives["is flying"] == False
+                and primitives["is game over"] == False
+            ):
+                primitives["is flying"] = True
+                primitives["is started"] = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    primitives["is paused"] = not primitives["is paused"]
+                    
+        window.blit(flappy_game.surface, (0, 0))
+        flappy_game.tick()
+        
         frame = hands.frame.copy()
-        renderer.render_webcam(frame, webcam_mode)
+        renderer.render_webcam(frame, event_handler.webcam_mode)
         renderer.render_hands(hands)
-        renderer.render_debug_text(show_debug_text,hands,fps)
+        renderer.render_debug_text(event_handler.show_debug_text, hands, fps)
 
         if menu_pygame.is_enabled():
             menu_pygame.update(events)
             menu_pygame.draw(window)
 
-        # clock.tick(pygame.display.get_current_refresh_rate())
+        
         clock.tick(60)
         pygame.display.update()
+
+
+def print_keyboard_table(keys):
+    if keys[pygame.K_SPACE]:
+        console.table(["key pressed"], [["space"]], table_number=1)
+    else:
+        console.table(["key pressed"], [[""]], table_number=1)
 
 
 if __name__ == "__main__":
