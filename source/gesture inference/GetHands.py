@@ -3,7 +3,6 @@
 from threading import Thread
 import mediapipe as mp
 import time
-import math
 from FeedForward import NeuralNet
 import traceback
 from Console import GestureConsole

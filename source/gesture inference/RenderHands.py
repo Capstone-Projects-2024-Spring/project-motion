@@ -51,6 +51,11 @@ class RenderHands:
                     )
 
         for hand in range(len(xy)):
+            
+            # knuckle
+            self.render_line(xy[hand][5], xy[hand][9], surface)
+            self.render_line(xy[hand][9], xy[hand][13], surface)
+            self.render_line(xy[hand][13], xy[hand][17], surface)
             # thumb
             self.render_line(xy[hand][0], xy[hand][1], surface)
             self.render_line(xy[hand][1], xy[hand][2], surface)
@@ -74,10 +79,7 @@ class RenderHands:
             self.render_line(xy[hand][17], xy[hand][18], surface)
             self.render_line(xy[hand][18], xy[hand][19], surface)
             self.render_line(xy[hand][19], xy[hand][20], surface)
-            # knuckle
-            self.render_line(xy[hand][5], xy[hand][9], surface)
-            self.render_line(xy[hand][9], xy[hand][13], surface)
-            self.render_line(xy[hand][13], xy[hand][17], surface)
+
 
     def render_line(self, start, end, surface):
         """Wrapper function for pygame's render line. Will render a white line with width=5
@@ -86,7 +88,9 @@ class RenderHands:
             start (int): line start position
             end (int): line end position
         """
+        pygame.draw.line(surface, (1, 1, 1), start, end, self.thickness+6)
         pygame.draw.line(surface, (255, 255, 255), start, end, self.thickness)
+        
 
     def render_hands(self, landmarks, mode, origins, velocity, surface, hand_color=0):
 

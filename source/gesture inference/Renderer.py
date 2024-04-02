@@ -1,5 +1,6 @@
 import pygame
 import textwrap
+from RenderHands import RenderHands
 
 
 class Renderer:
@@ -18,6 +19,8 @@ class Renderer:
         self.webcam_height = None
         self.is_webcam_fullscreen = False
         self.hand_surfaces = []
+        self.renderHands = RenderHands(render_scale=3)
+
         for i in range(4):
             self.hand_surfaces.append(
                 pygame.Surface((self.window_width, self.window_height))
@@ -30,25 +33,25 @@ class Renderer:
         )
         self.webcam_width = self.img_pygame.get_width() * 0.5
         self.webcam_height = self.img_pygame.get_height() * 0.5
-        #fullscreen
+        # fullscreen
         if webcam_mode % 3 == 0:
             self.is_webcam_fullscreen = True
             self.img_pygame = pygame.transform.scale(
                 self.img_pygame, (self.window_width, self.window_height)
             )
             self.window.blit(self.img_pygame, (0, 0))
-        #corner
+        # corner
         elif webcam_mode % 3 == 1:
             self.is_webcam_fullscreen = False
             self.img_pygame = pygame.transform.scale(
                 self.img_pygame, (self.webcam_width, self.webcam_height)
             )
             self.window.blit(self.img_pygame, (0, 0))
-        #no webcam
-        elif webcam_mode %3 == 2:
+        # no webcam
+        elif webcam_mode % 3 == 2:
             self.is_webcam_fullscreen = False
 
-    def render_hands(self, hands, renderHands):
+    def render_hands(self, hands):
 
         if hands.location != []:
             for index in range(hands.num_hands_detected):
@@ -61,15 +64,17 @@ class Renderer:
                     # Transform hand_surfaces to the same size as img_pygame
                     if self.is_webcam_fullscreen == False:
                         self.hand_surfaces[i] = pygame.transform.scale(
-                            self.hand_surfaces[i], (self.webcam_width, self.webcam_height)
+                            self.hand_surfaces[i],
+                            (self.webcam_width, self.webcam_height),
                         )
-                        renderHands.thickness = 10
+                        self.renderHands.thickness = 10
                     else:
                         self.hand_surfaces[i] = pygame.transform.scale(
-                            self.hand_surfaces[i], (self.window_width, self.window_height)
+                            self.hand_surfaces[i],
+                            (self.window_width, self.window_height),
                         )
-                        renderHands.thickness = 20
-                    renderHands.render_hands(
+                        self.renderHands.thickness = 25
+                    self.renderHands.render_hands(
                         landmarks[i],
                         self.flags["render_hands_mode"],
                         hands.location,
@@ -77,7 +82,7 @@ class Renderer:
                         self.hand_surfaces[i],
                         i,
                     )
-                        
+
         else:
             for i in range(4):
                 self.hand_surfaces[i].fill((0, 0, 0))
@@ -95,7 +100,7 @@ class Renderer:
             for i in range(hands.num_hands_detected):
                 self.window.blit(self.hand_surfaces[i], corners[i])
         else:
-            #fullscreen just render hands on top of each other
+            # fullscreen just render hands on top of each other
             for i in range(hands.num_hands_detected):
                 self.window.blit(self.hand_surfaces[i], corners[0])
 

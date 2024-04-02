@@ -1,19 +1,15 @@
 # https://developers.google.com/mediapipe/framework/getting_started/gpu_support
 # https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
 # https://pygame-menu.readthedocs.io/en/latest/_source/add_widgets.html
-import pydoc
 
-# this is the community edition of pygame
 # pygame-ce
 import pygame
-import pygame_menu
 from GetHands import GetHands
 from RenderHands import RenderHands
 from Mouse import Mouse
 from Keyboard import Keyboard
 import os
 from Console import GestureConsole
-import textwrap
 from menu import Menu
 from Renderer import Renderer
 
@@ -39,14 +35,12 @@ flags = {
 
 console = GestureConsole()
 
-
 def main() -> None:
     window_width = 1200
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
     
-    renderHands = RenderHands(render_scale=3)
     mouse = Mouse()
     hands = GetHands(flags=flags)
     flags["mouse"] = mouse
@@ -57,7 +51,7 @@ def main() -> None:
         threshold=0, toggle_key_threshold=0.3, toggle_mouse_func=menu.toggle_mouse
     )
 
-    game_loop(window, hands, menu, mouse, keyboard, renderHands)
+    game_loop(window, hands, menu, mouse, keyboard)
 
     pygame.quit()
 
@@ -67,7 +61,6 @@ def game_loop(
     menu: Menu,
     mouse: Mouse,
     keyboard: Keyboard,
-    renderHands: RenderHands,
 ):
     """Runs the pygame event loop and renders surfaces"""
     hands.start()
@@ -158,7 +151,7 @@ def game_loop(
 
         frame = hands.frame.copy()
         renderer.render_webcam(frame, webcam_mode)
-        renderer.render_hands(hands, renderHands)
+        renderer.render_hands(hands)
         renderer.render_debug_text(show_debug_text,hands,fps)
 
         if menu_pygame.is_enabled():
