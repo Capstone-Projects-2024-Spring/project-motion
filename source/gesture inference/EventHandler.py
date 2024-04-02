@@ -1,5 +1,6 @@
 import pygame
 
+
 class GestureEventHandler:
     def __init__(self, hands, menu, mouse, keyboard, flags):
         self.hands = hands
@@ -8,15 +9,13 @@ class GestureEventHandler:
         self.keyboard = keyboard
         self.flags = flags
         self.is_menu_showing = True
-        self.webcam_mode = 1
-        self.show_debug_text = True
         self.is_fullscreen = False
 
-    def handle_events(self, events, window, renderer, clock, font):
+    def handle_events(self, events, window, renderer, font):
         for event in events:
-            self.handle_event(event, renderer, clock, font)
+            self.handle_event(event, renderer, font)
 
-    def handle_event(self, event, renderer, clock, font):
+    def handle_event(self, event, renderer, font):
         if event.type == pygame.QUIT:
             self.hands.stop()
             self.hands.join()
@@ -25,16 +24,15 @@ class GestureEventHandler:
         elif event.type == pygame.KEYDOWN:
             self.handle_keydown(event)
 
-
     def handle_keydown(self, event):
         if event.key == pygame.K_m:
             self.menu.toggle_mouse()
         elif event.key == pygame.K_ESCAPE:
             self.toggle_menu()
         elif event.key == pygame.K_F1:
-            self.webcam_mode += 1
+            self.flags["webcam_mode"] += 1
         elif event.key == pygame.K_F2:
-            self.show_debug_text = not self.show_debug_text
+            self.flags["show_debug_text"] = not self.flags["show_debug_text"]
         elif event.key == pygame.K_F3:
             self.flags["render_hands_mode"] = not self.flags["render_hands_mode"]
         elif event.key == pygame.K_F11:
@@ -43,6 +41,17 @@ class GestureEventHandler:
             self.keyboard.press("m")
         elif event.key == pygame.K_g:
             self.flags["run_model_flag"] = not self.flags["run_model_flag"]
+
+    def keyboard_mouse(self):
+        if self.flags["run_model_flag"] and len(self.hands.confidence_vectors) > 0:
+            # send only the first hand confidence vector the gesture model output
+            self.keyboard.gesture_input(self.hands.confidence_vectors[0])
+        else:
+            self.keyboard.release()
+
+        if self.flags["move_mouse_flag"] and self.hands.location != []:
+            self.handle_mouse_control()
+
 
     def toggle_menu(self):
         self.is_menu_showing = not self.is_menu_showing
@@ -53,7 +62,7 @@ class GestureEventHandler:
 
     def toggle_fullscreen(self):
         self.is_fullscreen = not self.is_fullscreen
-        #pygame.display.toggle_fullscreen()
+        # pygame.display.toggle_fullscreen()
 
     def handle_mouse_control(self):
         mouse_button_text = ""

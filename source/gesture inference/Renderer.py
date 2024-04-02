@@ -26,6 +26,15 @@ class Renderer:
                 pygame.Surface((self.window_width, self.window_height))
             )
             self.hand_surfaces[i].set_colorkey((0, 0, 0))
+            
+    def render_overlay(self,hands, clock):
+        frame = hands.frame.copy()
+        self.render_webcam(frame, self.flags["webcam_mode"])
+        self.render_hands(hands)
+        fps = self.font.render(
+            str(round(clock.get_fps(), 1)) + "fps", False, (255, 255, 255)
+        )
+        self.render_debug_text(self.flags["show_debug_text"], hands, fps)
 
     def render_webcam(self, frame, webcam_mode):
         self.img_pygame = pygame.image.frombuffer(

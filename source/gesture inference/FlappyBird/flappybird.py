@@ -60,6 +60,22 @@ class FlappyBirdGame:
             (self.screen_height // 2 - self.start_img.get_height() // 2),
             self.start_img,
         )
+        
+    def events(self, events):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.flags["running"] = False
+            if (
+                event.type == pygame.KEYDOWN
+                and event.key == pygame.K_SPACE
+                and self.primitives["is flying"] == False
+                and self.primitives["is game over"] == False
+            ):
+                self.primitives["is flying"] = True
+                self.primitives["is started"] = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    self.primitives["is paused"] = not self.primitives["is paused"]
 
     def create_bird(self, x, y):
         return Bird(x, y, self.primitives)
