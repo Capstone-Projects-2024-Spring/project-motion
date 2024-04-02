@@ -11,6 +11,7 @@ class Menu:
             theme=pygame_menu.themes.THEME_BLUE,
         )
         self.flags = flags
+        self.toggle_mouse_key = flags["toggle_mouse_key"]
         self.models_folder = "models/"
         self.setup_menu()
 
@@ -39,10 +40,18 @@ class Menu:
             onchange=self.set_click_sense,
         )
 
-        self.menu.add.button("Turn On Model", action=self.toggle_model)
-        self.menu.add.button("Turn On Mouse", action=self.toggle_mouse)
+        self.menu.add.button("Toggle Model", action=self.toggle_model)
+        self.menu.add.button("Toggle Mouse", action=self.toggle_mouse)
+        self.menu.add.toggle_switch('Lockout Mouse', False, onchange=self.lockout_mouse)
         self.menu.add.button("Quit", pygame_menu.events.EXIT)
         self.menu.enable()
+        
+    def lockout_mouse(self, current_state_value, **kwargs):
+        if current_state_value:
+            self.flags["toggle_mouse_key"] = None
+            self.flags["move_mouse_flag"] = False
+        else:
+            self.flags["toggle_mouse_key"] = self.toggle_mouse_key
 
     def find_files_with_ending(self, ending: str, directory_path=os.getcwd()):
         """returns a list of tuples of the strings found"""

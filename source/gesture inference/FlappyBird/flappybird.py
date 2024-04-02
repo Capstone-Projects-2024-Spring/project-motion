@@ -10,8 +10,6 @@ os.chdir(dname)
 class FlappyBirdGame:
     def __init__(self, surface, screen_width, screen_height):
         self.surface = surface
-        self.fps = 60
-
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.surface = pygame.Surface((self.screen_width, self.screen_height))
@@ -62,7 +60,7 @@ class FlappyBirdGame:
         )
         
     def events(self, events):
-        for event in pygame.event.get():
+        for event in events:
             if event.type == pygame.QUIT:
                 self.flags["running"] = False
             if (
