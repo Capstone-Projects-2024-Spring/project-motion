@@ -88,7 +88,7 @@ class FlappyBirdGame:
 
     def get_high_score(self):
         try:
-            with open("highscore.txt", "r") as file:
+            with open("FlappyBird/highscore.txt", "r") as file:
                 high_score = int(file.readline())
                 return f"Highscore: {high_score}"
         except FileNotFoundError:
@@ -96,15 +96,15 @@ class FlappyBirdGame:
 
     def highscore_check(self, score):
         try:
-            with open("highscore.txt", "r") as file:
+            with open("FlappyBird/highscore.txt", "r") as file:
                 current_score = int(file.readline())
         except FileNotFoundError:
-            with open("highscore.txt", "w") as file:
+            with open("FlappyBird/highscore.txt", "w") as file:
                 file.write(str(score))
             return
 
         if score > current_score:
-            with open("highscore.txt", "w") as file:
+            with open("FlappyBird/highscore.txt", "w") as file:
                 file.write(str(score))
 
     def draw_text(self, text, font, text_col, x, y):

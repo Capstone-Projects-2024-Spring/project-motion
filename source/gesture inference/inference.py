@@ -5,7 +5,6 @@
 # pygame-ce
 import pygame
 from GetHands import GetHands
-from RenderHands import RenderHands
 from Mouse import Mouse
 from Keyboard import Keyboard
 import os
@@ -21,8 +20,8 @@ os.chdir(dname)
 
 # global variables
 pygame.init()
-font = pygame.font.Font("freesansbold.ttf", 30)
 
+#communication object for gesture stuff
 flags = {
     "render_hands_mode": True,
     "gesture_vector": [],
@@ -34,17 +33,18 @@ flags = {
     "hands": None,
     "running": True,
     "show_debug_text": True,
-    "webcam_mode": 1
+    "webcam_mode": 1,
 }
 
+#custom console
 console = GestureConsole()
-
 
 def main() -> None:
     window_width = 1200
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
+    display_size = pygame.display.Info()
 
     mouse = Mouse()
     hands = GetHands(flags=flags)
@@ -57,7 +57,6 @@ def main() -> None:
     )
 
     game_loop(window, hands, menu, mouse, keyboard)
-
     pygame.quit()
 
 
@@ -70,39 +69,42 @@ def game_loop(
 ):
     """Runs the pygame event loop and renders surfaces"""
     hands.start()
-    window_width, window_height = pygame.display.get_surface().get_size()
+
+    font = pygame.font.Font("freesansbold.ttf", 30)
     renderer = Renderer(font, window, flags)
+    event_handler = GestureEventHandler(hands, menu, mouse, keyboard, flags)
+    window_width, window_height = pygame.display.get_surface().get_size()
     menu_pygame = menu.menu
+
     clock = pygame.time.Clock()
     game_surface = pygame.Surface((window_width, window_height))
     game = flappybird.FlappyBirdGame(game_surface, window_width, window_height)
 
-    event_handler = GestureEventHandler(hands, menu, mouse, keyboard, flags)
-
     while flags["running"]:
-        # changing GetHands parameters creates a new hands object
+        # changing number of hands creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
 
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
 
-        print_keyboard_table(pygame.key.get_pressed())
 
         events = pygame.event.get()
-        event_handler.handle_events(events, window, renderer, font)
+        event_handler.handle_events(events)
         event_handler.keyboard_mouse()
-        
+
         game_events(game, events, window)
-        
+
         renderer.render_overlay(hands, clock)
+        print_keyboard_table(pygame.key.get_pressed())
         if menu_pygame.is_enabled():
             menu_pygame.update(events)
             menu_pygame.draw(window)
 
         clock.tick(60)
         pygame.display.update()
-        
+
+
 def game_events(game, events, window):
     game.events(events)
     window.blit(game.surface, (0, 0))
@@ -113,6 +115,7 @@ def print_keyboard_table(keys):
         console.table(["key pressed"], [["space"]], table_number=1)
     else:
         console.table(["key pressed"], [[""]], table_number=1)
+
 
 if __name__ == "__main__":
     main()

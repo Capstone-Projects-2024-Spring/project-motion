@@ -11,11 +11,11 @@ class GestureEventHandler:
         self.is_menu_showing = True
         self.is_fullscreen = False
 
-    def handle_events(self, events, window, renderer, font):
+    def handle_events(self, events):
         for event in events:
-            self.handle_event(event, renderer, font)
+            self.handle_event(event)
 
-    def handle_event(self, event, renderer, font):
+    def handle_event(self, event):
         if event.type == pygame.QUIT:
             self.hands.stop()
             self.hands.join()
