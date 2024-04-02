@@ -12,9 +12,8 @@ class Keyboard:
         toggle_key_toggle_time=1,
         toggle_mouse_func=None,
         flags=None,
-        toggle_key="",
     ) -> None:
-        """_summary_
+        """ the used for toggling the mouse is saved in flags
 
         Args:
             threshold (float, optional): don't press key if press will be less than this time. Defaults to 0.0.
@@ -35,7 +34,6 @@ class Keyboard:
         self.toggle_key_toggle_time = toggle_key_toggle_time
         self.console = GestureConsole()
         self.flags = flags
-        self.toggle_key = toggle_key
         self.keys = ['\t', '\n', '\r', ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~', 'accept', 'add', 'alt', 'altleft', 'altright', 'apps', 'backspace', 'browserback', 'browserfavorites', 'browserforward', 'browserhome', 'browserrefresh', 'browsersearch', 'browserstop', 'capslock', 'clear', 'convert', 'ctrl', 'ctrlleft', 'ctrlright', 'decimal', 'del', 'delete', 'divide', 'down', 'end', 'enter', 'esc', 'escape', 'execute', 'f1', 'f10', 'f11', 'f12', 'f13', 'f14', 'f15', 'f16', 'f17', 'f18', 'f19', 'f2', 'f20', 'f21', 'f22', 'f23', 'f24', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'final', 'fn', 'hanguel', 'hangul', 'hanja', 'help', 'home', 'insert', 'junja', 'kana', 'kanji', 'launchapp1', 'launchapp2', 'launchmail', 'launchmediaselect', 'left', 'modechange', 'multiply', 'nexttrack', 'nonconvert', 'num0', 'num1', 'num2', 'num3', 'num4', 'num5', 'num6', 'num7', 'num8', 'num9', 'numlock', 'pagedown', 'pageup', 'pause', 'pgdn', 'pgup', 'playpause', 'prevtrack', 'print', 'printscreen', 'prntscrn', 'prtsc', 'prtscr', 'return', 'right', 'scrolllock', 'select', 'separator', 'shift', 'shiftleft', 'shiftright', 'sleep', 'space', 'stop', 'subtract', 'tab', 'up', 'volumedown', 'volumemute', 'volumeup', 'win', 'winleft', 'winright', 'yen', 'command', 'option', 'optionleft', 'optionright']
 
 
@@ -54,10 +52,9 @@ class Keyboard:
         elif max_index == 1:
             self.press("none")
         elif max_index == 2:
-            self.press(self.toggle_key)
+            self.press(self.flags["toggle_mouse_key"])
 
-    def press(self, key: str):
-        
+    def press(self, key: str):          
         current_time = time.time() 
         if key == "none":
             self.key_pressed = False
@@ -68,12 +65,12 @@ class Keyboard:
             self.toggle_key_pressed = False
             self.last_key = key
 
-            if key == self.toggle_key:
+            if key == self.flags["toggle_mouse_key"]:
                 self.last_time_toggle_key = current_time
             else:
                 self.last_time = current_time
 
-        if key == self.toggle_key:
+        if key == self.flags["toggle_mouse_key"]:
             self.handle_toggle_key(current_time)
         elif current_time - self.last_time > self.threshold and not self.key_pressed:
             self.key_pressed = True

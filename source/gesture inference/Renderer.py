@@ -60,8 +60,7 @@ class Renderer:
         elif webcam_mode % 3 == 2:
             self.is_webcam_fullscreen = False
 
-    def render_hands(self, hands: list):
-        hands = hands.copy() 
+    def render_hands(self, hands):
         if hands.location != []:
             for index in range(hands.num_hands_detected):
                 if self.flags["render_hands_mode"]:

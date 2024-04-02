@@ -30,7 +30,7 @@ flags = {
     "move_mouse_flag": False,
     "run_model_flag": True,
     "gesture_model_path": "models/simple.pth",
-    "click_sense": 0.05,
+    "click_sense": 0.05,  
     "hands": None,
     "running": True,
     "show_debug_text": True,
@@ -47,8 +47,6 @@ def main() -> None:
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
-    
-    pygame.event.set_grab()
 
     mouse = Mouse()
     hands = GetHands(flags=flags)
@@ -60,7 +58,7 @@ def main() -> None:
         threshold=0,
         toggle_key_threshold=0.3,
         toggle_mouse_func=menu.toggle_mouse,
-        toggle_key=flags["toggle_mouse_key"],
+        flags=flags
     )
 
     event_handler = GestureEventHandler(hands, menu, mouse, keyboard, flags)
@@ -100,6 +98,7 @@ def game_loop(
         window.fill((0, 0, 0))
 
         events = pygame.event.get()
+        
         event_handler.handle_events(events)
 
         game_events(game, events, window)

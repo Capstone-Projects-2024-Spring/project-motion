@@ -25,22 +25,21 @@ class GestureEventHandler:
             self.handle_keydown(event)
 
     def handle_keydown(self, event):
-        if event.key == pygame.K_m:
-            self.menu.toggle_mouse()
-        elif event.key == pygame.K_ESCAPE:
+        if event.key == pygame.K_ESCAPE:
             self.toggle_menu()
-        elif event.key == pygame.K_F1:
+        if event.key == pygame.K_F1:
             self.flags["webcam_mode"] += 1
-        elif event.key == pygame.K_F2:
+        if event.key == pygame.K_F2:
             self.flags["show_debug_text"] = not self.flags["show_debug_text"]
-        elif event.key == pygame.K_F3:
+        if event.key == pygame.K_F3:
             self.flags["render_hands_mode"] = not self.flags["render_hands_mode"]
-        elif event.key == pygame.K_F11:
+        if event.key == pygame.K_F11:
             self.toggle_fullscreen()
-        elif event.key == pygame.K_m:
-            self.keyboard.press("m")
-        elif event.key == pygame.K_g:
+        if event.key == pygame.K_g:
             self.flags["run_model_flag"] = not self.flags["run_model_flag"]
+            
+        if event.key == pygame.key.key_code(self.flags["toggle_mouse_key"]):
+            self.menu.toggle_mouse()
 
     def keyboard_mouse(self):
         if self.flags["run_model_flag"] and len(self.hands.confidence_vectors) > 0:

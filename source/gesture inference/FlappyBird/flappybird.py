@@ -62,7 +62,7 @@ class FlappyBirdGame:
     def events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
-                self.flags["running"] = False
+                pass
             if (
                 event.type == pygame.KEYDOWN
                 and event.key == pygame.K_SPACE
