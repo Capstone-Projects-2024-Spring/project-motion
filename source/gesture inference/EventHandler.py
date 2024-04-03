@@ -39,16 +39,16 @@ class GestureEventHandler:
             if event.key == pygame.key.key_code(self.flags["toggle_mouse_key"]):
                 self.menu.toggle_mouse()
 
-    def keyboard_mouse(self):
+    def mouse(self):
+        if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
+            self.handle_mouse_control()
+            
+    def keyboard(self):
         if self.flags["run_model_flag"] and len(self.flags["hands"].confidence_vectors) > 0:
             # send only the first hand confidence vector the gesture model output
             self.flags["keyboard"].gesture_input(self.flags["hands"].confidence_vectors[0])
         else:
             self.flags["keyboard"].release()
-
-        if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
-            self.handle_mouse_control()
-
 
     def toggle_menu(self):
         self.is_menu_showing = not self.is_menu_showing

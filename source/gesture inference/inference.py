@@ -43,9 +43,9 @@ console = GestureConsole()
 
 
 def main() -> None:
-    window_width = 1200
-    window_height = 1000
-    window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
+    window_width = 1000
+    window_height = 800
+    window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)  
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
     mouse = Mouse()
@@ -63,21 +63,25 @@ def main() -> None:
     flags["keyboard"] = keyboard
 
     event_handler = GestureEventHandler(menu, flags)
-    import traceback
 
-    def input_loop():
+    def keyboard_loop():
         nonlocal event_handler
         event = threading.Event()
         while True:
-            event_handler.keyboard_mouse()
+            event_handler.keyboard()
+            event.wait(timeout=0.01)
+            
+    def mouse_loop():
+        nonlocal event_handler
+        event = threading.Event()
+        while True:
+            event_handler.mouse()
             event.wait(timeout=0.01)
 
-    try:
-        input_poller = threading.Thread(target=input_loop, daemon=True)
-        input_poller.start()
-    except Exception as e:
-        traceback.print_exc()
-        quit()
+    input_poller = threading.Thread(target=keyboard_loop, daemon=True)
+    input_poller.start()
+    input_poller = threading.Thread(target=mouse_loop, daemon=True)
+    input_poller.start()
     game_loop(window, hands, event_handler, menu)
     pygame.quit()
     hands.join()
