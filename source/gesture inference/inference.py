@@ -13,6 +13,7 @@ from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
+import threading
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -62,7 +63,21 @@ def main() -> None:
     flags["keyboard"] = keyboard
 
     event_handler = GestureEventHandler(menu, flags)
-    # threading.Thread(target=input_loop, args=(event_handler.keyboard_mouse, 120), daemon=True)
+    import traceback
+
+    def input_loop():
+        nonlocal event_handler
+        event = threading.Event()
+        while True:
+            event_handler.keyboard_mouse()
+            event.wait(timeout=0.01)
+
+    try:
+        input_poller = threading.Thread(target=input_loop, daemon=True)
+        input_poller.start()
+    except Exception as e:
+        traceback.print_exc()
+        quit()
     game_loop(window, hands, event_handler, menu)
     pygame.quit()
     hands.join()
@@ -97,7 +112,7 @@ def game_loop(
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
 
-        event_handler.keyboard_mouse()
+        # event_handler.keyboard_mouse()
 
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
@@ -123,7 +138,6 @@ def game_events(game, events, window):
     game.tick()
 
 
-@console.console_flag
 def print_input_table(counter):
     keys = pygame.key.get_pressed()
     clicks = pygame.mouse.get_pressed()
@@ -137,7 +151,7 @@ def print_input_table(counter):
     else:
         console.table(["mouse"], [[""]], table_number=2)
     # updating the console is slow
-    if counter % 10 == 0:
+    if counter % 7 == 0:
         console.update()
 
 

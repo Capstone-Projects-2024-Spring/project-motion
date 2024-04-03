@@ -25,14 +25,15 @@ class GetHands(Thread):
         mediapipe_model="models\hand_landmarker.task",
         flags=None,
     ):
-        Thread.__init__(self)
+        Thread.__init__(self, daemon=True)
 
+        self.console = GestureConsole()
         self.model_path = mediapipe_model
         self.confidence = 0.5
         self.stopped = False
 
         self.flags = flags
-        self.console = GestureConsole()
+        
         self.camera = Webcam()
 
         self.set_gesture_model(flags["gesture_model_path"])
@@ -89,7 +90,6 @@ class GetHands(Thread):
     ):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
-
             self.location = []
             self.click = "" 
             self.velocity = []
@@ -130,7 +130,7 @@ class GetHands(Thread):
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
-
+                
             self.console.table(self.gesture_list, self.confidence_vectors)
 
             # timestamps are in microseconds so convert to ms

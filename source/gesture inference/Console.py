@@ -29,14 +29,14 @@ class GestureConsole:
             for i in range(max_tables):
                 self.tables.append(Table())
                 
-    def console_flag(self, func: Callable) -> Callable:
-        def print_function(*args, **kwargs) -> Union[Callable, bool]:
+    def console_flag(func: Callable) -> Callable:
+        def print_function(self, *args, **kwargs) -> Union[Callable, bool]:
             if not self.printing:
-                
-                return
-            return func(*args, **kwargs)
+                return lambda *args, **kwargs: None
+            return func(self, *args, **kwargs)
         return print_function
 
+    @console_flag
     def table(self, headers, rows, table_number=0):
         table = self.tables[table_number]
         table.columns.clear()  # Clear existing columns
@@ -59,12 +59,11 @@ class GestureConsole:
                 Columns(self.tables),
             )
         )
-        #self.update()
 
+    @console_flag
     def print(self, string: str):
         self.console.print(string)
         self.layout["lower"].update(Panel(self.console))
-        #self.update()
 
     def update(self):
         self.live.update(self.layout, refresh=True)

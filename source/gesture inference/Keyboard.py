@@ -56,12 +56,13 @@ class Keyboard:
 
     def press(self, key: str):          
         current_time = time.time() 
-        if key == "none":
+        if key == "none" and self.last_key == "":
+            return
+        if key == "none" and self.last_key != "":
             self.key_pressed = False
-            @self.console.console_flag
-            def print():
-                self.console.print(f"releasing key: {self.last_key}")
+            self.console.print(f"releasing key: {self.last_key}")
             pydirectinput.keyUp(self.last_key)  # Release the last key
+            self.last_key = ""
             return
         if key != self.last_key:
             self.key_pressed = False
@@ -77,9 +78,7 @@ class Keyboard:
             self.handle_toggle_key(current_time)
         elif current_time - self.last_time > self.threshold and not self.key_pressed:
             self.key_pressed = True
-            @self.console.console_flag
-            def print():
-                self.console.print(f"pressing key: {key}")
+            self.console.print(f"pressing key: {key}")
             pydirectinput.keyDown(key)
 
 

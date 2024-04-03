@@ -61,10 +61,7 @@ class NeuralNet(nn.Module):
         self.confidence_vector = probs
 
         # print table
-        @self.console.console_flag
-        def print():
-            nonlocal probs
-            self.console.table(self.labels, probs.tolist())
+        self.console.table(self.labels, probs.tolist())
 
         confidence, classes = torch.max(probs, 1)
         return probs.tolist(), classes.numpy().tolist(), confidence.tolist()

@@ -1,4 +1,4 @@
-import pyautogui
+import pydirectinput
 import time
 from Console import GestureConsole
 import math
@@ -8,12 +8,11 @@ class Mouse:
     def __init__(
         self,
         mouse_sensitivity=1,
-        click_threshold_time=0.22,
-        drag_threshold_time=0.2,
         x_scale=1.3,
         y_scale=1.5,
         alpha=0.15,
         deadzone=15,
+        single_click_duration=1 / 5,
     ) -> None:
         """Initialization of Mouse class.
 
@@ -26,24 +25,17 @@ class Mouse:
                                                     If you increase drag_threshold_time, you will have more time to move the mouse after clicking without triggering a drag.
                                                     If you decrease drag_threshold_time, even a slight movement of the mouse shortly after clicking can be considered a drag rather than a separate click.
         """
-        if click_threshold_time <= drag_threshold_time:
-            raise Exception(
-                "drag_threshold_time must be less than click_threshold_time"
-            )
-
-        pyautogui.FAILSAFE = False
-        pyautogui.PAUSE = 0
+        self.screen_width, self.screen_height = pydirectinput.size()
+        pydirectinput.FAILSAFE = False
+        self.single_click_duration = single_click_duration
         self.mouse_sensitivity = float(mouse_sensitivity)
         self.x_scale = float(x_scale)
         self.y_scale = float(y_scale)
         self.deadzone = deadzone
 
-        self.click_threshold_time = click_threshold_time
-        self.drag_threshold_time = drag_threshold_time
         self.left_down = False
         self.middle_down = False
         self.right_down = False
-        self.last_time = time.time()
         self.console = GestureConsole()
 
         # expontial moving average stuff
@@ -65,21 +57,21 @@ class Mouse:
                 (self.x_scale * self.mouse_sensitivity) * x
                 - (self.x_scale * self.mouse_sensitivity - 1) / 2
             )
-            * pyautogui.size().width
+            * self.screen_width
         )
         y = int(
             (
                 (self.y_scale * self.mouse_sensitivity) * y
                 - (self.y_scale * self.mouse_sensitivity - 1) / 2
             )
-            * pyautogui.size().height
+            * self.screen_height
         )
 
         # Check if the movement is smaller than the specified radius
-        last_x, last_y = pyautogui.position()
+        last_x, last_y = pydirectinput.position()
         distance = math.sqrt((x - last_x) ** 2 + (y - last_y) ** 2)
 
-        # Specify the radius distance (you can adjust this value)
+        # Specify the radius distance
         ignore_small_movement = distance <= self.deadzone
 
         self.x_window.append(x)
@@ -92,18 +84,17 @@ class Mouse:
             self.x_window.pop(0)
             self.y_window.pop(0)
             if mouse_button == "":
-                # un-click
-                @self.console.console_flag
-                def print():
-                    self.console.print(f"releasing mouse {mouse_button}")
                 if self.left_down:
-                    pyautogui.mouseUp(button="left", _pause=False)
+                    self.console.print(f"releasing mouse left")
+                    pydirectinput.mouseUp(button="left")
                     self.left_down = False
                 if self.middle_down:
-                    pyautogui.mouseUp(button="middle", _pause=False)
+                    self.console.print(f"releasing mouse middle")
+                    pydirectinput.mouseUp(button="middle")
                     self.middle_down = False
                 if self.right_down:
-                    pyautogui.mouseUp(button="right", _pause=False)
+                    self.console.print(f"releasing mouse right")
+                    pydirectinput.mouseUp(button="right")
                     self.right_down = False
                 if not ignore_small_movement:
                     self.move(x, y)
@@ -131,12 +122,7 @@ class Mouse:
             x (int): X-coordinate.
             y (int): Y-coordinate.
         """
-        pyautogui.moveTo(
-            x,
-            y,
-            duration=0,
-            _pause=False,
-        )
+        pydirectinput.moveTo(x, y, duration=0)
 
     def click(self, x, y, mouse_button):
         """Handle mouse clicking.
@@ -146,42 +132,31 @@ class Mouse:
             y (int): Y-coordinate.
             mouse_button (str): Mouse button to click.
         """
-        current_time = time.time()  # if it has been longer than threshold time
-        if current_time - self.last_time > self.click_threshold_time:
-            self.last_time = current_time
-            @self.console.console_flag
-            def print():
-                self.console.print(f"clicking mouse {mouse_button}")
-            pyautogui.click(button=mouse_button, _pause=False)
-        elif (
-            (current_time - self.last_time > self.drag_threshold_time)
-            or self.left_down
-            or self.middle_down
-            or self.right_down
-        ):
+        mouse_down = self.left_down or self.middle_down or self.right_down
+        if not mouse_down:
+            self.console.print(f"clicking mouse {mouse_button}")
+            pydirectinput.mouseDown(button=mouse_button)
+            time.sleep(self.single_click_duration)
 
-            if mouse_button == "left":
-                self.last_time = current_time
-                if not self.left_down:
-                    pyautogui.mouseDown(button=mouse_button, _pause=False)
-                    self.left_down = True
+        if mouse_button == "left":
+            if not self.left_down:
+                pydirectinput.mouseDown(button=mouse_button)
+                self.left_down = True
 
-            if mouse_button == "middle":
-                self.last_time = current_time
-                if not self.middle_down:
-                    pyautogui.mouseDown(button=mouse_button, _pause=False)
-                    self.middle_down = True
+        if mouse_button == "middle":
+            if not self.middle_down:
+                pydirectinput.mouseDown(button=mouse_button)
+                self.middle_down = True
 
-            if mouse_button == "right":
-                self.last_time = current_time
-                if not self.right_down:
-                    pyautogui.mouseDown(button=mouse_button, _pause=False)
-                    self.right_down = True
+        if mouse_button == "right":
+            if not self.right_down:
+                pydirectinput.mouseDown(button=mouse_button)
+                self.right_down = True
 
-            self.move(x, y)
+        self.move(x, y)
 
     def exponential_moving_average(self, data):
         ema = [data[0]]
         for i in range(1, len(data)):
             ema.append(self.alpha * data[i] + (1 - self.alpha) * ema[i - 1])
-        return ema[len(data) - 1]
+        return int(ema[len(data) - 1])
