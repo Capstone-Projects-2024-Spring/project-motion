@@ -2,11 +2,8 @@ import pygame
 
 
 class GestureEventHandler:
-    def __init__(self, hands, menu, mouse, keyboard, flags):
-        self.hands = hands
+    def __init__(self, menu, flags):
         self.menu = menu
-        self.mouse = mouse
-        self.keyboard = keyboard
         self.flags = flags
         self.is_menu_showing = True
         self.is_fullscreen = False
@@ -17,8 +14,8 @@ class GestureEventHandler:
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
-            self.hands.stop()
-            self.hands.join()
+            self.flags["hands"].stop()
+            self.flags["hands"].join()
             self.flags["running"] = False
 
         elif event.type == pygame.KEYDOWN:
@@ -43,13 +40,13 @@ class GestureEventHandler:
                 self.menu.toggle_mouse()
 
     def keyboard_mouse(self):
-        if self.flags["run_model_flag"] and len(self.hands.confidence_vectors) > 0:
+        if self.flags["run_model_flag"] and len(self.flags["hands"].confidence_vectors) > 0:
             # send only the first hand confidence vector the gesture model output
-            self.keyboard.gesture_input(self.hands.confidence_vectors[0])
+            self.flags["keyboard"].gesture_input(self.flags["hands"].confidence_vectors[0])
         else:
-            self.keyboard.release()
+            self.flags["keyboard"].release()
 
-        if self.flags["move_mouse_flag"] and self.hands.location != []:
+        if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
             self.handle_mouse_control()
 
 
@@ -66,8 +63,8 @@ class GestureEventHandler:
 
     def handle_mouse_control(self):
         mouse_button_text = ""
-        hand = self.hands.result.hand_world_landmarks[0]
-        if self.mouse.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
+        hand = self.flags["hands"].result.hand_world_landmarks[0]
+        if self.flags["mouse"].is_clicking(hand[8], hand[4], self.flags["click_sense"]):
             mouse_button_text = "left"
-        location = self.hands.location[0]
-        self.mouse.control(location[0], location[1], mouse_button_text)
+        location = self.flags["hands"].location[0]
+        self.flags["mouse"].control(location[0], location[1], mouse_button_text)

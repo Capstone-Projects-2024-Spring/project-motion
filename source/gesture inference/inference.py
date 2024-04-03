@@ -59,11 +59,13 @@ def main() -> None:
         toggle_mouse_func=menu.toggle_mouse,
         flags=flags,
     )
+    flags["keyboard"] = keyboard
 
-    event_handler = GestureEventHandler(hands, menu, mouse, keyboard, flags)
+    event_handler = GestureEventHandler(menu, flags)
     # threading.Thread(target=input_loop, args=(event_handler.keyboard_mouse, 120), daemon=True)
     game_loop(window, hands, event_handler, menu)
     pygame.quit()
+    hands.join()
 
 
 def game_loop(
