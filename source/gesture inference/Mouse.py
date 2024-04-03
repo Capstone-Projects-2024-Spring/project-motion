@@ -93,6 +93,9 @@ class Mouse:
             self.y_window.pop(0)
             if mouse_button == "":
                 # un-click
+                @self.console.console_flag
+                def print():
+                    self.console.print(f"releasing mouse {mouse_button}")
                 if self.left_down:
                     pyautogui.mouseUp(button="left", _pause=False)
                     self.left_down = False
@@ -146,7 +149,9 @@ class Mouse:
         current_time = time.time()  # if it has been longer than threshold time
         if current_time - self.last_time > self.click_threshold_time:
             self.last_time = current_time
-            self.console.print("click")
+            @self.console.console_flag
+            def print():
+                self.console.print(f"clicking mouse {mouse_button}")
             pyautogui.click(button=mouse_button, _pause=False)
         elif (
             (current_time - self.last_time > self.drag_threshold_time)

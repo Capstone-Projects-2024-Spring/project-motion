@@ -122,7 +122,7 @@ class GetHands(Thread):
                 gestures = []  # store gesture output as text
                 for index, hand in enumerate(model_inputs):
                     confidences, predicted, predicted_confidence = (
-                        self.gesture_model.get_gesture([hand], print_table=False)
+                        self.gesture_model.get_gesture([hand])
                     )
                     gestures.append(self.gesture_list[predicted[0]])  # save gesture
                     hand_confidences.append(confidences[0])

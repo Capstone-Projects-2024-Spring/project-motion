@@ -1,6 +1,8 @@
 import pygame_menu
 import os
 from GetHands import GetHands
+from Console import GestureConsole
+
 
 class Menu:
     def __init__(self, window_width, window_height, flags):
@@ -13,11 +15,14 @@ class Menu:
         self.flags = flags
         self.toggle_mouse_key = flags["toggle_mouse_key"]
         self.models_folder = "models/"
+        self.console = GestureConsole()
         self.setup_menu()
 
     def setup_menu(self):
         self.menu.add.selector(
-            "Render Mode :", [("Normalized", True), ("World", False)], onchange=self.set_coords
+            "Render Mode :",
+            [("Normalized", True), ("World", False)],
+            onchange=self.set_coords,
         )
         self.menu.add.selector(
             "Mouse Smoothing :",
@@ -30,7 +35,9 @@ class Menu:
         )
 
         models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
-        self.menu.add.dropselect("Use Gesture Model :", models, onchange=self.change_gesture_model)
+        self.menu.add.dropselect(
+            "Use Gesture Model :", models, onchange=self.change_gesture_model
+        )
 
         self.menu.add.range_slider(
             "Click Sensitivity",
@@ -40,12 +47,21 @@ class Menu:
             onchange=self.set_click_sense,
         )
 
-        self.menu.add.button("Toggle Model", action=self.toggle_model)
+        self.menu.add.toggle_switch("Enable Model", True, onchange=self.toggle_model)
         self.menu.add.button("Toggle Mouse", action=self.toggle_mouse)
-        self.menu.add.toggle_switch('Lockout Mouse', False, onchange=self.lockout_mouse)
+        self.menu.add.toggle_switch(
+            "Disable Mouse Control", False, onchange=self.lockout_mouse
+        )
+        self.menu.add.toggle_switch(
+            "Enable Console", True, onchange=self.enable_console
+        )
+        self.console
         self.menu.add.button("Quit", pygame_menu.events.EXIT)
         self.menu.enable()
-        
+
+    def enable_console(self, current_state_value, **kwargs):
+        self.console.printing = current_state_value
+
     def lockout_mouse(self, current_state_value, **kwargs):
         if current_state_value:
             self.flags["toggle_mouse_key"] = None
@@ -55,15 +71,18 @@ class Menu:
 
     def find_files_with_ending(self, ending: str, directory_path=os.getcwd()):
         """returns a list of tuples of the strings found"""
-        files = [(file,) for file in os.listdir(directory_path) if file.endswith(ending)]
+        files = [
+            (file,) for file in os.listdir(directory_path) if file.endswith(ending)
+        ]
         return files
 
     def toggle_mouse(self):
         """Enable or disable mouse control"""
-        self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
+        if self.flags["toggle_mouse_key"] != None:
+            self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
 
-    def toggle_model(self):
-        self.flags["run_model_flag"] = not self.flags["run_model_flag"]
+    def toggle_model(self, current_state_value, **kwargs):
+        self.flags["run_model_flag"] = current_state_value
 
     def set_coords(self, value, mode):
         """Defines the coordinate space for rendering hands"""
@@ -82,7 +101,9 @@ class Menu:
         self.flags["hands"].start()
 
     def change_gesture_model(self, value):
-        self.flags["gesture_model_path"] = self.models_folder + value[0][0]  # tuple within a list for some reason
+        self.flags["gesture_model_path"] = (
+            self.models_folder + value[0][0]
+        )  # tuple within a list for some reason
         self.flags["hands"].stop()
         self.flags["hands"].join()
         self.flags["hands"] = GetHands(flags=self.flags)

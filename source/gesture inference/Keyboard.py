@@ -58,6 +58,9 @@ class Keyboard:
         current_time = time.time() 
         if key == "none":
             self.key_pressed = False
+            @self.console.console_flag
+            def print():
+                self.console.print(f"releasing key: {self.last_key}")
             pydirectinput.keyUp(self.last_key)  # Release the last key
             return
         if key != self.last_key:
@@ -70,14 +73,15 @@ class Keyboard:
             else:
                 self.last_time = current_time
 
-        if key == self.flags["toggle_mouse_key"]:
+        if key == self.flags["toggle_mouse_key"] and self.flags["toggle_mouse_key"] != None:
             self.handle_toggle_key(current_time)
         elif current_time - self.last_time > self.threshold and not self.key_pressed:
             self.key_pressed = True
-            #self.console.print(f"pressing key: {key}")
+            @self.console.console_flag
+            def print():
+                self.console.print(f"pressing key: {key}")
             pydirectinput.keyDown(key)
-        # else:
-        #     self.console.print(f"key {key} already pressed")
+
 
     def handle_toggle_key(self, current_time):
         if (

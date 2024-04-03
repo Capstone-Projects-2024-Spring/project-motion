@@ -37,9 +37,10 @@ class GestureEventHandler:
             self.toggle_fullscreen()
         if event.key == pygame.K_g:
             self.flags["run_model_flag"] = not self.flags["run_model_flag"]
-            
-        if event.key == pygame.key.key_code(self.flags["toggle_mouse_key"]):
-            self.menu.toggle_mouse()
+        
+        if type(self.flags["toggle_mouse_key"]) == str:
+            if event.key == pygame.key.key_code(self.flags["toggle_mouse_key"]):
+                self.menu.toggle_mouse()
 
     def keyboard_mouse(self):
         if self.flags["run_model_flag"] and len(self.hands.confidence_vectors) > 0:

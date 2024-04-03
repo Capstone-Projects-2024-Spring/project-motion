@@ -93,7 +93,8 @@ class RenderHands:
         
 
     def render_hands(self, landmarks, mode, origins, velocity, surface, hand_color=0):
-
+        if len(velocity) == 0:
+            return
         surface.fill((0, 0, 0))
         
         w, h = surface.get_size()

@@ -13,7 +13,6 @@ from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
-from InputEventThread import InputEventThread
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -30,7 +29,7 @@ flags = {
     "move_mouse_flag": False,
     "run_model_flag": True,
     "gesture_model_path": "models/simple.pth",
-    "click_sense": 0.05,  
+    "click_sense": 0.05,
     "hands": None,
     "running": True,
     "show_debug_text": True,
@@ -58,15 +57,12 @@ def main() -> None:
         threshold=0,
         toggle_key_threshold=0.3,
         toggle_mouse_func=menu.toggle_mouse,
-        flags=flags
+        flags=flags,
     )
 
     event_handler = GestureEventHandler(hands, menu, mouse, keyboard, flags)
-    input_thread = InputEventThread(event_handler.keyboard_mouse)
-    input_thread.start()
-
+    # threading.Thread(target=input_loop, args=(event_handler.keyboard_mouse, 120), daemon=True)
     game_loop(window, hands, event_handler, menu)
-    input_thread.stop()
     pygame.quit()
 
 
@@ -87,18 +83,22 @@ def game_loop(
     clock = pygame.time.Clock()
     game_surface = pygame.Surface((window_width, window_height))
     game = flappybird.FlappyBirdGame(game_surface, window_width, window_height)
+
     tickrate = pygame.display.get_current_refresh_rate()
+    tickrate = 60
 
     while flags["running"]:
         # changing number of hands creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
 
+        event_handler.keyboard_mouse()
+
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
 
         events = pygame.event.get()
-        
+
         event_handler.handle_events(events)
 
         game_events(game, events, window)
@@ -119,11 +119,13 @@ def game_events(game, events, window):
     game.tick()
 
 
+@console.console_flag
 def print_keyboard_table(keys):
     if keys[pygame.K_SPACE]:
         console.table(["key pressed"], [["space"]], table_number=1)
     else:
         console.table(["key pressed"], [[""]], table_number=1)
+    console.update()
 
 
 if __name__ == "__main__":

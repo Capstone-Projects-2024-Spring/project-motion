@@ -4,9 +4,8 @@ from rich.layout import Layout
 from rich.console import Console
 from rich.panel import Panel
 from rich.columns import Columns
-
 import os
-
+from typing import Callable, Union
 
 class GestureConsole:
     # make this class a singleton
@@ -17,9 +16,10 @@ class GestureConsole:
             cls.instance = super(GestureConsole, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, max_tables=5) -> None:
+    def __init__(self, flags=None, max_tables=5) -> None:
         if not self._initialized:
             self._initialized = True
+            self.printing = True
             self.console = ConsolePanel()
             self.layout = Layout()
             self.layout.split_column(Layout(name="upper"), Layout(name="lower"))
@@ -28,6 +28,14 @@ class GestureConsole:
             self.tables = []
             for i in range(max_tables):
                 self.tables.append(Table())
+                
+    def console_flag(self, func: Callable) -> Callable:
+        def print_function(*args, **kwargs) -> Union[Callable, bool]:
+            if not self.printing:
+                
+                return
+            return func(*args, **kwargs)
+        return print_function
 
     def table(self, headers, rows, table_number=0):
         table = self.tables[table_number]
@@ -51,12 +59,12 @@ class GestureConsole:
                 Columns(self.tables),
             )
         )
-        self.update()
+        #self.update()
 
     def print(self, string: str):
         self.console.print(string)
         self.layout["lower"].update(Panel(self.console))
-        self.update()
+        #self.update()
 
     def update(self):
         self.live.update(self.layout, refresh=True)
