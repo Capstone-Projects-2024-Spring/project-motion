@@ -89,7 +89,10 @@ def game_loop(
     tickrate = pygame.display.get_current_refresh_rate()
     tickrate = 60
 
+    counter = 0
+
     while flags["running"]:
+        counter += 1
         # changing number of hands creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
@@ -100,13 +103,12 @@ def game_loop(
         window.fill((0, 0, 0))
 
         events = pygame.event.get()
-
         event_handler.handle_events(events)
 
         game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
-        print_keyboard_table(pygame.key.get_pressed())
+        print_input_table(counter)
         if menu_pygame.is_enabled():
             menu_pygame.update(events)
             menu_pygame.draw(window)
@@ -122,12 +124,21 @@ def game_events(game, events, window):
 
 
 @console.console_flag
-def print_keyboard_table(keys):
+def print_input_table(counter):
+    keys = pygame.key.get_pressed()
+    clicks = pygame.mouse.get_pressed()
     if keys[pygame.K_SPACE]:
         console.table(["key pressed"], [["space"]], table_number=1)
     else:
         console.table(["key pressed"], [[""]], table_number=1)
-    console.update()
+
+    if clicks[0]:
+        console.table(["mouse"], [["left"]], table_number=2)
+    else:
+        console.table(["mouse"], [[""]], table_number=2)
+    # updating the console is slow
+    if counter % 10 == 0:
+        console.update()
 
 
 if __name__ == "__main__":
