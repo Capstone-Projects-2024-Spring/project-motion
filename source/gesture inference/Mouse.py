@@ -7,15 +7,15 @@ import math
 class Mouse:
     def __init__(
         self,
-        mouse_sensitivity=0.5,
+        mouse_sensitivity=1,
         x_scale=1.3,
         y_scale=1.5,
         alpha=0.15,
-        deadzone=15,
+        deadzone=15,  
         single_click_duration=1 / 5,
-        is_push_mode=False,
         is_relative=True,
-        acceleration_factor=1.5,
+        acceleration_factor=1.5 ,
+        linear_factor=0.25
     ) -> None:
         """Initialization of Mouse class.
 
@@ -35,12 +35,12 @@ class Mouse:
         self.x_scale = float(x_scale)
         self.y_scale = float(y_scale)
         self.deadzone = deadzone
-        self.is_push_mode = is_push_mode
 
         self.is_relative = is_relative
         self.relative_last_x = self.screen_width
         self.relative_last_y = self.screen_height
         self.acceleration_factor = acceleration_factor
+        self.linear_factor = linear_factor
 
         self.left_down = False
         self.middle_down = False
@@ -53,9 +53,6 @@ class Mouse:
         self.window_size = 12
         self.alpha = alpha
 
-    def push_mouse(self, x, y):
-        pydirectinput.moveRel(x, y, relative=True)
-
     def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
 
@@ -64,19 +61,6 @@ class Mouse:
             y (float): y coordinate between 0 and 1
             mouse_button (string): can be "", "left", "middle", or "right"
         """
-        push_x = 0
-        push_y = 0
-
-        if self.is_push_mode:
-            if x < 1 / 3:
-                push_x = -1
-            elif x > 2 / 3:
-                push_x = 1
-
-            if y < 1 / 3:
-                push_y = -1
-            elif y > 2 / 3:
-                push_y = 1
 
         x = int(
             (
@@ -88,7 +72,7 @@ class Mouse:
         y = int(
             (
                 (self.y_scale * self.mouse_sensitivity) * y
-                - (self.y_scale * self.mouse_sensitivity - 1) / 2
+                - (self.y_scale * self.mouse_sensitivity - 1) / 2 
             )
             * self.screen_height
         )
@@ -126,8 +110,6 @@ class Mouse:
                     self.console.print(f"releasing mouse right")
                     pydirectinput.mouseUp(button="right")
                     self.right_down = False
-                if self.is_push_mode:
-                    self.push_mouse(push_x, push_y)
                 elif not ignore_small_movement:
                     self.move(x, y)
             else:
@@ -157,12 +139,12 @@ class Mouse:
         if self.is_relative == True:
             # can't raise negative to an exponent
             x_diff = self.relative_last_x - x
-            x_diff_abs = abs(x_diff)
+            x_diff_abs = abs(x_diff * self.linear_factor)
             scaled_x = int(x_diff_abs**self.acceleration_factor) * (
                 1 if x_diff >= 0 else -1
             )
             y_diff = self.relative_last_y - y
-            y_diff_abs = abs(y_diff)
+            y_diff_abs = abs(y_diff * self.linear_factor)
             scaled_y = int(y_diff_abs**self.acceleration_factor) * (
                 1 if y_diff >= 0 else -1
             )
