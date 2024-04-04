@@ -29,7 +29,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/simple.pth",
+    "gesture_model_path": "models/flappy.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -45,7 +45,7 @@ console = GestureConsole()
 def main() -> None:
     window_width = 1000
     window_height = 800
-    window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)  
+    window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
     mouse = Mouse()
@@ -70,7 +70,7 @@ def main() -> None:
         while True:
             event_handler.keyboard()
             event.wait(timeout=0.01)
-            
+
     def mouse_loop():
         nonlocal event_handler
         event = threading.Event()

@@ -53,6 +53,8 @@ class Keyboard:
             self.press("none")
         elif max_index == 2:
             self.press(self.flags["toggle_mouse_key"])
+        elif max_index == 3:
+            self.press("p")
 
     def press(self, key: str):          
         current_time = time.time() 
