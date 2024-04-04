@@ -52,12 +52,22 @@ class Menu:
         self.menu.add.toggle_switch(
             "Disable Mouse Control", False, onchange=self.lockout_mouse
         )
+        self.menu.add.toggle_switch("Mouse Push Mode", False, onchange=self.mouse_push)
+        self.menu.add.toggle_switch(
+            "Mouse Relative Mode", True, onchange=self.mouse_relative
+        )
         self.menu.add.toggle_switch(
             "Enable Console", True, onchange=self.enable_console
         )
         self.console
         self.menu.add.button("Quit", pygame_menu.events.EXIT)
         self.menu.enable()
+
+    def mouse_relative(self, current_state_value, **kwargs):
+        self.flags["mouse"].is_relative = current_state_value
+
+    def mouse_push(self, current_state_value, **kwargs):
+        self.flags["mouse"].is_push_mode = current_state_value
 
     def enable_console(self, current_state_value, **kwargs):
         self.console.printing = current_state_value
