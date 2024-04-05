@@ -61,6 +61,7 @@ class Renderer:
             self.is_webcam_fullscreen = False
 
     def render_hands(self, hands):
+        self.window_width, self.window_height = self.window.get_size()
         if hands.location != []:
             for index in range(hands.num_hands_detected):
                 if self.flags["render_hands_mode"]:

@@ -31,7 +31,24 @@ class Menu:
             onchange=self.change_mouse_smooth,
         )
         self.menu.add.dropselect(
-            "Number of hands :", ["1", "2", "3", "4"], onchange=self.change_hands_num
+            "Number of hands :",
+            ["1", "2", "3", "4"],
+            default=1,
+            onchange=self.change_hands_num,
+        )
+
+        self.menu.add.dropselect(
+            "Keyboard Hand:",
+            [("Hand 1", 0), ("Hand 2", 1)],
+            default=0,
+            onchange=self.set_keyboard_hand,
+        )
+
+        self.menu.add.dropselect(
+            "Mouse Hand:",
+            [("Hand 1", 0), ("Hand 2", 1)],
+            default=1,
+            onchange=self.set_mouse_hand,
         )
 
         models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
@@ -61,6 +78,12 @@ class Menu:
         self.console
         self.menu.add.button("Quit", pygame_menu.events.EXIT)
         self.menu.enable()
+
+    def set_mouse_hand(self, value, num):
+        self.flags["mouse_hand_num"] = num
+
+    def set_keyboard_hand(self, value, num):
+        self.flags["keyboard_hand_num"] = num
 
     def mouse_relative(self, current_state_value, **kwargs):
         self.flags["mouse"].is_relative = current_state_value

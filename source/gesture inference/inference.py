@@ -31,12 +31,14 @@ flags = {
     "gesture_model_path": "models/flappy.pth",
     "click_sense": 0.05,
     "hands": None,
-    "running": True,
+    "running": True, 
     "show_debug_text": True,
     "webcam_mode": 2,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
     "gesture_list": [],
+    "mouse_hand_num":1,
+    "keyboard_hand_num": 0
 }
 
 # custom console
@@ -111,7 +113,7 @@ def game_loop(
         game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
-        print_input_table(events, counter)
+        print_input_table(counter)
         if menu_pygame.is_enabled():
             menu_pygame.update(events)
             menu_pygame.draw(window)
@@ -126,7 +128,7 @@ def game_events(game, events, window):
     game.tick()
 
 
-def print_input_table(events, counter):
+def print_input_table(counter):
     if counter % 7 == 0:
         keys = pygame.key.get_pressed()
         clicks = pygame.mouse.get_pressed()

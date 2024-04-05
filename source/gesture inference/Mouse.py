@@ -53,7 +53,7 @@ class Mouse(threading.Thread):
         self.middle_down = False
         self.right_down = False
         self.console = GestureConsole()
-
+        
         # expontial moving average stuff
         self.x_window = []
         self.y_window = []
@@ -61,29 +61,30 @@ class Mouse(threading.Thread):
         self.alpha = alpha
 
     def toggle_mouse(self):
-        """Enable or disable mouse control"""
-        if self.flags["toggle_mouse_key"] != None:
-            self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
+        self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
 
     def run(self):
         event = threading.Event()
         while True:
             if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
                 mouse_button_text = ""
-                hand = self.flags["hands"].result.hand_world_landmarks[0]
-                # index tip, thumb tip
-                if self.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
-                    mouse_button_text = "left"
-                # middle tip, thumb tip
-                elif self.is_clicking(hand[12], hand[4], self.flags["click_sense"]):
-                    mouse_button_text = "middle"
-                # ring tip, thumb tip
-                elif self.is_clicking(hand[16], hand[4], self.flags["click_sense"]):
-                    mouse_button_text = "right"
+                hands = self.flags["hands"].result.hand_world_landmarks
+                if len(hands) > self.flags["mouse_hand_num"]:
+                    hand = hands[self.flags["mouse_hand_num"]]
+                
+                    # index tip, thumb tip
+                    if self.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
+                        mouse_button_text = "left"
+                    # middle tip, thumb tip
+                    elif self.is_clicking(hand[12], hand[4], self.flags["click_sense"]):
+                        mouse_button_text = "middle"
+                    # ring tip, thumb tip
+                    elif self.is_clicking(hand[16], hand[4], self.flags["click_sense"]):
+                        mouse_button_text = "right"
 
-                location = self.flags["hands"].location[0]
-                # self.console.print(mouse_button_text)
-                self.control(location[0], location[1], mouse_button_text)
+                    location = self.flags["hands"].location[self.flags["mouse_hand_num"]]
+                    # self.console.print(mouse_button_text)
+                    self.control(location[0], location[1], mouse_button_text)
             else:
                 self.lift_mouse_button()
 

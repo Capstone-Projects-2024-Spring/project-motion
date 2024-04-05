@@ -6,7 +6,6 @@ class GestureEventHandler:
         self.menu = menu
         self.flags = flags
         self.is_menu_showing = True
-        self.is_fullscreen = False
 
     def handle_events(self, events):
         for event in events:
@@ -28,7 +27,7 @@ class GestureEventHandler:
         if event.key == pygame.K_F3:
             self.flags["render_hands_mode"] = not self.flags["render_hands_mode"]
         if event.key == pygame.K_F11:
-            self.toggle_fullscreen()
+            pygame.display.toggle_fullscreen()
         if event.key == pygame.K_g:
             self.flags["run_model_flag"] = not self.flags["run_model_flag"]
 
@@ -43,6 +42,3 @@ class GestureEventHandler:
         else:
             self.menu.menu.disable()
 
-    def toggle_fullscreen(self):
-        self.is_fullscreen = not self.is_fullscreen
-        # pygame.display.toggle_fullscreen()
