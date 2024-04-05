@@ -10,14 +10,12 @@ class Renderer:
         self.window_width, self.window_height = window.get_size()
         self.flags = flags
         self.counter = 0
-        self.wrapper = textwrap.TextWrapper(width=20)
         self.instructions = "F1 to change webcam place. F2 to hide this text. F3 to change hand render mode. 'M' to toggle mouse control. 'G' to toggle gesture model."
-        self.instructions_wrapped = self.wrapper.wrap(text=self.instructions)
-        self.delay_AI = None
         self.img_pygame = None
         self.webcam_width = None
         self.webcam_height = None
         self.is_webcam_fullscreen = False
+        self.delay_AI = None
         self.hand_surfaces = []
         self.renderHands = RenderHands(render_scale=3)
 
@@ -26,15 +24,17 @@ class Renderer:
                 pygame.Surface((self.window_width, self.window_height))
             )
             self.hand_surfaces[i].set_colorkey((0, 0, 0))
-            
-    def render_overlay(self,hands, clock):
+
+    def render_overlay(self, hands, clock):
         frame = hands.frame.copy()
         self.render_webcam(frame, self.flags["webcam_mode"])
         self.render_hands(hands)
         fps = self.font.render(
             str(round(clock.get_fps(), 1)) + "fps", False, (255, 255, 255)
         )
-        self.render_debug_text(self.flags["show_debug_text"], hands, fps)
+        if self.flags["show_debug_text"]:
+            self.render_debug_text(hands, fps)
+            self.render_key_press()
 
     def render_webcam(self, frame, webcam_mode):
         self.img_pygame = pygame.image.frombuffer(
@@ -93,7 +93,7 @@ class Renderer:
 
         else:
             for i in range(4):
-                self.hand_surfaces[i].fill((0, 0, 0)) 
+                self.hand_surfaces[i].fill((0, 0, 0))
 
         corners = [
             (0, 0),
@@ -112,25 +112,45 @@ class Renderer:
             for i in range(hands.num_hands_detected):
                 self.window.blit(self.hand_surfaces[i], corners[0])
 
-    def render_debug_text(self, show_debug_text, hands, fps):
+    def render_key_press(self):
+
+        keys = pygame.key.get_pressed()
+        clicks = pygame.mouse.get_pressed()
+        keyString = ""
+
+        for i in range(len(keys)):
+            if keys[i]:
+                keyName = pygame.key.name(i)
+                keyString += keyName + "\n"
+
+        if clicks[0]:
+            keyString += "left" + "\n"
+        if clicks[1]:
+            keyString += "middle" + "\n"
+        if clicks[2]:
+            keyString += "right" + "\n"
+
+        text = self.font.render(keyString, 1, (255, 255, 255))
+        self.window.blit(text, (self.window_width - 100, 0))
+
+    def render_debug_text(self, hands, fps):
         self.counter += 1
-        if show_debug_text:
-            for index in range(len(hands.gestures)):
-                gesture_text = self.font.render(
-                    hands.gestures[index], False, (255, 255, 255)
-                )
-                self.window.blit(gesture_text, (0, index * 40 + 80))
+        for index in range(len(hands.gestures)):
+            gesture_text = self.font.render(
+                hands.gestures[index], False, (255, 255, 255)
+            )
+            self.window.blit(gesture_text, (0, index * 40 + 80))
+        if hands.delay != 0 and self.counter % 60 == 0:
+            self.delay_AI = self.font.render(
+                "Webcam: " + str(round(1000 / hands.delay, 1)) + "fps",
+                False,
+                (255, 255, 255),
+            )
+        if self.delay_AI is not None:
+            self.window.blit(self.delay_AI, (0, 40))
+        self.window.blit(fps, (0, 0))
 
-            if hands.delay != 0 and self.counter % 60 == 0:
-                self.delay_AI = self.font.render(
-                    "Webcam: " + str(round(1000 / hands.delay, 1)) + "fps",
-                    False,
-                    (255, 255, 255),
-                )
-            if self.delay_AI is not None:
-                self.window.blit(self.delay_AI, (0, 40))
-            self.window.blit(fps, (0, 0))
-
-            for index, instruc in enumerate(self.instructions_wrapped):
-                instructions_text = self.font.render(instruc, False, (255, 255, 255))
-                self.window.blit(instructions_text, (0, 400 + index * 40))
+        instructions_text = self.font.render(
+            self.instructions, False, (255, 255, 255), wraplength=300
+        )
+        self.window.blit(instructions_text, (0, 400 + index * 40))

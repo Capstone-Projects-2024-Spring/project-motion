@@ -40,6 +40,7 @@ class GetHands(Thread):
 
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
+        self.flags["gesture_list"] = self.gesture_list
         self.gestures = ["no gesture"]
         self.delay = 0
         self.result = None

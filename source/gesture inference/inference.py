@@ -13,7 +13,6 @@ from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
-import threading
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -36,6 +35,8 @@ flags = {
     "show_debug_text": True,
     "webcam_mode": 2,
     "toggle_mouse_key": "m",
+    "min_confidence": 0.0,
+    "gesture_list": [],
 }
 
 # custom console
@@ -48,43 +49,28 @@ def main() -> None:
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
-    mouse = Mouse()
-    hands = GetHands(flags=flags)
-    flags["mouse"] = mouse
-    flags["hands"] = hands
-
-    menu = Menu(window_width, window_height, flags)
+    mouse = Mouse(flags=flags)
     keyboard = Keyboard(
         threshold=0,
         toggle_key_threshold=0.3,
-        toggle_mouse_func=menu.toggle_mouse,
+        toggle_mouse_func=mouse.toggle_mouse,
         flags=flags,
     )
+
+    hands = GetHands(flags=flags)
+    flags["hands"] = hands
+
+    flags["mouse"] = mouse
     flags["keyboard"] = keyboard
+    keyboard.start()
+    mouse.start()
+
+    menu = Menu(window_width, window_height, flags)
 
     event_handler = GestureEventHandler(menu, flags)
 
-    def keyboard_loop():
-        nonlocal event_handler
-        event = threading.Event()
-        while True:
-            event_handler.keyboard()
-            event.wait(timeout=0.01)
-
-    def mouse_loop():
-        nonlocal event_handler
-        event = threading.Event()
-        while True:
-            event_handler.mouse()
-            event.wait(timeout=0.01)
-
-    input_poller = threading.Thread(target=keyboard_loop, daemon=True)
-    input_poller.start()
-    input_poller = threading.Thread(target=mouse_loop, daemon=True)
-    input_poller.start()
     game_loop(window, hands, event_handler, menu)
     pygame.quit()
-    hands.join()
 
 
 def game_loop(
@@ -116,8 +102,6 @@ def game_loop(
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
 
-        # event_handler.keyboard_mouse()
-
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
 
@@ -127,7 +111,7 @@ def game_loop(
         game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
-        print_input_table(counter)
+        print_input_table(events, counter)
         if menu_pygame.is_enabled():
             menu_pygame.update(events)
             menu_pygame.draw(window)
@@ -142,20 +126,27 @@ def game_events(game, events, window):
     game.tick()
 
 
-def print_input_table(counter):
-    keys = pygame.key.get_pressed()
-    clicks = pygame.mouse.get_pressed()
-    if keys[pygame.K_SPACE]:
-        console.table(["key pressed"], [["space"]], table_number=1)
-    else:
-        console.table(["key pressed"], [[""]], table_number=1)
-
-    if clicks[0]:
-        console.table(["mouse"], [["left"]], table_number=2)
-    else:
-        console.table(["mouse"], [[""]], table_number=2)
-    # updating the console is slow
+def print_input_table(events, counter):
     if counter % 7 == 0:
+        keys = pygame.key.get_pressed()
+        clicks = pygame.mouse.get_pressed()
+        keyString = []
+
+        for i in range(len(keys)):
+            if keys[i]:
+                keyName = pygame.key.name(i)
+                keyString.append([keyName])
+        console.table(["key pressed (pygame)"], keyString, table_number=1)
+
+        clicked = []
+        if clicks[0]:
+            clicked.append(["left"])
+        if clicks[1]:
+            clicked.append(["middle"])
+        if clicks[2]:
+            clicked.append(["right"])
+
+        console.table(["mouse (pygame)"], clicked, table_number=2)
         console.update()
 
 

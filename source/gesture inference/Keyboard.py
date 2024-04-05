@@ -2,9 +2,10 @@ import pydirectinput
 import time
 from Console import GestureConsole
 import numpy as np
+import threading
 
 
-class Keyboard:
+class Keyboard(threading.Thread):
     def __init__(
         self,
         threshold=0.0,
@@ -12,7 +13,10 @@ class Keyboard:
         toggle_key_toggle_time=1,
         toggle_mouse_func=None,
         flags=None,
+        tps=60
     ) -> None:
+        
+        threading.Thread.__init__(self, daemon=True)
         """ the used for toggling the mouse is saved in flags
 
         Args:
@@ -23,6 +27,7 @@ class Keyboard:
         """
         pydirectinput.FAILSAFE = False
         pydirectinput.PAUSE = 0
+        self.tps = tps
         self.threshold = threshold
         self.toggle_key_threshold = toggle_key_threshold
         self.last_time = time.time()
@@ -36,6 +41,15 @@ class Keyboard:
         self.flags = flags
         self.keys = ['\t', '\n', '\r', ' ', '!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~', 'accept', 'add', 'alt', 'altleft', 'altright', 'apps', 'backspace', 'browserback', 'browserfavorites', 'browserforward', 'browserhome', 'browserrefresh', 'browsersearch', 'browserstop', 'capslock', 'clear', 'convert', 'ctrl', 'ctrlleft', 'ctrlright', 'decimal', 'del', 'delete', 'divide', 'down', 'end', 'enter', 'esc', 'escape', 'execute', 'f1', 'f10', 'f11', 'f12', 'f13', 'f14', 'f15', 'f16', 'f17', 'f18', 'f19', 'f2', 'f20', 'f21', 'f22', 'f23', 'f24', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'final', 'fn', 'hanguel', 'hangul', 'hanja', 'help', 'home', 'insert', 'junja', 'kana', 'kanji', 'launchapp1', 'launchapp2', 'launchmail', 'launchmediaselect', 'left', 'modechange', 'multiply', 'nexttrack', 'nonconvert', 'num0', 'num1', 'num2', 'num3', 'num4', 'num5', 'num6', 'num7', 'num8', 'num9', 'numlock', 'pagedown', 'pageup', 'pause', 'pgdn', 'pgup', 'playpause', 'prevtrack', 'print', 'printscreen', 'prntscrn', 'prtsc', 'prtscr', 'return', 'right', 'scrolllock', 'select', 'separator', 'shift', 'shiftleft', 'shiftright', 'sleep', 'space', 'stop', 'subtract', 'tab', 'up', 'volumedown', 'volumemute', 'volumeup', 'win', 'winleft', 'winright', 'yen', 'command', 'option', 'optionleft', 'optionright']
 
+    def run(self):
+        event = threading.Event()
+        while True:
+            if self.flags["run_model_flag"] and len(self.flags["hands"].confidence_vectors) > 0:
+                # send only the first hand confidence vector the gesture model output
+                self.gesture_input(self.flags["hands"].confidence_vectors[0])
+            else:
+                self.release()
+            event.wait(timeout=1/self.tps)
 
     def release(self):
         if self.key_pressed:
@@ -46,15 +60,18 @@ class Keyboard:
 
     def gesture_input(self, confidences):
         max_value = np.max(confidences)
-        max_index = np.argmax(confidences)
-        if max_index == 0:
-            self.press("space")
-        elif max_index == 1:
-            self.press("none")
-        elif max_index == 2:
-            self.press(self.flags["toggle_mouse_key"])
-        elif max_index == 3:
-            self.press("p")
+        #gesture_list = self.flags["gesture_list"]
+        
+        if max_value > self.flags["min_confidence"]:
+            max_index = np.argmax(confidences)
+            if max_index == 0:
+                self.press("space")
+            elif max_index == 1:
+                self.press("none")
+            elif max_index == 2:
+                self.press(self.flags["toggle_mouse_key"])
+            elif max_index == 3:
+                self.press("p")
 
     def press(self, key: str):          
         current_time = time.time() 

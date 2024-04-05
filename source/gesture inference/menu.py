@@ -8,8 +8,8 @@ class Menu:
     def __init__(self, window_width, window_height, flags):
         self.menu = pygame_menu.Menu(
             "Esc to toggle menu",
-            window_width * 0.5,
-            window_height * 0.5,
+            window_width * 0.8,
+            window_height * 0.8,
             theme=pygame_menu.themes.THEME_BLUE,
         )
         self.flags = flags
@@ -48,7 +48,7 @@ class Menu:
         )
 
         self.menu.add.toggle_switch("Enable Model", True, onchange=self.toggle_model)
-        self.menu.add.button("Toggle Mouse", action=self.toggle_mouse)
+        self.menu.add.button("Toggle Mouse", action=self.flags["mouse"].toggle_mouse)
         self.menu.add.toggle_switch(
             "Disable Mouse Control", False, onchange=self.lockout_mouse
         )
@@ -81,11 +81,6 @@ class Menu:
             (file,) for file in os.listdir(directory_path) if file.endswith(ending)
         ]
         return files
-
-    def toggle_mouse(self):
-        """Enable or disable mouse control"""
-        if self.flags["toggle_mouse_key"] != None:
-            self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
 
     def toggle_model(self, current_state_value, **kwargs):
         self.flags["run_model_flag"] = current_state_value

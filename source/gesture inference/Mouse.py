@@ -2,21 +2,25 @@ import pydirectinput
 import time
 from Console import GestureConsole
 import math
+import threading
 
 
-class Mouse:
+class Mouse(threading.Thread):
     def __init__(
         self,
         mouse_sensitivity=1,
         x_scale=1.3,
         y_scale=1.5,
         alpha=0.15,
-        deadzone=15,  
+        deadzone=15,
         single_click_duration=1 / 5,
         is_relative=True,
-        acceleration_factor=1.5 ,
-        linear_factor=0.25
+        acceleration_factor=1.5,
+        linear_factor=0.25,
+        flags=None,
+        tps=120,
     ) -> None:
+        threading.Thread.__init__(self, daemon=True)
         """Initialization of Mouse class.
 
         Args:
@@ -28,6 +32,7 @@ class Mouse:
                                                     If you increase drag_threshold_time, you will have more time to move the mouse after clicking without triggering a drag.
                                                     If you decrease drag_threshold_time, even a slight movement of the mouse shortly after clicking can be considered a drag rather than a separate click.
         """
+        self.flags = flags
         self.screen_width, self.screen_height = pydirectinput.size()
         pydirectinput.FAILSAFE = False
         self.single_click_duration = single_click_duration
@@ -35,6 +40,8 @@ class Mouse:
         self.x_scale = float(x_scale)
         self.y_scale = float(y_scale)
         self.deadzone = deadzone
+
+        self.tps = tps
 
         self.is_relative = is_relative
         self.relative_last_x = self.screen_width
@@ -53,15 +60,50 @@ class Mouse:
         self.window_size = 12
         self.alpha = alpha
 
-    def control(self, x: float, y: float, mouse_button: str):
-        """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
+    def toggle_mouse(self):
+        """Enable or disable mouse control"""
+        if self.flags["toggle_mouse_key"] != None:
+            self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
 
-        Args:
-            x (float): x coordinate between 0 and 1
-            y (float): y coordinate between 0 and 1
-            mouse_button (string): can be "", "left", "middle", or "right"
-        """
+    def run(self):
+        event = threading.Event()
+        while True:
+            if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
+                mouse_button_text = ""
+                hand = self.flags["hands"].result.hand_world_landmarks[0]
+                # index tip, thumb tip
+                if self.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
+                    mouse_button_text = "left"
+                # middle tip, thumb tip
+                elif self.is_clicking(hand[12], hand[4], self.flags["click_sense"]):
+                    mouse_button_text = "middle"
+                # ring tip, thumb tip
+                elif self.is_clicking(hand[16], hand[4], self.flags["click_sense"]):
+                    mouse_button_text = "right"
 
+                location = self.flags["hands"].location[0]
+                # self.console.print(mouse_button_text)
+                self.control(location[0], location[1], mouse_button_text)
+            else:
+                self.lift_mouse_button()
+
+            event.wait(timeout=1 / self.tps)
+
+    def lift_mouse_button(self):
+        if self.left_down:
+            self.console.print(f"releasing mouse left")
+            pydirectinput.mouseUp(button="left")
+            self.left_down = False
+        if self.middle_down:
+            self.console.print(f"releasing mouse middle")
+            pydirectinput.mouseUp(button="middle")
+            self.middle_down = False
+        if self.right_down:
+            self.console.print(f"releasing mouse right")
+            pydirectinput.mouseUp(button="right")
+            self.right_down = False
+
+    def scale(self, x, y):
         x = int(
             (
                 (self.x_scale * self.mouse_sensitivity) * x
@@ -72,10 +114,22 @@ class Mouse:
         y = int(
             (
                 (self.y_scale * self.mouse_sensitivity) * y
-                - (self.y_scale * self.mouse_sensitivity - 1) / 2 
+                - (self.y_scale * self.mouse_sensitivity - 1) / 2
             )
             * self.screen_height
         )
+        return x, y
+
+    def control(self, x: float, y: float, mouse_button: str):
+        """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
+
+        Args:
+            x (float): x coordinate between 0 and 1
+            y (float): y coordinate between 0 and 1
+            mouse_button (string): can be "", "left", "middle", or "right"
+        """
+
+        x, y = self.scale(x, y)
 
         if len(self.x_window) > 1:
             self.relative_last_x = self.x_window[len(self.x_window) - 1]
@@ -98,27 +152,11 @@ class Mouse:
             self.x_window.pop(0)
             self.y_window.pop(0)
             if mouse_button == "":
-                if self.left_down:
-                    self.console.print(f"releasing mouse left")
-                    pydirectinput.mouseUp(button="left")
-                    self.left_down = False
-                if self.middle_down:
-                    self.console.print(f"releasing mouse middle")
-                    pydirectinput.mouseUp(button="middle")
-                    self.middle_down = False
-                if self.right_down:
-                    self.console.print(f"releasing mouse right")
-                    pydirectinput.mouseUp(button="right")
-                    self.right_down = False
-                elif not ignore_small_movement:
-                    self.move(x, y)
+                self.lift_mouse_button()
             else:
-                # click or click and drag
-                self.click(
-                    x,
-                    y,
-                    mouse_button,
-                )
+                self.click(mouse_button)
+            if not ignore_small_movement:
+                self.move(x, y)
 
     def is_clicking(self, tip1, tip2, click_sensitinity):
         distance = math.sqrt(
@@ -139,11 +177,14 @@ class Mouse:
         if self.is_relative == True:
             # can't raise negative to an exponent
             x_diff = self.relative_last_x - x
+            y_diff = self.relative_last_y - y
+            if x_diff > 300 or y_diff > 300:
+                return
+
             x_diff_abs = abs(x_diff * self.linear_factor)
             scaled_x = int(x_diff_abs**self.acceleration_factor) * (
                 1 if x_diff >= 0 else -1
             )
-            y_diff = self.relative_last_y - y
             y_diff_abs = abs(y_diff * self.linear_factor)
             scaled_y = int(y_diff_abs**self.acceleration_factor) * (
                 1 if y_diff >= 0 else -1
@@ -152,7 +193,7 @@ class Mouse:
         else:
             pydirectinput.moveTo(x, y)
 
-    def click(self, x, y, mouse_button):
+    def click(self, mouse_button):
         """Handle mouse clicking.
 
         Args:
@@ -160,28 +201,23 @@ class Mouse:
             y (int): Y-coordinate.
             mouse_button (str): Mouse button to click.
         """
-        mouse_down = self.left_down or self.middle_down or self.right_down
-        if not mouse_down:
-            self.console.print(f"clicking mouse {mouse_button}")
-            pydirectinput.mouseDown(button=mouse_button)
-            time.sleep(self.single_click_duration)
-
         if mouse_button == "left":
             if not self.left_down:
+                self.console.print(f"clicking mouse {mouse_button}")
                 pydirectinput.mouseDown(button=mouse_button)
                 self.left_down = True
 
         if mouse_button == "middle":
             if not self.middle_down:
+                self.console.print(f"clicking mouse {mouse_button}")
                 pydirectinput.mouseDown(button=mouse_button)
                 self.middle_down = True
 
         if mouse_button == "right":
             if not self.right_down:
+                self.console.print(f"clicking mouse {mouse_button}")
                 pydirectinput.mouseDown(button=mouse_button)
                 self.right_down = True
-
-        self.move(x, y)
 
     def exponential_moving_average(self, data):
         ema = [data[0]]
