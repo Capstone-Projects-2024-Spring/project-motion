@@ -28,7 +28,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/flappy.pth",
+    "gesture_model_path": "models/minecraft.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -39,7 +39,7 @@ flags = {
     "gesture_list": [],
     "mouse_hand_num": 1,
     "keyboard_hand_num": 0,
-    "key_bindings": ["space", "none", "m", "p"]
+    "key_bindings": ["none", "w", "e", "ctrlleft", "space"]
 }
 
 # custom console
@@ -109,7 +109,7 @@ def game_loop(
         events = pygame.event.get()
         event_handler.handle_events(events)
 
-        game_events(game, events, window)
+        #game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
         print_input_table(counter)

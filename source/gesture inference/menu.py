@@ -56,7 +56,7 @@ class Menu:
                 ("Flappybird", ["space", "none", "m", "p"]),
                 ("Minecraft", ["none", "w", "e", "ctrlleft", "space"]),
             ],
-            default=0,
+            default=1,
             onchange=self.set_key_bindings,
         )
         models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
