@@ -31,14 +31,15 @@ flags = {
     "gesture_model_path": "models/flappy.pth",
     "click_sense": 0.05,
     "hands": None,
-    "running": True, 
+    "running": True,
     "show_debug_text": True,
     "webcam_mode": 2,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
     "gesture_list": [],
-    "mouse_hand_num":1,
-    "keyboard_hand_num": 0
+    "mouse_hand_num": 1,
+    "keyboard_hand_num": 0,
+    "key_bindings": ["space", "none", "m", "p"]
 }
 
 # custom console
@@ -54,8 +55,6 @@ def main() -> None:
     mouse = Mouse(flags=flags)
     keyboard = Keyboard(
         threshold=0,
-        toggle_key_threshold=0.3,
-        toggle_mouse_func=mouse.toggle_mouse,
         flags=flags,
     )
 

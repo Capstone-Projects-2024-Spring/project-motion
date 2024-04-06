@@ -62,20 +62,14 @@ class Keyboard(threading.Thread):
         self.toggle_keys_pressed = {}
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
 
-    def gesture_input(self, confidences):
+    def gesture_input(self, confidences, hand_num=0):
         max_value = np.max(confidences)
-        # gesture_list = self.flags["gesture_list"]
+        max_index = np.argmax(confidences)
+        bindings = self.flags["key_bindings"]
 
-        if max_value > self.flags["min_confidence"]:
-            max_index = np.argmax(confidences)
-            if max_index == 0:
-                self.press("none")
-            elif max_index == 1:
-                self.press("space")
-            elif max_index == 2:
-                self.press(self.flags["toggle_mouse_key"])
-            elif max_index == 3:
-                self.press("p")
+        if len(bindings) == len(confidences):
+            if max_value > self.flags["min_confidence"]:
+                self.press(bindings[max_index])
 
     def press(self, key: str):
         current_time = time.time()

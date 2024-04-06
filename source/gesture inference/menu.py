@@ -50,7 +50,15 @@ class Menu:
             default=1,
             onchange=self.set_mouse_hand,
         )
-
+        self.menu.add.dropselect(
+            "Key bindings:",
+            [
+                ("Flappybird", ["space", "none", "m", "p"]),
+                ("Minecraft", ["none", "w", "e", "ctrlleft"]),
+            ],
+            default=0,
+            onchange=self.set_key_bindings,
+        )
         models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
         self.menu.add.dropselect(
             "Use Gesture Model :", models, onchange=self.change_gesture_model
@@ -78,6 +86,9 @@ class Menu:
         self.console
         self.menu.add.button("Quit", pygame_menu.events.EXIT)
         self.menu.enable()
+
+    def set_key_bindings(self, value, keys):
+        self.flags["key_bindings"] = keys
 
     def set_mouse_hand(self, value, num):
         self.flags["mouse_hand_num"] = num
