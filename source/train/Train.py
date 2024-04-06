@@ -21,7 +21,7 @@ hidden_size = 150
 num_epochs = 50
 batch_size = 100
 learning_rate = 0.001
-filename = "data.csv"
+filename = "minecraft.csv"
 labels_list = None
 
 num_classes = 0
@@ -135,4 +135,4 @@ with torch.no_grad():
     acc = 100.0 * n_correct / n_samples
     print(f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %")
 
-torch.save((model.state_dict(),[input_size, hidden_size, num_classes, labels_list]), "simple.pth")
+torch.save((model.state_dict(),[input_size, hidden_size, num_classes, labels_list]), "minecraft.pth")

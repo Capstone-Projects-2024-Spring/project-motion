@@ -54,7 +54,7 @@ class Menu:
             "Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft", ["none", "w", "e", "ctrlleft"]),
+                ("Minecraft", ["none", "w", "e", "ctrlleft", "space"]),
             ],
             default=0,
             onchange=self.set_key_bindings,
