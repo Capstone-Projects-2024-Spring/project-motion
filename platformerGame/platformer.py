@@ -1,6 +1,8 @@
 import pygame
 import random
 import os
+from spritesheet import SpriteSheet
+from enemy import Enemy
 
 # initialize pygame
 pygame.init()
@@ -47,6 +49,9 @@ font_big = pygame.font.Font('platformerGame/Catfiles.ttf', 30)
 bg_image = pygame.image.load('platformerGame/assets/bg.png').convert_alpha()
 jumpy_image = pygame.image.load('platformerGame/assets/jump.png').convert_alpha()
 platform_image = pygame.image.load('platformerGame/assets/wood.png').convert_alpha()
+bird_sheet_img = pygame.image.load('platformerGame/assets/bird.png').convert_alpha()
+bird_sheet = SpriteSheet(bird_sheet_img)
+
 
 # function for outputting the text on the sceen
 def draw_text(text, font, text_col, x, y):
@@ -120,7 +125,10 @@ class Player():
 
         # update position
         self.rect.x += dx
-        self.rect.y += dy + scroll 
+        self.rect.y += dy + scroll
+
+        # update mask
+        self.mask = pygame.mask.from_surface(self.image)
 
         return scroll
 
@@ -167,6 +175,7 @@ jumpy = Player(SCREEN_WIDTH//2, SCREEN_HEIGHT - 150)
 
 # create sprite groups
 platform_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
 # create starting platform
 platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
@@ -205,6 +214,14 @@ while run:
         # update platforms
         platform_group.update(scroll)
 
+        # generate enemies
+        if len(enemy_group) == 0 and score > 2000:
+            enemy = Enemy(SCREEN_WIDTH, 100, bird_sheet, 1.5)
+            enemy_group.add(enemy)
+
+        # update enemies
+            enemy_group.update(scroll, SCREEN_WIDTH)
+
         # update score
         if scroll > 0:
             score += scroll
@@ -212,9 +229,12 @@ while run:
         # draw line at previous high score
         pygame.draw.line(screen, BLACK, (0, score-high_score + SCROLL_THRESH), (SCREEN_WIDTH, score-high_score + SCROLL_THRESH), 3)
         draw_text('HIGH SCORE', font_small, BLACK, SCREEN_WIDTH-200, score-high_score + SCROLL_THRESH)
+        
         # draw characters
         platform_group.draw(screen)
+        enemy_group.draw(screen)
         jumpy.draw()
+        
 
         # draw panel
         draw_panel()
@@ -222,6 +242,10 @@ while run:
         # check game over
         if jumpy.rect.top > SCREEN_HEIGHT:
             game_over = True
+        # check for collision with enemies
+        if pygame.sprite.spritecollide(jumpy, enemy_group, False):
+            if pygame.sprite.spritecollide(jumpy, enemy_group, False, pygame.sprite.collide_mask):
+                game_over = True
     
     else:
         if fade_counter < SCREEN_WIDTH:
@@ -250,6 +274,8 @@ while run:
                 jumpy.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-150)
                 # reset platforms
                 platform_group.empty()
+                # reset enemies
+                enemy_group.empty()
                 # recreate starting platform 
                 platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
                 platform_group.add(platform)
