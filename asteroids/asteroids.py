@@ -4,6 +4,7 @@ import pygame
 
 pygame.init()
 
+# screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 
@@ -16,10 +17,11 @@ asteroid1 = pygame.image.load('asteroidpics/asteroid1.png')
 asteroid2 = pygame.image.load('asteroidpics/asteroid2.png')
 asteroid3 = pygame.image.load('asteroidpics/asteroid3.png')
 
+# game window set up
 pygame.display.set_caption('Asteroids')
 window = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 
-
+# game state vars
 run = True
 clock = pygame.time.Clock()
 game_over = False
@@ -28,6 +30,7 @@ score = 0
 rapid_fire = False
 rapid_fire_start = -1
 
+# Player class + attributes and methods
 class Player(object):
      def __init__(self):
          self.img = playerShip
@@ -36,16 +39,18 @@ class Player(object):
          self.x = SCREEN_WIDTH//2 
          self.y = SCREEN_HEIGHT//2 
          self.angle = 0
+         # rotate the player ship based on the curr angle 
          self.rotated_surface = pygame.transform.rotate(self.img, self.angle)
          self.rotated_rect = self.rotated_surface.get_rect()
          self.rotated_rect.center = (self.x,self.y)
          self.cosine = math.cos(math.radians(self.angle + 90))
          self.sine = math.sin(math.radians(self.angle + 90))
+         # calculates the front point of the ship for shooting the bullets
          self.head = (self.x + self.cosine * self.width//2, self.y - self.sine * self.height//2)
-
+     # draw the rotated player ship on the window
      def draw(self,window):
           window.blit(self.rotated_surface,self.rotated_rect)
-
+     # turn the ship left by increasing the angle
      def turn_left(self):
           self.angle +=5
           self.rotated_surface = pygame.transform.rotate(self.img, self.angle)
@@ -54,7 +59,7 @@ class Player(object):
           self.cosine = math.cos(math.radians(self.angle + 90))
           self.sine = math.sin(math.radians(self.angle +90))
           self.head = (self.x + self.cosine * self.width//2, self.y - self.sine * self.height/2)
-     
+      # turn the ship right by decreasing the angle
      def turn_right(self):
           self.angle -=5
           self.rotated_surface = pygame.transform.rotate(self.img, self.angle)
@@ -63,7 +68,8 @@ class Player(object):
           self.cosine = math.cos(math.radians(self.angle + 90))
           self.sine = math.sin(math.radians(self.angle +90))
           self.head = (self.x + self.cosine * self.width//2, self.y - self.sine * self.height/2)     
-
+     
+     # move the ship forward in the direction it is facing  
      def move_forward(self):
         self.x += self.cosine * 6
         self.y -= self.sine * 6
@@ -74,6 +80,7 @@ class Player(object):
         self.sine = math.sin(math.radians(self.angle + 90))
         self.head = (self.x + self.cosine * self.width // 2, self.y - self.sine * self.height // 2)
      
+     # update the location of the ship when it goes off the screen
      def update_location(self):  
           if self.x > SCREEN_WIDTH+ 50:
               self.x = 0
@@ -84,7 +91,7 @@ class Player(object):
           elif self.y > SCREEN_HEIGHT + 50:
               self.y = 0 
 
-
+# Bullet class + attributes and methods
 class Bullet(object):
      def __init__(self):
           self.point = player.head
@@ -106,6 +113,7 @@ class Bullet(object):
           if self.x < -50 or self.x > SCREEN_WIDTH or self.y > SCREEN_HEIGHT or self.y < -50:
                         return True    
 
+# Asteroid class + attributes and methods
 class Asteroid(object):
      def __init__(self, rank):
           self.rank = rank
@@ -132,7 +140,7 @@ class Asteroid(object):
 
      def draw(self, window):
           window.blit(self.image, (self.x, self.y))                      
-
+# Star class + attributes and methods
 class Star(object):
      def __init__(self):
           self.img = star
@@ -153,6 +161,7 @@ class Star(object):
      def draw(self, window):
           window.blit(self.img, (self.x,self.y))
 
+# Alien class + attributes and methods
 class Alien(object):
      def __init__(self):
          self.img = alien
@@ -174,6 +183,8 @@ class Alien(object):
          self.yv = self.ydir * 2
      def draw(self, window):
           window.blit(self.img, (self.x, self.y)) 
+
+# Alien Bullets class + attributes and methods          
 class AlienBullet(object):
      def __init__(self, x ,y):
           self.x = x
@@ -189,12 +200,7 @@ class AlienBullet(object):
           pygame.draw.rect(window, (255,255,255), [self.x,self.y,self.w,self.h])     
 
      
-
-
-
-
-
-
+# updates game window with the current game state
 def redraw_window():
         window.blit(bg,(0,0))
         font = pygame.font.SysFont('arial',20)
@@ -222,6 +228,7 @@ def redraw_window():
         window.blit(livesText,(25,25))
         pygame.display.update()
 
+# game entities 
 player = Player()
 player_bullets = []
 asteroids = []
@@ -234,6 +241,7 @@ alien_bullets = []
 while run:
     clock.tick(60)
     count +=1
+
     if not game_over: 
          if count%50 == 0:
               ran = random.choice([1,1,1,2,2,3])
@@ -254,6 +262,7 @@ while run:
                       if (b.y >= a.y and b.y <= a.y + a.h) or b.y + b.h >= a.y and b.y + b.h <= a.y + a.h:
                            aliens.pop(i)
                            score += 50
+                           break
          for i, b in enumerate(alien_bullets):
               b.x += b.xv
               b.y += b.yv 
@@ -289,6 +298,7 @@ while run:
               for b in player_bullets:
                   if (b.x >= a.x and b.x <= a.x + a.w) or b.x + b.w >= a.x and b.x + b.w <= a.x + a.w:
                       if (b.y >= a.y and b.y <= a.y + a.h) or b.y + b.h >= a.y and b.y + b.h <= a.y + a.h:
+                           # breaks asteroids and adds to score based on asteroids type
                            if a.rank ==3:
                                 score += 10
                                 na1 = Asteroid(2)
@@ -314,6 +324,7 @@ while run:
                            asteroids.pop(asteroids.index(a))
                            player_bullets.pop(player_bullets.index(b))
                            break
+         
          for s in stars:
               s.x += s.xv 
               s.y += s.yv
@@ -336,7 +347,7 @@ while run:
                    rapid_fire = False
                    rapid_fire_start = -1
                                     
-
+         # keys for movement/rotation
          keys = pygame.key.get_pressed()
          if keys[pygame.K_LEFT]:
                   player.turn_left()
@@ -348,9 +359,11 @@ while run:
               if rapid_fire:
                    player_bullets.append(Bullet())     
                     
+     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            run = False   
+
         if event.type == pygame.KEYDOWN:
              if event.key == pygame.K_SPACE:
                  if not game_over: 
@@ -363,7 +376,7 @@ while run:
                       asteroids.clear()
                       alien_bullets.clear()
                       stars.clear()
-                      
+             # pause key          
              elif event.key == pygame.K_p: 
                  paused = True
                  while paused:
@@ -376,12 +389,13 @@ while run:
                                   paused = False
                               elif pause_event.key == pygame.K_q:  
                                   pygame.quit()
-                                  exit()  #
+                                  exit()  
                 
                      pygame.time.wait(100)  
+              # quit key       
              elif event.key == pygame.K_q:
                  pygame.quit()
                  exit()  
-
+     # redraws the window with the game's current state
     redraw_window()
 pygame.quit()
