@@ -181,28 +181,27 @@ enemy_group = pygame.sprite.Group()
 platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
 platform_group.add(platform)
 
-# game loop
+#game loop
 run = True
 while run:
 
     clock.tick(FPS)
 
-    if not game_over:
-
+    if game_over == False:
         scroll = jumpy.move()
 
-        # draw background
+        #draw background
         bg_scroll += scroll
         if bg_scroll >= 600:
             bg_scroll = 0
         draw_bg(bg_scroll)
 
-        # generate platforms
+        #generate platforms
         if len(platform_group) < MAX_PLATFORMS:
-            p_w = random.randint(50,70)
-            p_x =  random.randint(0, SCREEN_WIDTH - p_w)
+            p_w = random.randint(50, 70)
+            p_x = random.randint(0, SCREEN_WIDTH - p_w)
             p_y = platform.rect.y - random.randint(80, 120)
-            p_type = random.randint(1,2)
+            p_type = random.randint(1, 2)
             if p_type == 1 and score > 1000:
                 p_moving = True
             else:
@@ -210,52 +209,51 @@ while run:
             platform = Platform(p_x, p_y, p_w, p_moving)
             platform_group.add(platform)
 
-
-        # update platforms
+        #update platforms
         platform_group.update(scroll)
 
-        # generate enemies
-        if len(enemy_group) == 0 and score > 2000:
+        #generate enemies
+        if len(enemy_group) == 0 and score > 1500:
             enemy = Enemy(SCREEN_WIDTH, 100, bird_sheet, 1.5)
             enemy_group.add(enemy)
 
-        # update enemies
-            enemy_group.update(scroll, SCREEN_WIDTH)
+        #update enemies
+        enemy_group.update(scroll, SCREEN_WIDTH)
 
-        # update score
+        #update score
         if scroll > 0:
             score += scroll
-        
-        # draw line at previous high score
-        pygame.draw.line(screen, BLACK, (0, score-high_score + SCROLL_THRESH), (SCREEN_WIDTH, score-high_score + SCROLL_THRESH), 3)
-        draw_text('HIGH SCORE', font_small, BLACK, SCREEN_WIDTH-200, score-high_score + SCROLL_THRESH)
-        
-        # draw characters
+
+        #draw line at previous high score
+        pygame.draw.line(screen, WHITE, (0, score - high_score + SCROLL_THRESH), (SCREEN_WIDTH, score - high_score + SCROLL_THRESH), 3)
+        draw_text('HIGH SCORE', font_small, WHITE, SCREEN_WIDTH - 130, score - high_score + SCROLL_THRESH)
+
+        #draw sprites
         platform_group.draw(screen)
         enemy_group.draw(screen)
         jumpy.draw()
-        
 
-        # draw panel
+        #draw panel
         draw_panel()
 
-        # check game over
+        #check game over
         if jumpy.rect.top > SCREEN_HEIGHT:
             game_over = True
-        # check for collision with enemies
+
+        #check for collision with enemies
         if pygame.sprite.spritecollide(jumpy, enemy_group, False):
             if pygame.sprite.spritecollide(jumpy, enemy_group, False, pygame.sprite.collide_mask):
                 game_over = True
-    
+
     else:
         if fade_counter < SCREEN_WIDTH:
             fade_counter += 5
             for y in range(0, 6, 2):
-                pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, SCREEN_HEIGHT/6))
-                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, SCREEN_HEIGHT/6))
+                pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, 100))
+                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
         else:
-            draw_text("GAME OVER!", font_big, WHITE, 100, 200)
-            draw_text("SCORE: " + str(score), font_big, WHITE, 115, 250)
+            draw_text('GAME OVER!', font_big, WHITE, 100, 200)
+            draw_text('SCORE: ' + str(score), font_big, WHITE, 115, 250)
             draw_text('PRESS SPACE', font_big, WHITE, 95, 300)
             draw_text('TO PLAY AGAIN', font_big, WHITE, 80, 350)
             # update high score
@@ -265,24 +263,26 @@ while run:
                     file.write(str(high_score))
             key = pygame.key.get_pressed()
             if key[pygame.K_SPACE]:
-                # reset variables:
+                #reset variables
                 game_over = False
                 score = 0
                 scroll = 0
                 fade_counter = 0
-                # reposition player
-                jumpy.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-150)
-                # reset platforms
-                platform_group.empty()
-                # reset enemies
+                #reposition jumpy
+                jumpy.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)
+                #reset enemies
                 enemy_group.empty()
-                # recreate starting platform 
-                platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
+                #reset platforms
+                platform_group.empty()
+                #create starting platform
+                platform = Platform(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, 100, False)
                 platform_group.add(platform)
 
-    # event handler
+
+    #event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            #update high score
             if score > high_score:
                 high_score = score
                 with open('platformerGame/score.txt', 'w') as file:
@@ -290,8 +290,9 @@ while run:
             run = False
 
 
-    # update display
+    #update display window
     pygame.display.update()
-    
+
+
 
 pygame.quit()
