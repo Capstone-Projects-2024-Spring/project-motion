@@ -45,13 +45,15 @@ class HandDataset(Dataset):
         xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
         # self.x_frames = torch.from_numpy(xy[:, num_classes:])
         self.y = np.argmax(xy[:, 0:num_classes], axis=1)
-        print("Number of classification labels: " + str(num_classes))
-        print("Original number of datapoints: " + str(len(self.x)))
-        print("Sequence length: " + str(sequence_length))
+
 
         #procress raw data
         self.x = self.process_data(xy, num_classes, sequence_length)
         self.y = torch.from_numpy(self.y[sequence_length + 1 :])
+        
+        print("Number of classification labels: " + str(num_classes))
+        print("Original number of datapoints: " + str(len(self.x)))
+        print("Sequence length: " + str(sequence_length))
 
         # #double the dataset by adding noise to each sample
         self.x = torch.cat((self.x, self.process_data(xy, num_classes, sequence_length, noise_level=0.0005)), dim=0)
@@ -84,7 +86,7 @@ class HandDataset(Dataset):
         if noise_level > 0:
             noise = np.random.normal(0, noise_level, size=x.shape)
             x_augmented = x + noise
-            x_tensor = torch.tensor(x_augmented)
+            x_tensor = torch.tensor(x_augmented, dtype = torch.float32)
             return x_tensor
 
         x_tensor = torch.tensor(x)
