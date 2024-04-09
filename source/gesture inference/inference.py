@@ -26,7 +26,7 @@ flags = {
     "render_hands_mode": True,
     "gesture_vector": [],
     "number_of_hands": 2,
-    "move_mouse_flag": False,
+    "move_mouse_flag": True,
     "run_model_flag": True,
     "gesture_model_path": "models/flappy.pth",
     "click_sense": 0.05,
@@ -39,7 +39,7 @@ flags = {
     "gesture_list": [],
     "mouse_hand_num": 1,
     "keyboard_hand_num": 0,
-    "key_bindings": ["space", "none", "m", "p"]
+    "key_bindings": ["space", "none", "m", "p"],
 }
 
 # custom console
@@ -47,8 +47,9 @@ console = GestureConsole()
 
 
 def main() -> None:
-    window_width = 1000
-    window_height = 800
+
+    window_width = 864
+    window_height = 936
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
@@ -85,12 +86,17 @@ def game_loop(
 
     font = pygame.font.Font("freesansbold.ttf", 30)
     renderer = Renderer(font, window, flags)
-    window_width, window_height = pygame.display.get_surface().get_size()
     menu_pygame = menu.menu
 
     clock = pygame.time.Clock()
-    game_surface = pygame.Surface((window_width, window_height))
-    game = flappybird.FlappyBirdGame(game_surface, window_width, window_height)
+
+    flappy_window_width = 864
+    flappy_window_height = 936
+
+    game_surface = pygame.Surface((flappy_window_width, flappy_window_height))
+    game = flappybird.FlappyBirdGame(
+        game_surface, flappy_window_width, flappy_window_height
+    )
 
     tickrate = pygame.display.get_current_refresh_rate()
     tickrate = 60
@@ -102,11 +108,11 @@ def game_loop(
         # changing number of hands creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
-
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
 
         events = pygame.event.get()
+
         event_handler.handle_events(events)
 
         game_events(game, events, window)
@@ -114,16 +120,26 @@ def game_loop(
         renderer.render_overlay(hands, clock)
         print_input_table(counter)
         if menu_pygame.is_enabled():
+            for event in events:
+                if event.type == pygame.VIDEORESIZE:
+                    window_width, window_height = event.dict["size"]
+                    menu_pygame.resize(window_width*0.8, window_height*0.8)
             menu_pygame.update(events)
             menu_pygame.draw(window)
 
         clock.tick(tickrate)
+
         pygame.display.update()
 
 
 def game_events(game, events, window):
     game.events(events)
-    window.blit(game.surface, (0, 0))
+    window_width, window_height = pygame.display.get_surface().get_size()
+    for event in events:
+        if event.type == pygame.VIDEORESIZE:
+            window_width, window_height = event.dict["size"]
+    new_surafce = pygame.transform.scale(game.surface, (window_width, window_height))
+    window.blit(new_surafce, (0, 0))
     game.tick()
 
 

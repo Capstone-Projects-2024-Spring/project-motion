@@ -7,6 +7,7 @@ from rich.columns import Columns
 import os
 from typing import Callable, Union
 
+
 class GestureConsole:
     # make this class a singleton
     _initialized = False
@@ -19,7 +20,7 @@ class GestureConsole:
     def __init__(self, flags=None, max_tables=5) -> None:
         if not self._initialized:
             self._initialized = True
-            self.printing = True
+            self.printing = False
             self.console = ConsolePanel()
             self.layout = Layout()
             self.layout.split_column(Layout(name="upper"), Layout(name="lower"))
@@ -28,12 +29,13 @@ class GestureConsole:
             self.tables = []
             for i in range(max_tables):
                 self.tables.append(Table())
-                
+
     def console_flag(func: Callable) -> Callable:
         def print_function(self, *args, **kwargs) -> Union[Callable, bool]:
             if not self.printing:
                 return lambda *args, **kwargs: None
             return func(self, *args, **kwargs)
+
         return print_function
 
     @console_flag

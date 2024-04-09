@@ -81,7 +81,7 @@ class Menu:
             "Mouse Relative Mode", True, onchange=self.mouse_relative
         )
         self.menu.add.toggle_switch(
-            "Enable Console", True, onchange=self.enable_console
+            "Enable Console", False, onchange=self.enable_console
         )
         self.console
         self.menu.add.button("Quit", pygame_menu.events.EXIT)

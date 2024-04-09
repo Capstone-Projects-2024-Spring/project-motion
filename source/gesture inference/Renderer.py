@@ -151,7 +151,7 @@ class Renderer:
             self.window.blit(self.delay_AI, (0, 40))
         self.window.blit(fps, (0, 0))
 
-        instructions_text = self.font.render(
-            self.instructions, False, (255, 255, 255), wraplength=300
-        )
-        self.window.blit(instructions_text, (0, 400 + index * 40))
+        # instructions_text = self.font.render(
+        #     self.instructions, False, (255, 255, 255), wraplength=300
+        # )
+        # self.window.blit(instructions_text, (0, 400 + index * 40))
