@@ -12,6 +12,8 @@ class Keyboard(threading.Thread):
         toggle_threshold=0.3,
         threshold_off_time=0.05,
         flags=None,
+        hand_num = 0,
+        bindings =["none"],
         tps=60,
     ) -> None:
 
@@ -34,6 +36,8 @@ class Keyboard(threading.Thread):
         self.console = GestureConsole()
         self.flags = flags
         self.threshold_off_time = threshold_off_time
+        self.bindings = bindings
+        self.hand_num = hand_num
 
     def run(self):
         event = threading.Event()
@@ -44,9 +48,9 @@ class Keyboard(threading.Thread):
             ):
                 # send only the first hand confidence vector the gesture model output
                 confidence_vectors = self.flags["hands"].confidence_vectors
-                if len(confidence_vectors) > self.flags["keyboard_hand_num"]:
+                if len(confidence_vectors) > self.hand_num:
                     self.gesture_input(
-                        confidence_vectors[self.flags["keyboard_hand_num"]]
+                        confidence_vectors[self.hand_num]
                     )
             else:
                 self.release_all()
@@ -62,14 +66,13 @@ class Keyboard(threading.Thread):
         self.toggle_keys_pressed = {}
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
 
-    def gesture_input(self, confidences, hand_num=0):
+    def gesture_input(self, confidences):
         max_value = np.max(confidences)
-        max_index = np.argmax(confidences)
-        bindings = self.flags["key_bindings"]
+        max_index = np.argmax(confidences).item()
 
-        if len(bindings) == len(confidences):
+        if max_index < len(self.bindings):
             if max_value > self.flags["min_confidence"]:
-                self.press(bindings[max_index])
+                self.press(self.bindings[max_index])
 
     def press(self, key: str):
         current_time = time.time()
@@ -91,28 +94,18 @@ class Keyboard(threading.Thread):
         if key == "none":
             # down up down
             if self.key_pressed[0][0] == "none":
-                # self.console.print("none key none")
-                # self.console.print(self.key_pressed)
                 self.untoggle_or_release(self.key_pressed[1])
             # up up down
             else:
-                # self.console.print("key key none")
-                # self.console.print(self.key_pressed)
                 self.release(key)
         else:
             # up down up
             if self.key_pressed[1][0] == "none":
-                # self.console.print("key none key")
-                # self.console.print(self.key_pressed)
                 self.toggle_or_press(current_time, key)
             # down up up
             elif self.key_pressed[0][0] == "none":
-                # self.console.print("none key key")
-                # self.console.print(self.key_pressed)
                 self.release_and_press(key)
             else:
-                # self.console.print("key key key")
-                # self.console.print(self.key_pressed)
                 self.release_and_press(key)
 
         self.last_key = key

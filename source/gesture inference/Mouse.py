@@ -69,7 +69,12 @@ class Mouse(threading.Thread):
             if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
                 mouse_button_text = ""
                 hands = self.flags["hands"].result.hand_world_landmarks
-                if len(hands) > self.flags["mouse_hand_num"]:
+                confidences = self.flags["hands"].confidence_vectors
+                # check for race condition
+                if (
+                    len(hands) > self.flags["mouse_hand_num"]
+                    and len(confidences) > self.flags["mouse_hand_num"]
+                ):
                     hand = hands[self.flags["mouse_hand_num"]]
 
                     # index tip, thumb tip
@@ -85,6 +90,7 @@ class Mouse(threading.Thread):
                     location = self.flags["hands"].location[
                         self.flags["mouse_hand_num"]
                     ]
+
                     # self.console.print(mouse_button_text)
                     self.control(location[0], location[1], mouse_button_text)
             else:

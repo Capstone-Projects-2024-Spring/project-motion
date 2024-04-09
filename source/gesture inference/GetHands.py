@@ -29,7 +29,7 @@ class GetHands(Thread):
 
         self.console = GestureConsole()
         self.model_path = mediapipe_model
-        self.confidence = 0.5
+        self.confidence = 0.1
         self.stopped = False
 
         self.flags = flags
@@ -73,9 +73,9 @@ class GetHands(Thread):
         self.options = self.HandLandmarkerOptions(
             base_options=self.BaseOptions(model_asset_path=self.model_path),
             num_hands=hands_num,
-            min_hand_detection_confidence=self.confidence,
-            min_hand_presence_confidence=self.confidence,
-            min_tracking_confidence=self.confidence,
+            min_hand_detection_confidence=0.5,
+            min_hand_presence_confidence=0.5,
+            min_tracking_confidence=0.7,
             running_mode=self.VisionRunningMode.LIVE_STREAM,
             result_callback=self.results_callback,
         )

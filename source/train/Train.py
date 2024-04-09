@@ -17,8 +17,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyper-parameters
 input_size = 65
-hidden_size = 150
-num_epochs = 40
+hidden_size = 200
+num_epochs = 10
 batch_size = 100
 learning_rate = 0.001
 filename = "minecraft.csv"

@@ -33,13 +33,13 @@ flags = {
     "hands": None,
     "running": True,
     "show_debug_text": True,
-    "webcam_mode": 2,
+    "webcam_mode": 1,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
     "gesture_list": [],
     "mouse_hand_num": 1,
     "keyboard_hand_num": 0,
-    "key_bindings": ["none", "w", "e", "ctrlleft", "space"]
+    "key_bindings": ["none", "w", "e", "ctrlleft", "space"],
 }
 
 # custom console
@@ -47,8 +47,8 @@ console = GestureConsole()
 
 
 def main() -> None:
-    window_width = 1000
-    window_height = 800
+    window_width = 800
+    window_height = 500
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
@@ -56,6 +56,11 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
+        bindings=flags["key_bindings"],
+        hand_num=flags["keyboard_hand_num"],
+    )
+    keyboard2 = Keyboard(
+        threshold=0, flags=flags, bindings=["none", "none", "shift"], hand_num=1
     )
 
     hands = GetHands(flags=flags)
@@ -64,6 +69,7 @@ def main() -> None:
     flags["mouse"] = mouse
     flags["keyboard"] = keyboard
     keyboard.start()
+    keyboard2.start()
     mouse.start()
 
     menu = Menu(window_width, window_height, flags)
@@ -109,7 +115,7 @@ def game_loop(
         events = pygame.event.get()
         event_handler.handle_events(events)
 
-        #game_events(game, events, window)
+        # game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
         print_input_table(counter)
@@ -128,7 +134,7 @@ def game_events(game, events, window):
 
 
 def print_input_table(counter):
-    if counter % 7 == 0:
+    if counter % 5 == 0:
         keys = pygame.key.get_pressed()
         clicks = pygame.mouse.get_pressed()
         keyString = []
