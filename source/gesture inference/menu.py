@@ -17,6 +17,7 @@ class Menu:
         self.models_folder = "models/"
         self.console = GestureConsole()
         self.setup_menu()
+        self.menu.disable()
 
     def setup_menu(self):
         self.menu.add.selector(
@@ -83,9 +84,7 @@ class Menu:
         self.menu.add.toggle_switch(
             "Enable Console", False, onchange=self.enable_console
         )
-        self.console
         self.menu.add.button("Quit", pygame_menu.events.EXIT)
-        self.menu.enable()
 
     def set_key_bindings(self, value, keys):
         self.flags["key_bindings"] = keys

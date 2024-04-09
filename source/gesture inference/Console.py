@@ -6,7 +6,7 @@ from rich.panel import Panel
 from rich.columns import Columns
 import os
 from typing import Callable, Union
-
+import threading
 
 class GestureConsole:
     # make this class a singleton
@@ -68,7 +68,10 @@ class GestureConsole:
         self.layout["lower"].update(Panel(self.console))
 
     def update(self):
-        self.live.update(self.layout, refresh=True)
+        lock = threading.Lock()
+        
+        with lock:
+            self.live.update(self.layout, refresh=True)
 
 
 # https://stackoverflow.com/questions/71077706/redirect-print-and-or-logging-to-panel

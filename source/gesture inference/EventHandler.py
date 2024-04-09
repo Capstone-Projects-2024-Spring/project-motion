@@ -5,7 +5,7 @@ class GestureEventHandler:
     def __init__(self, menu, flags):
         self.menu = menu
         self.flags = flags
-        self.is_menu_showing = True
+        self.is_menu_showing = False
 
     def handle_events(self, events):
         for event in events:
@@ -16,6 +16,10 @@ class GestureEventHandler:
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
+                
+            if event.type == pygame.VIDEORESIZE:
+                window_width, window_height = event.dict["size"]
+                self.menu.menu.resize(window_width*0.8, window_height*0.8)
 
     def handle_keydown(self, event):
         if event.key == pygame.K_ESCAPE:

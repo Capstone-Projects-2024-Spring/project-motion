@@ -48,8 +48,8 @@ console = GestureConsole()
 
 def main() -> None:
 
-    window_width = 864
-    window_height = 936
+    window_width = 800
+    window_height = 800
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
@@ -120,10 +120,6 @@ def game_loop(
         renderer.render_overlay(hands, clock)
         print_input_table(counter)
         if menu_pygame.is_enabled():
-            for event in events:
-                if event.type == pygame.VIDEORESIZE:
-                    window_width, window_height = event.dict["size"]
-                    menu_pygame.resize(window_width*0.8, window_height*0.8)
             menu_pygame.update(events)
             menu_pygame.draw(window)
 
@@ -134,12 +130,7 @@ def game_loop(
 
 def game_events(game, events, window):
     game.events(events)
-    window_width, window_height = pygame.display.get_surface().get_size()
-    for event in events:
-        if event.type == pygame.VIDEORESIZE:
-            window_width, window_height = event.dict["size"]
-    new_surafce = pygame.transform.scale(game.surface, (window_width, window_height))
-    window.blit(new_surafce, (0, 0))
+    window.blit(game.surface, (0, 0))
     game.tick()
 
 
