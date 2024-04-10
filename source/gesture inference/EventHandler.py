@@ -5,7 +5,6 @@ class GestureEventHandler:
     def __init__(self, menu: Menu, flags):
         self.menu = menu
         self.flags = flags
-        self.is_menu_showing = True
 
     def handle_events(self, events):
         for event in events:
@@ -41,9 +40,8 @@ class GestureEventHandler:
                 self.flags["mouse"].toggle_mouse()
 
     def toggle_menu(self):
-        self.is_menu_showing = not self.is_menu_showing
-        if self.is_menu_showing:
-            self.menu.main_menu.enable()
-        else:
+        if self.menu.main_menu.is_enabled():
             self.menu.main_menu.disable()
+        else:
+            self.menu.main_menu.enable()
 

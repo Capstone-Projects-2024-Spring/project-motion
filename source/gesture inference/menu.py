@@ -41,11 +41,13 @@ class Menu:
         self.main_menu.add.button("Flappybird", action=partial(self.set_game_func,1))
         self.main_menu.add.button("Asteroids", action=partial(self.set_game_func,2))
         self.main_menu.add.button("Platformer", action=partial(self.set_game_func,3))
-        self.main_menu.add.button("Fruit Ninja", action=partial(self.set_game_func,4))
         self.main_menu.add.button("No game", action=partial(self.set_game_func,0))
+        
         
         link = self.main_menu.add.menu_link(self.gesture_settings, "settings")
         self.main_menu.add.button("Settings", action=link.open)
+        self.main_menu.add.button("Close", action=self.main_menu.disable)
+        self.main_menu.add.button("Quit", pygame_menu.events.EXIT)
 
     def setup_settings(self):
         self.gesture_settings.add.selector(
@@ -67,27 +69,35 @@ class Menu:
         )
 
         self.gesture_settings.add.dropselect(
-            "Keyboard Hand:",
-            [("Hand 1", 0), ("Hand 2", 1)],
-            default=0,
-            onchange=self.set_keyboard_hand,
-        )
-
-        self.gesture_settings.add.dropselect(
             "Mouse Hand:",
             [("Hand 1", 0), ("Hand 2", 1)],
-            default=1,
+            default=0,
             onchange=self.set_mouse_hand,
         )
+        #["left", "up", "right", "fist"]
         self.gesture_settings.add.dropselect(
-            "Key bindings:",
+            "Hand 1 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft", ["none", "w", "e", "ctrlleft"]),
-                ("Jumpy", ["none", "left", "right"]),
+                ("Minecraft(L)", ["none", "w", "e", "ctrlleft"]),
+                ("Jumpy", ["left", "none", "right", "space"]),
+                ("Asteroids(L)", ["left", "up", "right", "none"]),
+                ("None", ["none"]),
             ],
-            default=1,
-            onchange=self.set_key_bindings,
+            default=0,
+            onchange=self.set_key_1_bindings,
+        )
+        self.gesture_settings.add.dropselect(
+            "Hand 2 Key bindings:",
+            [
+                ("Flappybird", ["space", "none", "m", "p"]),
+                ("Minecraft(R)", ["none", "none", "shift"]),
+                ("Jumpy", ["left", "none", "right", "space"]),
+                ("Asteroids(R)", ["none", "none", "none", "space"]),
+                ("None", ["none"]),
+            ],
+            default=4,
+            onchange=self.set_key_2_bindings,
         )
         models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
         self.gesture_settings.add.dropselect(
@@ -117,16 +127,15 @@ class Menu:
         self.gesture_settings.add.toggle_switch(
             "Enable Console", False, onchange=self.enable_console
         )
-        self.gesture_settings.add.button("Quit", pygame_menu.events.EXIT)
 
-    def set_key_bindings(self, value, keys):
-        self.flags["key_bindings"] = keys
+    def set_key_1_bindings(self, value, keys):
+        self.flags["hand_1_keyboard"].bindings = keys
+        
+    def set_key_2_bindings(self, value, keys):
+        self.flags["hand_2_keyboard"].bindings = keys
 
     def set_mouse_hand(self, value, num):
         self.flags["mouse_hand_num"] = num
-
-    def set_keyboard_hand(self, value, num):
-        self.flags["keyboard_hand_num"] = num
 
     def mouse_relative(self, current_state_value, **kwargs):
         self.flags["mouse"].is_relative = current_state_value

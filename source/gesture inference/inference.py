@@ -39,9 +39,10 @@ flags = {
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
     "gesture_list": [],
-    "mouse_hand_num": 1,
+    "mouse_hand_num": 0,
     "keyboard_hand_num": 0,
-    "key_bindings": ["none", "w", "e", "ctrlleft", "space"],
+    "hand_1_keyboard": None,
+    "hand_2_keyboard": None,
 }
 
 
@@ -60,18 +61,19 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=flags["key_bindings"],
-        hand_num=flags["keyboard_hand_num"],
+        bindings=["space", "none", "m", "p"],
+        hand_num=0,
     )
     keyboard2 = Keyboard(
-        threshold=0, flags=flags, bindings=["none", "none", "shift"], hand_num=1
+        threshold=0, flags=flags, bindings=["none"], hand_num=1
     )
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
 
     flags["mouse"] = mouse
-    flags["keyboard"] = keyboard
+    flags["hand_1_keyboard"] = keyboard
+    flags["hand_2_keyboard"] = keyboard2
     keyboard.start()
     keyboard2.start()
     mouse.start()
@@ -83,7 +85,7 @@ def main() -> None:
 def game_loop(
     window: pygame.display,
     hands: GetHands,
-):
+): 
     window_width, window_height = pygame.display.get_surface().get_size()
     """Runs the pygame event loop and renders surfaces"""
 
@@ -134,14 +136,15 @@ def game_loop(
 
         event_handler.handle_events(events)
 
-        # game_events(game, events, window)
+        game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
         print_input_table(counter)
 
         if main_menu.is_enabled():
-            main_menu.update(events)
             main_menu.draw(window)
+            main_menu.update(events)
+            
 
         clock.tick(tickrate)
 
