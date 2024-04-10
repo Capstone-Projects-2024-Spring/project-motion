@@ -2,6 +2,10 @@ import pygame
 import sys
 import random
 
+import os
+print(os.path.abspath("pics/backdrop.png")) #this is for debugging
+
+
 # Initializing Pygame to use library
 pygame.init()
 
@@ -9,6 +13,8 @@ pygame.init()
 window_width = 800
 window_height = 600
 window = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption('Fruit Ninja Game')
+backdrop = pygame.image.load('pics/backdrop.png') #background or wallpaper
 
 # Main Game's Loop
 running = True
