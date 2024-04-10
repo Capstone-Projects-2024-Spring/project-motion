@@ -84,6 +84,7 @@ class Menu:
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
                 ("Minecraft", ["none", "w", "e", "ctrlleft"]),
+                ("Jumpy", ["none", "left", "right"]),
             ],
             default=0,
             onchange=self.set_key_bindings,
