@@ -4,9 +4,9 @@ from rich.layout import Layout
 from rich.console import Console
 from rich.panel import Panel
 from rich.columns import Columns
-
 import os
-
+from typing import Callable, Union
+import threading
 
 class GestureConsole:
     # make this class a singleton
@@ -17,9 +17,10 @@ class GestureConsole:
             cls.instance = super(GestureConsole, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, max_tables=5) -> None:
+    def __init__(self, flags=None, max_tables=5) -> None:
         if not self._initialized:
             self._initialized = True
+            self.printing = False
             self.console = ConsolePanel()
             self.layout = Layout()
             self.layout.split_column(Layout(name="upper"), Layout(name="lower"))
@@ -29,6 +30,15 @@ class GestureConsole:
             for i in range(max_tables):
                 self.tables.append(Table())
 
+    def console_flag(func: Callable) -> Callable:
+        def print_function(self, *args, **kwargs) -> Union[Callable, bool]:
+            if not self.printing:
+                return lambda *args, **kwargs: None
+            return func(self, *args, **kwargs)
+
+        return print_function
+
+    @console_flag
     def table(self, headers, rows, table_number=0):
         table = self.tables[table_number]
         table.columns.clear()  # Clear existing columns
@@ -51,15 +61,17 @@ class GestureConsole:
                 Columns(self.tables),
             )
         )
-        self.update()
 
+    @console_flag
     def print(self, string: str):
         self.console.print(string)
         self.layout["lower"].update(Panel(self.console))
-        self.update()
 
     def update(self):
-        self.live.update(self.layout, refresh=True)
+        lock = threading.Lock()
+        
+        with lock:
+            self.live.update(self.layout, refresh=True)
 
 
 # https://stackoverflow.com/questions/71077706/redirect-print-and-or-logging-to-panel

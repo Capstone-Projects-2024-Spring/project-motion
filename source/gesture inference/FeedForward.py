@@ -6,9 +6,12 @@ from Console import GestureConsole
 
 class NeuralNet(nn.Module):
 
-    def __init__(self, modelName):
+    def __init__(self, modelName, force_cpu=False):
         # Device configuration
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if force_cpu:
+            device = torch.device("cpu")
+        else:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model, data = torch.load(modelName, map_location=device)
 
         # model hyperparameters, saved in the model file with its statedict from my train program
@@ -46,7 +49,7 @@ class NeuralNet(nn.Module):
         # no activation and no softmax at the end
         return out
 
-    def get_gesture(self, model_input, print_table=True):
+    def get_gesture(self, model_input):
         """ One hand input shape should be (1,65)
 
             Two hand input shape should be (2, 65)
@@ -58,11 +61,11 @@ class NeuralNet(nn.Module):
         self.confidence_vector = probs
 
         # print table
-        if print_table:
-            self.console.table(self.labels, probs.tolist())
+        self.console.table(self.labels, probs.tolist())
 
         confidence, classes = torch.max(probs, 1)
         return probs.tolist(), classes.numpy().tolist(), confidence.tolist()
+    
 
     def find_velocity_and_location(self, result):
         """Given a Mediapipe result object, calculates the velocity and origin of hands.

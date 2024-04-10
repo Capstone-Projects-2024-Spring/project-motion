@@ -3,7 +3,6 @@
 from threading import Thread
 import mediapipe as mp
 import time
-import math
 from FeedForward import NeuralNet
 import traceback
 from Console import GestureConsole
@@ -23,23 +22,25 @@ class GetHands(Thread):
 
     def __init__(
         self,
-        mediapipe_model="hand_landmarker.task",
+        mediapipe_model="models\hand_landmarker.task",
         flags=None,
     ):
-        Thread.__init__(self)
+        Thread.__init__(self, daemon=True)
 
+        self.console = GestureConsole()
         self.model_path = mediapipe_model
         self.confidence = 0.5
         self.stopped = False
 
         self.flags = flags
-        self.console = GestureConsole()
+        
         self.camera = Webcam()
 
         self.set_gesture_model(flags["gesture_model_path"])
 
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
+        self.flags["gesture_list"] = self.gesture_list
         self.gestures = ["no gesture"]
         self.delay = 0
         self.result = None
@@ -47,7 +48,7 @@ class GetHands(Thread):
         self.click = ""
         self.location = []
         self.velocity = []
-        self.num_hands_deteced = 0
+        self.num_hands_detected = 0
 
         (self.grabbed, self.frame) = self.camera.read()
 
@@ -90,12 +91,11 @@ class GetHands(Thread):
     ):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
-
             self.location = []
             self.click = "" 
             self.velocity = []
-            self.num_hands_deteced = len(result.hand_world_landmarks)
-            if self.num_hands_deteced == 0:
+            self.num_hands_detected = len(result.hand_world_landmarks)
+            if self.num_hands_detected == 0:
                 self.result = []
                 self.confidence_vectors=[]
                 self.console.table(self.gesture_list, self.confidence_vectors) #clear table
@@ -123,7 +123,7 @@ class GetHands(Thread):
                 gestures = []  # store gesture output as text
                 for index, hand in enumerate(model_inputs):
                     confidences, predicted, predicted_confidence = (
-                        self.gesture_model.get_gesture([hand], print_table=False)
+                        self.gesture_model.get_gesture([hand])
                     )
                     gestures.append(self.gesture_list[predicted[0]])  # save gesture
                     hand_confidences.append(confidences[0])
@@ -131,7 +131,7 @@ class GetHands(Thread):
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
-
+                
             self.console.table(self.gesture_list, self.confidence_vectors)
 
             # timestamps are in microseconds so convert to ms
