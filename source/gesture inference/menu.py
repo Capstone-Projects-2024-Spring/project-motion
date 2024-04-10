@@ -79,7 +79,7 @@ class Menu:
             "Hand 1 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft(L)", ["none", "w", "e", "ctrlleft"]),
+                ("Minecraft(L)", ["none", "w", "e", "ctrlleft", "space"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(L)", ["left", "up", "right", "none"]),
                 ("None", ["none"]),
