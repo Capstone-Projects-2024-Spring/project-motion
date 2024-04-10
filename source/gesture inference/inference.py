@@ -13,7 +13,6 @@ from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
-from platformerGame import platformer
 from asteroids import asteroids
 
 abspath = os.path.abspath(__file__)
