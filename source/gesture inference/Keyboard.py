@@ -126,7 +126,7 @@ class Keyboard(threading.Thread):
 
     def toggle_or_press(self, current_time, key):
         # if the same key was pressed during the first edge and this edge
-        if self.key_pressed[0][0] == self.key_pressed[2][0]:
+        if self.key_pressed[0][0] == self.key_pressed[2][0] and self.flags["key_toggle_enabled"]:
             # if the first key press time wasn't longer ago than the threshold time
             if current_time - self.key_pressed[0][1] < self.toggle_threshold:
                 # if other key was pressed for longer than off time

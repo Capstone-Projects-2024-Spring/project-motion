@@ -43,6 +43,7 @@ flags = {
     "keyboard_hand_num": 0,
     "hand_1_keyboard": None,
     "hand_2_keyboard": None,
+    "key_toggle_enabled": False,
 }
 
 
@@ -64,9 +65,7 @@ def main() -> None:
         bindings=["space", "none", "m", "p"],
         hand_num=0,
     )
-    keyboard2 = Keyboard(
-        threshold=0, flags=flags, bindings=["none"], hand_num=1
-    )
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
@@ -85,7 +84,7 @@ def main() -> None:
 def game_loop(
     window: pygame.display,
     hands: GetHands,
-): 
+):
     window_width, window_height = pygame.display.get_surface().get_size()
     """Runs the pygame event loop and renders surfaces"""
 
@@ -144,7 +143,6 @@ def game_loop(
         if main_menu.is_enabled():
             main_menu.draw(window)
             main_menu.update(events)
-            
 
         clock.tick(tickrate)
 
@@ -181,6 +179,6 @@ def print_input_table(counter):
         console.table(["mouse (pygame)"], clicked, table_number=2)
         console.update()
 
- 
+
 if __name__ == "__main__":
     main()

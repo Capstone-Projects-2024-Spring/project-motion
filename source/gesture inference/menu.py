@@ -125,6 +125,9 @@ class Menu:
             "Mouse Relative Mode", True, onchange=self.mouse_relative
         )
         self.gesture_settings.add.toggle_switch(
+            "Toggle Keys", False, onchange=self.toggle_keys
+        )
+        self.gesture_settings.add.toggle_switch(
             "Enable Console", False, onchange=self.enable_console
         )
 
@@ -139,6 +142,9 @@ class Menu:
 
     def mouse_relative(self, current_state_value, **kwargs):
         self.flags["mouse"].is_relative = current_state_value
+        
+    def toggle_keys(self, current_state_value, **kwargs):
+        self.flags["key_toggle_enabled"] = current_state_value
 
     def enable_console(self, current_state_value, **kwargs):
         self.console.printing = current_state_value
