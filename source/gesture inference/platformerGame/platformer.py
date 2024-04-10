@@ -1,8 +1,75 @@
 import pygame
 import random
 import os
-from spritesheet import SpriteSheet
-from enemy import Enemy
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+import pygame.surface
+
+
+class Enemy(pygame.sprite.Sprite):
+	def __init__(self, SCREEN_WIDTH, y, sprite_sheet, scale):
+		pygame.sprite.Sprite.__init__(self)
+		#define variables
+		self.animation_list = []
+		self.frame_index = 0
+		self.update_time = pygame.time.get_ticks()
+		self.direction = random.choice([-1, 1])
+		if self.direction == 1:
+			self.flip = True
+		else:
+			self.flip = False
+
+		#load images from spritesheet
+		animation_steps = 8
+		for animation in range(animation_steps):
+			image = sprite_sheet.get_image(animation, 32, 32, scale, (0, 0, 0))
+			image = pygame.transform.flip(image, self.flip, False)
+			image.set_colorkey((0, 0, 0))
+			self.animation_list.append(image)
+		
+		#select starting image and create rectangle from it
+		self.image = self.animation_list[self.frame_index]
+		self.rect = self.image.get_rect()
+
+		if self.direction == 1:
+			self.rect.x = 0
+		else:
+			self.rect.x = SCREEN_WIDTH
+		self.rect.y = y
+
+	def update(self, scroll, SCREEN_WIDTH):
+		#update animation
+		ANIMATION_COOLDOWN = 50
+		#update image depending on current frame
+		self.image = self.animation_list[self.frame_index]
+		#check if enough time has passed since the last update
+		if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+			self.update_time = pygame.time.get_ticks()
+			self.frame_index += 1
+		#if the animation has run out then reset back to the start
+		if self.frame_index >= len(self.animation_list):
+			self.frame_index = 0
+
+		#move enemy
+		self.rect.x += self.direction * 2
+		self.rect.y += scroll
+
+		#check if gone off screen
+		if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
+			self.kill()
+
+class SpriteSheet():
+	def __init__(self, image):
+		self.sheet = image
+
+	def get_image(self, frame, width, height, scale, colour):
+		image = pygame.Surface((width, height)).convert_alpha()
+		image.blit(self.sheet, (0, 0), ((frame * width), 0, width, height))
+		image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+		image.set_colorkey(colour)
+
+		return image
 
 # initialize pygame
 pygame.init()
@@ -12,7 +79,7 @@ SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
 
 #create game window
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Jumpy')
 
 # set frame rate
@@ -29,8 +96,8 @@ game_over = False
 score = 0
 fade_counter = 0
 
-if os.path.exists('platformerGame/score.txt'):
-    with open('platformerGame/score.txt', 'r') as file:
+if os.path.exists('score.txt'):
+    with open('score.txt', 'r') as file:
         high_score = int(file.read())
 else:
     high_score = 0
@@ -42,32 +109,34 @@ BLACK = (0, 0, 0)
 PANEL = (153, 217, 234)
 
 # define font
-font_small = pygame.font.Font('platformerGame/Catfiles.ttf', 24)
-font_big = pygame.font.Font('platformerGame/Catfiles.ttf', 30)
+font_small = pygame.font.Font('Catfiles.ttf', 24)
+font_big = pygame.font.Font('Catfiles.ttf', 30)
 
 # load images
-bg_image = pygame.image.load('platformerGame/assets/bg.png').convert_alpha()
-jumpy_image = pygame.image.load('platformerGame/assets/jump.png').convert_alpha()
-platform_image = pygame.image.load('platformerGame/assets/wood.png').convert_alpha()
-bird_sheet_img = pygame.image.load('platformerGame/assets/bird.png').convert_alpha()
+
+pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+bg_image = pygame.image.load('assets/bg.png').convert_alpha()
+jumpy_image = pygame.image.load('assets/jump.png').convert_alpha()
+platform_image = pygame.image.load('assets/wood.png').convert_alpha()
+bird_sheet_img = pygame.image.load('assets/bird.png').convert_alpha()
 bird_sheet = SpriteSheet(bird_sheet_img)
 
 
 # function for outputting the text on the sceen
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
-    screen.blit(img, (x,y))
+    surface.blit(img, (x,y))
 
 # function for drawing info panel
 def draw_panel():
-    pygame.draw.rect(screen, PANEL, (0,0, SCREEN_WIDTH, 30))
-    pygame.draw.line(screen, BLACK, (0, 30), (SCREEN_WIDTH, 30), 2)
+    pygame.draw.rect(surface, PANEL, (0,0, SCREEN_WIDTH, 30))
+    pygame.draw.line(surface, BLACK, (0, 30), (SCREEN_WIDTH, 30), 2)
     draw_text('SCORE: ' + str(score), font_small, BLACK, 0, 0)
 
 # function for drawing the background
 def draw_bg(bg_scroll):
-    screen.blit(bg_image, (0,0 + bg_scroll))
-    screen.blit(bg_image, (0, -600 + bg_scroll))
+    surface.blit(bg_image, (0,0 + bg_scroll))
+    surface.blit(bg_image, (0, -600 + bg_scroll))
 
 
 # player class
@@ -99,7 +168,7 @@ class Player():
         self.vel_y += GRAVITY
         dy += self.vel_y
         
-        # making sure character doesnt move off of screen
+        # making sure character doesnt move off of surface
         if self.rect.left + dx < 0:
             dx = -self.rect.left
         if self.rect.right + dx > SCREEN_WIDTH:
@@ -117,7 +186,7 @@ class Player():
                         self.vel_y = -20
 
        
-        # check if the player has bounced to the top of the screen
+        # check if the player has bounced to the top of the surface
         if self.rect.top <= SCROLL_THRESH:
             # if player is jumping
             if self.vel_y < 0:
@@ -133,8 +202,8 @@ class Player():
         return scroll
 
     def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x - 12, self.rect.y - 5))
-        # pygame.draw.rect(screen, WHITE, self.rect, 2)
+        surface.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x - 12, self.rect.y - 5))
+        # pygame.draw.rect(surface, WHITE, self.rect, 2)
 
 # platform class
 class Platform(pygame.sprite.Sprite):
@@ -165,7 +234,7 @@ class Platform(pygame.sprite.Sprite):
         # update platforms vertical position
         self.rect.y += scroll
 
-        # check if platform has gone off the screen
+        # check if platform has gone off the surface
         if self.rect.top > SCREEN_HEIGHT:
             self.kill()
 
@@ -181,9 +250,31 @@ enemy_group = pygame.sprite.Group()
 platform = Platform(SCREEN_WIDTH//2 - 50, SCREEN_HEIGHT-50, 100, False)
 platform_group.add(platform)
 
+
+
+#create game window
+surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption('Jumpy')
+
+# set frame rate
+clock = pygame.time.Clock()
+FPS = 60
+
 #game loop
-run = True
-while run:
+def tick():
+    global clock
+    global jumpy
+    global platform_group
+    global platform
+    global enemy_group
+    global score
+    global scroll
+    global bg_image
+    global bg_scroll
+    global game_over
+    global fade_counter
+    global surface
+    global high_score
 
     clock.tick(FPS)
 
@@ -225,12 +316,12 @@ while run:
             score += scroll
 
         #draw line at previous high score
-        pygame.draw.line(screen, WHITE, (0, score - high_score + SCROLL_THRESH), (SCREEN_WIDTH, score - high_score + SCROLL_THRESH), 3)
+        pygame.draw.line(surface, WHITE, (0, score - high_score + SCROLL_THRESH), (SCREEN_WIDTH, score - high_score + SCROLL_THRESH), 3)
         draw_text('HIGH SCORE', font_small, WHITE, SCREEN_WIDTH - 130, score - high_score + SCROLL_THRESH)
 
         #draw sprites
-        platform_group.draw(screen)
-        enemy_group.draw(screen)
+        platform_group.draw(surface)
+        enemy_group.draw(surface)
         jumpy.draw()
 
         #draw panel
@@ -249,8 +340,8 @@ while run:
         if fade_counter < SCREEN_WIDTH:
             fade_counter += 5
             for y in range(0, 6, 2):
-                pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, 100))
-                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
+                pygame.draw.rect(surface, BLACK, (0, y * 100, fade_counter, 100))
+                pygame.draw.rect(surface, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
         else:
             draw_text('GAME OVER!', font_big, WHITE, 100, 200)
             draw_text('SCORE: ' + str(score), font_big, WHITE, 115, 250)
@@ -259,7 +350,7 @@ while run:
             # update high score
             if score > high_score:
                 high_score = score
-                with open('platformerGame/score.txt', 'w') as file:
+                with open('score.txt', 'w') as file:
                     file.write(str(high_score))
             key = pygame.key.get_pressed()
             if key[pygame.K_SPACE]:
@@ -279,20 +370,13 @@ while run:
                 platform_group.add(platform)
 
 
-    #event handler
-    for event in pygame.event.get():
+def events(events):
+    global high_score
+    for event in events:
         if event.type == pygame.QUIT:
             #update high score
             if score > high_score:
                 high_score = score
-                with open('platformerGame/score.txt', 'w') as file:
+                with open('score.txt', 'w') as file:
                     file.write(str(high_score))
-            run = False
 
-
-    #update display window
-    pygame.display.update()
-
-
-
-pygame.quit()
