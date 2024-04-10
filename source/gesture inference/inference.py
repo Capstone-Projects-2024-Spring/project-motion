@@ -30,7 +30,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": True,
     "run_model_flag": True,
-    "gesture_model_path": "models/minecraft.pth",
+    "gesture_model_path": "models/flappy.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -181,6 +181,6 @@ def print_input_table(counter):
         console.table(["mouse (pygame)"], clicked, table_number=2)
         console.update()
 
-
+ 
 if __name__ == "__main__":
     main()
