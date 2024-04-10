@@ -35,13 +35,15 @@ flags = {
     "hands": None,
     "running": True,
     "show_debug_text": True,
-    "webcam_mode": 2,
+    "webcam_mode": 1,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
     "gesture_list": [],
-    "mouse_hand_num": 1,
+    "mouse_hand_num": 0,
     "keyboard_hand_num": 0,
-    "key_bindings": ["space", "none", "m", "p"],
+    "hand_1_keyboard": None,
+    "hand_2_keyboard": None,
+    "key_toggle_enabled": False,
 }
 
 
@@ -60,14 +62,19 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
+        bindings=["space", "none", "m", "p"],
+        hand_num=0,
     )
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
 
     flags["mouse"] = mouse
-    flags["keyboard"] = keyboard
+    flags["hand_1_keyboard"] = keyboard
+    flags["hand_2_keyboard"] = keyboard2
     keyboard.start()
+    keyboard2.start()
     mouse.start()
     hands.start()
     game_loop(window, hands)
@@ -134,8 +141,8 @@ def game_loop(
         print_input_table(counter)
 
         if main_menu.is_enabled():
-            main_menu.update(events)
             main_menu.draw(window)
+            main_menu.update(events)
 
         clock.tick(tickrate)
 
@@ -150,7 +157,7 @@ def game_events(game, events, window):
 
 
 def print_input_table(counter):
-    if counter % 7 == 0:
+    if counter % 5 == 0:
         keys = pygame.key.get_pressed()
         clicks = pygame.mouse.get_pressed()
         keyString = []

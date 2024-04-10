@@ -53,7 +53,7 @@ class Mouse(threading.Thread):
         self.middle_down = False
         self.right_down = False
         self.console = GestureConsole()
-        
+
         # expontial moving average stuff
         self.x_window = []
         self.y_window = []
@@ -69,9 +69,14 @@ class Mouse(threading.Thread):
             if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
                 mouse_button_text = ""
                 hands = self.flags["hands"].result.hand_world_landmarks
-                if len(hands) > self.flags["mouse_hand_num"]:
+                confidences = self.flags["hands"].confidence_vectors
+                # check for race condition
+                if (
+                    len(hands) > self.flags["mouse_hand_num"]
+                    and len(confidences) > self.flags["mouse_hand_num"]
+                ):
                     hand = hands[self.flags["mouse_hand_num"]]
-                
+
                     # index tip, thumb tip
                     if self.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
                         mouse_button_text = "left"
@@ -82,7 +87,10 @@ class Mouse(threading.Thread):
                     elif self.is_clicking(hand[16], hand[4], self.flags["click_sense"]):
                         mouse_button_text = "right"
 
-                    location = self.flags["hands"].location[self.flags["mouse_hand_num"]]
+                    location = self.flags["hands"].location[
+                        self.flags["mouse_hand_num"]
+                    ]
+
                     # self.console.print(mouse_button_text)
                     self.control(location[0], location[1], mouse_button_text)
             else:
@@ -211,7 +219,8 @@ class Mouse(threading.Thread):
         if mouse_button == "middle":
             if not self.middle_down:
                 self.console.print(f"clicking mouse {mouse_button}")
-                pydirectinput.mouseDown(button=mouse_button)
+                # pydirectinput.mouseDown(button=mouse_button)
+                pydirectinput.scroll(-1)
                 self.middle_down = True
 
         if mouse_button == "right":
