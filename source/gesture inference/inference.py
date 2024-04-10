@@ -42,6 +42,7 @@ flags = {
     "key_bindings": ["space", "none", "m", "p"],
 }
 
+
 # custom console
 console = GestureConsole()
 
@@ -66,37 +67,47 @@ def main() -> None:
     flags["keyboard"] = keyboard
     keyboard.start()
     mouse.start()
-
-    menu = Menu(window_width, window_height, flags)
-
-    event_handler = GestureEventHandler(menu, flags)
-
-    game_loop(window, hands, event_handler, menu)
+    hands.start()
+    game_loop(window, hands)
     pygame.quit()
 
 
 def game_loop(
     window: pygame.display,
     hands: GetHands,
-    event_handler: GestureEventHandler,
-    menu: Menu,
 ):
+    window_width, window_height = pygame.display.get_surface().get_size()
     """Runs the pygame event loop and renders surfaces"""
-    hands.start()
+
+    game = None
+
+    def set_game(num):
+        nonlocal game
+        if num == 0:
+            game = None
+        if num == 1:
+            console.print("Flappybird")
+            game = flappybird.FlappyBirdGame()
+        if num == 2:
+            console.print("Asteroids")
+            game = None
+        if num == 3:
+            console.print("Platformer")
+            game = None
+        if num == 4:
+            console.print("Fruit Ninja")
+            game = None
+
+    menu = Menu(window_width, window_height, flags, set_game_func=set_game)
+
+    event_handler = GestureEventHandler(menu, flags)
 
     font = pygame.font.Font("freesansbold.ttf", 30)
     renderer = Renderer(font, window, flags)
-    menu_pygame = menu.menu
+
+    main_menu = menu.main_menu
 
     clock = pygame.time.Clock()
-
-    flappy_window_width = 864
-    flappy_window_height = 936
-
-    game_surface = pygame.Surface((flappy_window_width, flappy_window_height))
-    game = flappybird.FlappyBirdGame(
-        game_surface, flappy_window_width, flappy_window_height
-    )
 
     tickrate = pygame.display.get_current_refresh_rate()
     tickrate = 60
@@ -119,9 +130,10 @@ def game_loop(
 
         renderer.render_overlay(hands, clock)
         print_input_table(counter)
-        if menu_pygame.is_enabled():
-            menu_pygame.update(events)
-            menu_pygame.draw(window)
+
+        if main_menu.is_enabled():
+            main_menu.update(events)
+            main_menu.draw(window)
 
         clock.tick(tickrate)
 
@@ -129,9 +141,10 @@ def game_loop(
 
 
 def game_events(game, events, window):
-    game.events(events)
-    window.blit(game.surface, (0, 0))
-    game.tick()
+    if game != None:
+        game.events(events)
+        window.blit(game.surface, (0, 0))
+        game.tick()
 
 
 def print_input_table(counter):

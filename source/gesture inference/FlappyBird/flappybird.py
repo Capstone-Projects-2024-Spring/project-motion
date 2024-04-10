@@ -8,11 +8,12 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 class FlappyBirdGame:
-    def __init__(self, surface, screen_width, screen_height):
-        self.surface = surface
+    def __init__(self):
+
+        self.surface = pygame.Surface((864, 936))
+        (screen_width, screen_height) = self.surface.get_size()
         self.screen_width = screen_width
         self.screen_height = screen_height
-        self.surface = pygame.Surface((self.screen_width, self.screen_height))
         pygame.display.set_caption("Flappy Stella")
 
         self.font = pygame.font.SysFont("Bauhaus 93", 60)
