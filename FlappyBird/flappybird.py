@@ -8,12 +8,13 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 class FlappyBirdGame:
-    def __init__(self):
+    def __init__(self, surface):
+        self.surface = surface
+        self.fps = 60
 
-        self.surface = pygame.Surface((864, 936))
-        (screen_width, screen_height) = self.surface.get_size()
-        self.screen_width = screen_width
-        self.screen_height = screen_height
+        self.screen_width = 864
+        self.screen_height = 936
+        self.surface = pygame.Surface((self.screen_width, self.screen_height))
         pygame.display.set_caption("Flappy Stella")
 
         self.font = pygame.font.SysFont("Bauhaus 93", 60)
@@ -33,11 +34,11 @@ class FlappyBirdGame:
             "is started": False,
         }
 
-        self.bg = pygame.image.load("FlappyBird/img/bg.png")
-        self.ground_img = pygame.image.load("FlappyBird/img/ground.png")
-        self.restart_button_img = pygame.image.load("FlappyBird/img/restart.png")
-        self.exit_button_img = pygame.image.load("FlappyBird/img/exit.png")
-        self.start_img = pygame.image.load("FlappyBird/img/start.png")
+        self.bg = pygame.image.load("img/bg.png")
+        self.ground_img = pygame.image.load("img/ground.png")
+        self.restart_button_img = pygame.image.load("img/restart.png")
+        self.exit_button_img = pygame.image.load("img/exit.png")
+        self.start_img = pygame.image.load("img/start.png")
 
         self.bird_group = pygame.sprite.Group()
         self.pipe_group = pygame.sprite.Group()
@@ -59,22 +60,6 @@ class FlappyBirdGame:
             (self.screen_height // 2 - self.start_img.get_height() // 2),
             self.start_img,
         )
-        
-    def events(self, events):
-        for event in events:
-            if event.type == pygame.QUIT:
-                pass
-            if (
-                event.type == pygame.KEYDOWN
-                and event.key == pygame.K_SPACE
-                and self.primitives["is flying"] == False
-                and self.primitives["is game over"] == False
-            ):
-                self.primitives["is flying"] = True
-                self.primitives["is started"] = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    self.primitives["is paused"] = not self.primitives["is paused"]
 
     def create_bird(self, x, y):
         return Bird(x, y, self.primitives)
@@ -87,7 +72,7 @@ class FlappyBirdGame:
 
     def get_high_score(self):
         try:
-            with open("FlappyBird/highscore.txt", "r") as file:
+            with open("highscore.txt", "r") as file:
                 high_score = int(file.readline())
                 return f"Highscore: {high_score}"
         except FileNotFoundError:
@@ -95,15 +80,15 @@ class FlappyBirdGame:
 
     def highscore_check(self, score):
         try:
-            with open("FlappyBird/highscore.txt", "r") as file:
+            with open("highscore.txt", "r") as file:
                 current_score = int(file.readline())
         except FileNotFoundError:
-            with open("FlappyBird/highscore.txt", "w") as file:
+            with open("highscore.txt", "w") as file:
                 file.write(str(score))
             return
 
         if score > current_score:
-            with open("FlappyBird/highscore.txt", "w") as file:
+            with open("highscore.txt", "w") as file:
                 file.write(str(score))
 
     def draw_text(self, text, font, text_col, x, y):
@@ -232,7 +217,7 @@ class Bird(pygame.sprite.Sprite):
         self.index = 0
         self.counter = 0
         for num in range(1, 4):
-            img = pygame.image.load(f"FlappyBird/img/bird{num}.png")
+            img = pygame.image.load(f"img/bird{num}.png")
             self.images.append(img)
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
@@ -278,7 +263,7 @@ class Bird(pygame.sprite.Sprite):
 class Pipe(pygame.sprite.Sprite):
     def __init__(self, x, y, position, primitives):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("FlappyBird/img/pipe.png")
+        self.image = pygame.image.load("img/pipe.png")
         self.rect = self.image.get_rect()
         self.primitives = primitives
         if position == 1:

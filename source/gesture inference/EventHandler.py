@@ -1,8 +1,8 @@
 import pygame
-
+from menu import Menu
 
 class GestureEventHandler:
-    def __init__(self, menu, flags):
+    def __init__(self, menu: Menu, flags):
         self.menu = menu
         self.flags = flags
         self.is_menu_showing = True
@@ -16,6 +16,11 @@ class GestureEventHandler:
 
             elif event.type == pygame.KEYDOWN:
                 self.handle_keydown(event)
+                
+            if event.type == pygame.VIDEORESIZE:
+                window_width, window_height = event.dict["size"]
+                self.menu.main_menu.resize(window_width*0.8, window_height*0.8)
+                self.menu.gesture_settings.resize(window_width*0.8, window_height*0.8)
 
     def handle_keydown(self, event):
         if event.key == pygame.K_ESCAPE:
@@ -38,7 +43,7 @@ class GestureEventHandler:
     def toggle_menu(self):
         self.is_menu_showing = not self.is_menu_showing
         if self.is_menu_showing:
-            self.menu.menu.enable()
+            self.menu.main_menu.enable()
         else:
-            self.menu.menu.disable()
+            self.menu.main_menu.disable()
 

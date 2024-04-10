@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import os
+from torchsummary import summary
+
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -17,8 +19,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyper-parameters
 input_size = 65
-hidden_size = 200
-num_epochs = 10
+hidden_size = 150
+num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
 filename = "minecraft.csv"
@@ -40,6 +42,11 @@ class HandDataset(Dataset):
         self.x = torch.from_numpy(xy[:, num_classes:])
         self.y = torch.from_numpy(np.argmax(xy[:, 0:num_classes], axis=1))
         self.n_samples = xy.shape[0]
+        
+        print("Number of classification labels: " + str(num_classes))
+        print("Number of datapoints: " + str(len(self.x)))
+        print("Shape of x_tensor:", self.x.shape)
+        print("Shape of y_tensor:", self.y.shape)
 
     def __getitem__(self, index):
         return self.x[index], self.y[index]
@@ -71,7 +78,6 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=Tr
 #             break
 # plt.show()
 
-
 # Fully connected neural network with one hidden layer
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -91,6 +97,8 @@ class NeuralNet(nn.Module):
 
 
 model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+# Use torchinfo to display the model summary
+summary(model)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -114,9 +122,10 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    print(
-        f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}"
-    )
+        if (i + 1) % 100 == 0:
+            print(
+                f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}"
+            )
 
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)

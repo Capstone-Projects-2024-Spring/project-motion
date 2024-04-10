@@ -13,6 +13,8 @@ from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
+from platformerGame import platformer
+from asteroids import asteroids
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -26,7 +28,7 @@ flags = {
     "render_hands_mode": True,
     "gesture_vector": [],
     "number_of_hands": 2,
-    "move_mouse_flag": False,
+    "move_mouse_flag": True,
     "run_model_flag": True,
     "gesture_model_path": "models/minecraft.pth",
     "click_sense": 0.05,
@@ -42,13 +44,15 @@ flags = {
     "key_bindings": ["none", "w", "e", "ctrlleft", "space"],
 }
 
+
 # custom console
 console = GestureConsole()
 
 
 def main() -> None:
+
     window_width = 800
-    window_height = 500
+    window_height = 800
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
 
@@ -71,32 +75,47 @@ def main() -> None:
     keyboard.start()
     keyboard2.start()
     mouse.start()
-
-    menu = Menu(window_width, window_height, flags)
-
-    event_handler = GestureEventHandler(menu, flags)
-
-    game_loop(window, hands, event_handler, menu)
+    hands.start()
+    game_loop(window, hands)
     pygame.quit()
 
 
 def game_loop(
     window: pygame.display,
     hands: GetHands,
-    event_handler: GestureEventHandler,
-    menu: Menu,
 ):
+    window_width, window_height = pygame.display.get_surface().get_size()
     """Runs the pygame event loop and renders surfaces"""
-    hands.start()
+
+    game = None
+
+    def set_game(num):
+        nonlocal game
+        if num == 0:
+            game = None
+        if num == 1:
+            console.print("Flappybird")
+            game = flappybird.FlappyBirdGame()
+        if num == 2:
+            console.print("Asteroids")
+            game = asteroids
+        if num == 3:
+            console.print("Platformer")
+            game = platformer
+        if num == 4:
+            console.print("Fruit Ninja")
+            game = None
+
+    menu = Menu(window_width, window_height, flags, set_game_func=set_game)
+
+    event_handler = GestureEventHandler(menu, flags)
 
     font = pygame.font.Font("freesansbold.ttf", 30)
     renderer = Renderer(font, window, flags)
-    window_width, window_height = pygame.display.get_surface().get_size()
-    menu_pygame = menu.menu
+
+    main_menu = menu.main_menu
 
     clock = pygame.time.Clock()
-    game_surface = pygame.Surface((window_width, window_height))
-    game = flappybird.FlappyBirdGame(game_surface, window_width, window_height)
 
     tickrate = pygame.display.get_current_refresh_rate()
     tickrate = 60
@@ -108,29 +127,32 @@ def game_loop(
         # changing number of hands creates a new hands object
         if flags["hands"] != None and hands != flags["hands"]:
             hands = flags["hands"]
-
         window_width, window_height = pygame.display.get_surface().get_size()
         window.fill((0, 0, 0))
 
         events = pygame.event.get()
+
         event_handler.handle_events(events)
 
         # game_events(game, events, window)
 
         renderer.render_overlay(hands, clock)
         print_input_table(counter)
-        if menu_pygame.is_enabled():
-            menu_pygame.update(events)
-            menu_pygame.draw(window)
+
+        if main_menu.is_enabled():
+            main_menu.update(events)
+            main_menu.draw(window)
 
         clock.tick(tickrate)
+
         pygame.display.update()
 
 
 def game_events(game, events, window):
-    game.events(events)
-    window.blit(game.surface, (0, 0))
-    game.tick()
+    if game != None:
+        game.events(events)
+        window.blit(game.surface, (0, 0))
+        game.tick()
 
 
 def print_input_table(counter):
