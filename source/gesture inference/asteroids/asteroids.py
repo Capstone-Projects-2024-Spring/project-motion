@@ -320,7 +320,6 @@ def redraw_window():
         )
     surface.blit(score_text, (SCREEN_WIDTH - score_text.get_width() - 25, 25))
     surface.blit(livesText, (25, 25))
-    pygame.display.update()
 
 
 
@@ -338,6 +337,7 @@ def tick():
     global ran
     global rapid_fire_start
     global rapid_fire
+    global score
 
     clock.tick(60)
     count += 1
@@ -502,18 +502,6 @@ def tick():
                 rapid_fire = False
                 rapid_fire_start = -1
 
-        # keys for movement/rotation
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            player.turn_left()
-        if keys[pygame.K_RIGHT]:
-            player.turn_right()
-        if keys[pygame.K_UP]:
-            player.move_forward()
-        if keys[pygame.K_SPACE]:
-            if rapid_fire:
-                player_bullets.append(Bullet())
-
     # redraws the surface with the game's current state
     redraw_window()
 
@@ -528,8 +516,22 @@ def events(events):
     global player_bullets
     global player
     global rapid_fire
+    global game_over
+    global score
     
-    for event in pygame.event.get():
+           # keys for movement/rotation
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player.turn_left()
+    if keys[pygame.K_RIGHT]:
+        player.turn_right()
+    if keys[pygame.K_UP]:
+        player.move_forward()
+    if keys[pygame.K_SPACE]:
+        if rapid_fire:
+            player_bullets.append(Bullet())
+    
+    for event in events:
         if event.type == pygame.QUIT:
             run = False
 
