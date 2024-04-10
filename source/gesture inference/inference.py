@@ -14,6 +14,7 @@ from Renderer import Renderer
 from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
 from platformerGame import platformer
+from asteroids import asteroids
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -91,7 +92,7 @@ def game_loop(
             game = flappybird.FlappyBirdGame()
         if num == 2:
             console.print("Asteroids")
-            game = None
+            game = asteroids
         if num == 3:
             console.print("Platformer")
             game = platformer
