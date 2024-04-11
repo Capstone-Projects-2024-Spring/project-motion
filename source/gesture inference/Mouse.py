@@ -1,6 +1,6 @@
 import imp
 try:
-    imp.find_module('asdf')
+    imp.find_module('pydirectinput')
     found = True
 except ImportError:
     found = False
