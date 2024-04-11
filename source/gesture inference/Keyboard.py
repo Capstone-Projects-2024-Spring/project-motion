@@ -1,11 +1,6 @@
-import imp
-try:
-    imp.find_module('pydirectinput')
-    found = True
-except ImportError:
-    found = False
-    
-if found:
+import sys
+
+if sys.platform == "win32":
     import pydirectinput as pyinput
 else:
     import pyautogui as pyinput
@@ -22,8 +17,8 @@ class Keyboard(threading.Thread):
         toggle_threshold=0.3,
         threshold_off_time=0.05,
         flags=None,
-        hand_num = 0,
-        bindings =["none"],
+        hand_num=0,
+        bindings=["none"],
         tps=60,
     ) -> None:
 
@@ -59,9 +54,7 @@ class Keyboard(threading.Thread):
                 # send only the first hand confidence vector the gesture model output
                 confidence_vectors = self.flags["hands"].confidence_vectors
                 if len(confidence_vectors) > self.hand_num:
-                    self.gesture_input(
-                        confidence_vectors[self.hand_num]
-                    )
+                    self.gesture_input(confidence_vectors[self.hand_num])
             else:
                 self.release_all()
             event.wait(timeout=1 / self.tps)
@@ -136,7 +129,10 @@ class Keyboard(threading.Thread):
 
     def toggle_or_press(self, current_time, key):
         # if the same key was pressed during the first edge and this edge
-        if self.key_pressed[0][0] == self.key_pressed[2][0] and self.flags["key_toggle_enabled"]:
+        if (
+            self.key_pressed[0][0] == self.key_pressed[2][0]
+            and self.flags["key_toggle_enabled"]
+        ):
             # if the first key press time wasn't longer ago than the threshold time
             if current_time - self.key_pressed[0][1] < self.toggle_threshold:
                 # if other key was pressed for longer than off time

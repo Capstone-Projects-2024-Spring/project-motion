@@ -1,11 +1,5 @@
-import imp
-try:
-    imp.find_module('pydirectinput')
-    found = True
-except ImportError:
-    found = False
-    
-if found:
+import sys
+if sys.platform == 'win32':
     import pydirectinput as pyinput
 else:
     import pyautogui as pyinput
@@ -209,7 +203,7 @@ class Mouse(threading.Thread):
             scaled_y = int(y_diff_abs**self.acceleration_factor) * (
                 1 if y_diff >= 0 else -1
             )
-            if found:
+            if sys.platform == 'win32':
                 pyinput.moveRel(scaled_x, scaled_y, relative=True)
             else:
                 pyinput.moveRel(scaled_x, scaled_y)
