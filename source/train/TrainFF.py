@@ -6,34 +6,45 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+import os
+from torchsummary import summary
+
+
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyper-parameters
 input_size = 65
-hidden_size = 100
-num_epochs = 30
-batch_size = 200
+hidden_size = 150
+num_epochs = 20
+batch_size = 100
 learning_rate = 0.001
-filename = "training stuff/data.csv"
-true_labels = []
+filename = "data.csv"
+labels_list = None
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
-    true_labels = next(csv.reader(dataset_file))
-    num_classes = len(true_labels)
-    
-print(true_labels)
+    labels_list = next(csv.reader(dataset_file))
+    num_classes = len(labels_list)
+
+print("labels: " + str(labels_list))
+
 
 class HandDataset(Dataset):
     def __init__(self):
-        xy = np.loadtxt(
-            filename, delimiter=",", dtype=np.float32, skiprows=1
-        )
+        xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
         self.x = torch.from_numpy(xy[:, num_classes:])
         self.y = torch.from_numpy(np.argmax(xy[:, 0:num_classes], axis=1))
         self.n_samples = xy.shape[0]
+
+        print("Number of classification labels: " + str(num_classes))
+        print("Number of datapoints: " + str(len(self.x)))
+        print("Shape of x_tensor:", self.x.shape)
+        print("Shape of y_tensor:", self.y.shape)
 
     def __getitem__(self, index):
         return self.x[index], self.y[index]
@@ -45,7 +56,7 @@ class HandDataset(Dataset):
 dataset = HandDataset()
 
 # data size is 3868
-train_dataset, test_dataset = torch.utils.data.random_split(dataset, [int(dataset.__len__()*0.8), int(dataset.__len__()*0.2)+1])
+train_dataset, test_dataset = (dataset, dataset)
 
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
@@ -84,6 +95,8 @@ class NeuralNet(nn.Module):
 
 
 model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+# Use torchinfo to display the model summary
+summary(model)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -112,6 +125,24 @@ for epoch in range(num_epochs):
                 f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}"
             )
 
+# Test the model
+# In test phase, we don't need to compute gradients (for memory efficiency)
+with torch.no_grad():
+    n_correct = 0
+    n_samples = 0
+    for hands, labels in test_loader:
+        hands = hands.to(device)
+        labels = labels.to(device)
+        outputs = model(hands)
+        # max returns (value ,index)
+        _, predicted = torch.max(outputs.data, 1)
+        n_samples += labels.size(0)
+        n_correct += (predicted == labels).sum().item()
+
+    acc = 100.0 * n_correct / n_samples
+    print(
+        f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %"
+    )
 
 from sklearn.metrics import confusion_matrix
 import seaborn as sn
@@ -130,18 +161,25 @@ with torch.no_grad():
         labels = labels.to(device)
         outputs = model(hands)
         output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
-        y_pred.extend(output) # Save Prediction
-        
+        y_pred.extend(output)  # Save Prediction
+
         labels = labels.data.cpu().numpy()
-        y_true.extend(labels) # Save Truth
-        
+        y_true.extend(labels)  # Save Truth
+
 # Build confusion matrix
 cf_matrix = confusion_matrix(y_true, y_pred)
-df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1)[:, None], index = [i for i in true_labels],
-                     columns = [i for i in true_labels])
-plt.figure(figsize = (12,7))
+df_cm = pd.DataFrame(
+    cf_matrix / np.sum(cf_matrix, axis=1)[:, None],
+    index=[i for i in labels_list],
+    columns=[i for i in labels_list],
+)
+plt.figure(figsize=(12, 7))
 sn.heatmap(df_cm, annot=True)
 
-plt.savefig('outputFF.png')
+plt.savefig("outputFF.png")
 plt.show()
-torch.save((model.state_dict(),[input_size, hidden_size, num_classes]), "waveModel.pth")
+
+torch.save(
+    (model.state_dict(), [input_size, hidden_size, num_classes, labels_list]),
+    "test.pth",
+)

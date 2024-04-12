@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 import csv
 import pandas as pd
 from torchsummary import summary
+import os
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # Device configuration
 # https://stackoverflow.com/questions/48152674/how-do-i-check-if-pytorch-is-using-the-gpu
@@ -30,7 +34,7 @@ num_epochs = 10
 batch_size = 100
 learning_rate = 0.001
 sequence_length = 10
-filename = "training stuff/data.csv"
+filename = "data.csv"
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
