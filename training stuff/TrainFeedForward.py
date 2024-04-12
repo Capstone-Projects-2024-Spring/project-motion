@@ -13,16 +13,18 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Hyper-parameters
 input_size = 65
 hidden_size = 100
-num_epochs = 20
-batch_size = 15
+num_epochs = 30
+batch_size = 200
 learning_rate = 0.001
-filename = "wave_data.csv"
+filename = "training stuff/data.csv"
+true_labels = []
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
-    labels = next(csv.reader(dataset_file))
-    num_classes = len(labels)
+    true_labels = next(csv.reader(dataset_file))
+    num_classes = len(true_labels)
     
+print(true_labels)
 
 class HandDataset(Dataset):
     def __init__(self):
@@ -110,6 +112,14 @@ for epoch in range(num_epochs):
                 f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}"
             )
 
+
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
+
+y_pred = []
+y_true = []
+
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
@@ -119,12 +129,19 @@ with torch.no_grad():
         hands = hands.to(device)
         labels = labels.to(device)
         outputs = model(hands)
-        # max returns (value ,index)
-        _, predicted = torch.max(outputs.data, 1)
-        n_samples += labels.size(0)
-        n_correct += (predicted == labels).sum().item()
+        output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
+        y_pred.extend(output) # Save Prediction
+        
+        labels = labels.data.cpu().numpy()
+        y_true.extend(labels) # Save Truth
+        
+# Build confusion matrix
+cf_matrix = confusion_matrix(y_true, y_pred)
+df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1)[:, None], index = [i for i in true_labels],
+                     columns = [i for i in true_labels])
+plt.figure(figsize = (12,7))
+sn.heatmap(df_cm, annot=True)
 
-    acc = 100.0 * n_correct / n_samples
-    print(f"Accuracy of the network on {int(dataset.__len__()*0.2)+1} test samples: {round(acc,3)} %")
-
+plt.savefig('outputFF.png')
+plt.show()
 torch.save((model.state_dict(),[input_size, hidden_size, num_classes]), "waveModel.pth")

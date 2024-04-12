@@ -26,7 +26,7 @@ if device.type == "cuda":
 # Hyper-parameters
 input_size = 65
 hidden_size = 200
-num_epochs = 20
+num_epochs = 10
 batch_size = 100
 learning_rate = 0.001
 sequence_length = 10
@@ -34,9 +34,9 @@ filename = "training stuff/data.csv"
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
-    labels = next(csv.reader(dataset_file))
-    num_classes = len(labels)
-
+    true_labels = next(csv.reader(dataset_file))
+    num_classes = len(true_labels)
+print(true_labels)
 print("building dataset")
 
 
@@ -203,7 +203,8 @@ class LSTM(nn.Module):
         out = self.fc_1(out)  # first dense
         out = self.relu(out)  # relu
         out = self.fc_2(out)  # final output
-        return out, (hn, cn)
+        #return out, (hn, cn)
+        return out
 
 
 import warnings
@@ -230,7 +231,7 @@ for epoch in range(num_epochs):
         labels = labels.to(device)
 
         # Forward pass
-        prediction, hidden = lstm(hands_sequence)
+        prediction = lstm(hands_sequence)
 
         # calculate the loss
         loss = criterion(prediction, labels)
@@ -247,6 +248,14 @@ for epoch in range(num_epochs):
 
 
 # Test the model
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
+
+y_pred = []
+y_true = []
+
+# Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
     n_correct = 0
@@ -254,17 +263,22 @@ with torch.no_grad():
     for hands, labels in test_loader:
         hands = hands.to(device)
         labels = labels.to(device)
-        outputs, hidden = lstm(hands)
-        # max returns (value ,index)
-        _, predicted = torch.max(outputs.data, 1)
-        n_samples += labels.size(0)
-        n_correct += (predicted == labels).sum().item()
+        outputs = lstm(hands)
+        output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
+        y_pred.extend(output) # Save Prediction
+        
+        labels = labels.data.cpu().numpy()
+        y_true.extend(labels) # Save Truth
+        
+# Build confusion matrix
+cf_matrix = confusion_matrix(y_true, y_pred)
+df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1)[:, None], index = [i for i in true_labels],
+                     columns = [i for i in true_labels])
+plt.figure(figsize = (12,7))
+sn.heatmap(df_cm, annot=True)
 
-    acc = 100.0 * n_correct / n_samples
-    print(
-        f"Accuracy of the network on {int(dataset.__len__()*0.2)+1} test samples: {round(acc,3)} %"
-    )
-
+plt.savefig('outputLSTM.png')
+plt.show()
 torch.save(
     (
         lstm.state_dict(),
