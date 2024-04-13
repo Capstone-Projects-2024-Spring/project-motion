@@ -72,10 +72,10 @@ class LSTM(nn.Module):
         """
         #newest data appends to the end of the list
         if len(model_input) < self.sequence_length:
-            print(f"input too short len(model_input): {len(model_input)}")
+            #print(f"input too short len(model_input): {len(model_input)}")
             return None
         elif len(model_input) > self.sequence_length:
-            print(f"input too long len(model_input): {len(model_input)}")
+            #print(f"input too long len(model_input): {len(model_input)}")
             return None
         
         hands = torch.from_numpy(np.asarray([model_input], dtype="float32"))

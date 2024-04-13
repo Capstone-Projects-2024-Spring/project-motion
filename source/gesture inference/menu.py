@@ -20,7 +20,8 @@ class Menu:
         )
         self.flags = flags
         self.toggle_mouse_key = flags["toggle_mouse_key"]
-        self.models_folder = "models/"
+        self.models_folder_ff = "models/feedforward/"
+        self.models_folder_lstm = "models/lstm/"
         self.console = GestureConsole()
         self.setup_settings()
         self.gesture_settings.disable()
@@ -99,9 +100,13 @@ class Menu:
             default=4,
             onchange=self.set_key_2_bindings,
         )
-        models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
+        models_ff = self.find_files_with_ending(".pth", directory_path=self.models_folder_ff)
         self.gesture_settings.add.dropselect(
-            "Use Gesture Model :", models, onchange=self.change_gesture_model
+            "Use FF Model :", models_ff, onchange=self.change_gesture_model_ff
+        )
+        models_lstm = self.find_files_with_ending(".pth", directory_path=self.models_folder_lstm)
+        self.gesture_settings.add.dropselect(
+            "Use LSTM Model :", models_lstm, onchange=self.change_gesture_model_lstm
         )
 
         self.gesture_settings.add.range_slider(
@@ -182,14 +187,24 @@ class Menu:
         self.flags["hands"] = GetHands(flags=self.flags)
         self.flags["hands"].start()
 
-    def change_gesture_model(self, value):
+    def change_gesture_model_ff(self, value):
         self.flags["gesture_model_path"] = (
-            self.models_folder + value[0][0]
+            self.models_folder_ff + value[0][0]
         )  # tuple within a list for some reason
         self.flags["hands"].stop()
         self.flags["hands"].join()
         self.flags["hands"] = GetHands(flags=self.flags)
         self.flags["hands"].start()
+    
+    def change_gesture_model_lstm(self, value):
+        self.flags["gesture_model_path"] = (
+            self.models_folder_lstm + value[0][0]
+        )  # tuple within a list for some reason
+        self.flags["hands"].stop()
+        self.flags["hands"].join()
+        self.flags["hands"] = GetHands(flags=self.flags)
+        self.flags["hands"].start()
+
 
     def set_click_sense(self, value, **kwargs):
         self.flags["click_sense"] = value / 1000

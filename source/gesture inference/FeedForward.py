@@ -4,7 +4,7 @@ import numpy as np
 from Console import GestureConsole
 
 
-class NeuralNet(nn.Module):
+class FeedForward(nn.Module):
 
     def __init__(self, modelName, force_cpu=False):
         # Device configuration
@@ -27,7 +27,7 @@ class NeuralNet(nn.Module):
         self.console.print(device)
 
         # model definition
-        super(NeuralNet, self).__init__()
+        super(FeedForward, self).__init__()
         self.l1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
         self.l2 = nn.Linear(hidden_size, num_classes)

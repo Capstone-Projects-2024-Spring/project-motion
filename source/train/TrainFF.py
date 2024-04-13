@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import os
+import pandas as pd
 from torchsummary import summary
 
 
@@ -23,7 +24,7 @@ hidden_size = 150
 num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-filename = "data.csv"
+filename = "wave.csv"
 labels_list = None
 
 num_classes = 0
@@ -39,6 +40,11 @@ class HandDataset(Dataset):
         xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
         self.x = torch.from_numpy(xy[:, num_classes:])
         self.y = torch.from_numpy(np.argmax(xy[:, 0:num_classes], axis=1))
+        
+        for i in range(3):
+            self.x = torch.cat((self.x, self.add_noise(xy, num_classes, noise_level=0.0003)), dim=0)
+            self.y = torch.cat((self.y, self.y), dim=0)
+        
         self.n_samples = xy.shape[0]
 
         print("Number of classification labels: " + str(num_classes))
@@ -51,6 +57,20 @@ class HandDataset(Dataset):
 
     def __len__(self):
         return self.n_samples
+    
+    def add_noise(self, xy, num_classes, noise_level=0):
+        df = pd.DataFrame(xy, columns=[f"feature_{i}" for i in range(len(labels_list) + input_size)])
+
+        x = df.iloc[:, num_classes:].values
+
+        if noise_level > 0:
+            noise = np.random.normal(0, noise_level, size=x.shape)
+            x_augmented = x + noise
+            x_tensor = torch.tensor(x_augmented, dtype = torch.float32)
+            return x_tensor
+
+        x_tensor = torch.tensor(x)
+        return x_tensor
 
 
 dataset = HandDataset()

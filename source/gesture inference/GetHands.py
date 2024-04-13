@@ -3,7 +3,7 @@
 from threading import Thread
 import mediapipe as mp
 import time
-from FeedForward import NeuralNet
+from FeedForward import FeedForward
 import traceback
 from Console import GestureConsole
 from Webcam import Webcam
@@ -35,8 +35,13 @@ class GetHands(Thread):
         self.flags = flags
         
         self.camera = Webcam()
-        self.set_gesture_model_FF(flags["gesture_model_path"])
-        self.set_gesture_model_LSTM("models/wave.pth")
+        if "models/feedforward/" in flags["gesture_model_path"]:
+            self.set_gesture_model_FF(flags["gesture_model_path"])
+        elif "models/lstm/" in flags["gesture_model_path"]:
+            self.set_gesture_model_LSTM(flags["gesture_model_path"])
+        else:
+            raise Exception("invalid model file path")
+            
         self.hand_sequences = [[],[],[],[]]
         
         self.gesture_list = self.gesture_model.labels
@@ -58,7 +63,7 @@ class GetHands(Thread):
         self.build_mediapipe_model(flags["number_of_hands"])
 
     def set_gesture_model_FF(self, path):
-        self.gesture_model = NeuralNet(path)
+        self.gesture_model = FeedForward(path)
         
     def set_gesture_model_LSTM(self, path):
         self.gesture_model = LSTM(path)
@@ -122,20 +127,18 @@ class GetHands(Thread):
                 gestures = []  # store gesture output as text
                 for index, hand in enumerate(model_inputs):
                     #build a sequence of hands
-                    self.hand_sequences[index].append(hand)
-                    if len(self.hand_sequences[index]) > self.gesture_model.sequence_length:
-                        self.hand_sequences[index].pop(0)
+                    if type(self.gesture_model) == LSTM:
+                        self.hand_sequences[index].append(hand)
+                        if len(self.hand_sequences[index]) > self.gesture_model.sequence_length:
+                            self.hand_sequences[index].pop(0)
                         output = self.gesture_model.get_gesture(self.hand_sequences[index])
-                        if output != None:
-                            confidences, predicted, predicted_confidence = output
-                    
-                        # confidences, predicted, predicted_confidence = (
-                        #     self.gesture_model.get_gesture([hand])
-                        # )
-                    
-                            gestures.append(self.gesture_list[predicted[0]])  # save gesture
-                            hand_confidences.append(confidences[0])
-                            self.console.table(self.gesture_list, confidences)
+                    elif type(self.gesture_model) == FeedForward:
+                        output = self.gesture_model.get_gesture([hand])
+                    if output != None:
+                        confidences, predicted, predicted_confidence = output
+                        gestures.append(self.gesture_list[predicted[0]])  # save gesture
+                        hand_confidences.append(confidences[0])
+                        self.console.table(self.gesture_list, confidences)
                     # only take inputs from the first hand, subsequent hands can't control the keyboard
 
                 self.gestures = gestures

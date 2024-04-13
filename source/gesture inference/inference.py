@@ -30,7 +30,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": True,
     "run_model_flag": True,
-    "gesture_model_path": "models/flappy.pth",
+    "gesture_model_path": "models/feedforward/flappy.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
