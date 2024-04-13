@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch
 import numpy as np
-#from Console import GestureConsole
+
+# from Console import GestureConsole
 
 
 class LSTM(nn.Module):
@@ -15,7 +16,7 @@ class LSTM(nn.Module):
         model, data = torch.load(modelName, map_location=self.device)
 
         # model hyperparameters, saved in the model file with its statedict from my train program
-        #[input_size, hidden_size, num_classes, sequence_length, num_layers, true_labels]
+        # [input_size, hidden_size, num_classes, sequence_length, num_layers, true_labels]
         input_size = data[0]
         hidden_size = data[1]
         num_classes = data[2]
@@ -25,17 +26,19 @@ class LSTM(nn.Module):
         self.confidence_vector = []
         self.input_size = input_size
         self.last_origin = [(0, 0)]
-        
-        self.input_sequence = []
-
         # self.console = GestureConsole()
         # self.console.print(self.device)
-        
+
         super(LSTM, self).__init__()
         self.num_classes = num_classes  # output size
         self.num_layers = num_layers  # number of recurrent layers in the lstm
         self.input_size = input_size  # input size
         self.hidden_size = hidden_size  # neurons in each lstm layer
+        # hidden state
+        self.h_0 = torch.zeros(self.num_layers, 1, self.hidden_size)  # .to(self.device)
+        # cell state
+        self.c_0 = torch.zeros(self.num_layers, 1, self.hidden_size)  # .to(self.device)
+
         # LSTM model
         self.lstm = nn.LSTM(
             input_size=input_size,
@@ -43,54 +46,53 @@ class LSTM(nn.Module):
             num_layers=num_layers,
             batch_first=True,
         )  # lstm
-        self.fc_1 = nn.Linear(hidden_size, 128)  # fully connected
+        self.fc_1 = nn.Linear(hidden_size * num_layers, 128)  # fully connected
         self.fc_2 = nn.Linear(128, num_classes)  # fully connected last layer
         self.relu = nn.ReLU()
+        self.to(self.device)
         self.load_state_dict(model)
         self.eval()
 
     def forward(self, x):
-        # hidden state
-        h_0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size)#.to(self.device)
-        # cell state
-        c_0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size)#.to(self.device)
+
+        # Move initial hidden and cell states to device
+        h_0 = self.h_0.to(self.device)
+        c_0 = self.c_0.to(self.device)
+
         # propagate input through LSTM
-        output, (hn, cn) = self.lstm(
-            x, (h_0, c_0)
-        )  # (input, hidden, and internal state)
-        hn = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
+        output, (hn, cn) = self.lstm(x, (h_0, c_0))
+        # Flatten the hidden state of all layers
+        hn = hn.permute(1, 0, 2).contiguous().view(x.size(0), -1)
         out = self.relu(hn)
         out = self.fc_1(out)  # first dense
         out = self.relu(out)  # relu
         out = self.fc_2(out)  # final output
-        #return out, (hn, cn)
+        # return out, (hn, cn)
         return out
-    def get_gesture(self, model_input):
-        """ One hand input shape should be (1,65)
 
-            Two hand input shape should be (2, 65)
+    def get_gesture(self, model_input):
+        """One hand input shape should be (1,65)
+
+        Two hand input shape should be (2, 65)
         """
-        #newest data appends to the end of the list
+        # newest data appends to the end of the list
         if len(model_input) < self.sequence_length:
-            #print(f"input too short len(model_input): {len(model_input)}")
+            # print(f"input too short len(model_input): {len(model_input)}")
             return None
         elif len(model_input) > self.sequence_length:
-            #print(f"input too long len(model_input): {len(model_input)}")
+            # print(f"input too long len(model_input): {len(model_input)}")
             return None
-        
+
         hands = torch.from_numpy(np.asarray([model_input], dtype="float32"))
-        #hands.to(self.device)p
-        
-        outputs = self(hands)
+
+        outputs = self(hands.to(self.device))
         probs = torch.nn.functional.softmax(outputs.data, dim=1)
 
         self.confidence_vector = probs
-     
 
         confidence, classes = torch.max(probs, 1)
-        return probs.tolist(), classes.numpy().tolist(), confidence.tolist()
+        return probs.tolist(), classes, confidence.tolist()
 
-    
     def gesture_input(self, result, velocity):
         """Converts Mediapipe landmarks and a velocity into a format usable by the gesture recognition model
 
@@ -114,7 +116,7 @@ class LSTM(nn.Module):
                 model_inputs[index].append(velocity[index][1])
 
         return model_inputs
-    
+
     def find_velocity_and_location(self, result):
         """Given a Mediapipe result object, calculates the velocity and origin of hands.
 

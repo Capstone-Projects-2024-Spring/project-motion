@@ -4,6 +4,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
+from FeedForward import FeedForward
 from LSTM import LSTM
 data = [[ 3.7822e-03,  9.2659e-02,  2.6263e-02,  3.1820e-02,  6.8461e-02,
            1.3024e-02,  5.2944e-02,  4.7907e-02,  9.2110e-03,  7.1479e-02,
@@ -136,7 +137,51 @@ data = [[ 3.7822e-03,  9.2659e-02,  2.6263e-02,  3.1820e-02,  6.8461e-02,
           -2.1827e-03, -1.4337e-02, -3.7925e-02, -2.1909e-02, -2.6558e-02,
           -3.8305e-02, -3.6937e-02, -4.2681e-02, -1.1340e-04, -7.2263e-04]]
 
-lstm = LSTM("models/gestureModel2.pth")
-prob, index, conf =  lstm.get_gesture(data)
-print(prob)
-print(lstm.labels[index[0]])
+import timeit
+
+lstm = LSTM("models/lstm/LSTM.pth")
+ff = FeedForward("models/feedforward/motion.pth")
+
+# Time the LSTM loop
+lstm_time = timeit.timeit(
+    stmt="prob, index, conf = lstm.get_gesture(data);",
+    setup="from __main__ import lstm, data",
+    number=3000
+)
+
+print(f"LSTM GPU Time: {round(lstm_time, 3)} seconds")
+
+# Time the FF loop
+ff_time = timeit.timeit(
+    stmt="prob, index, conf = ff.get_gesture([data[0]]);",
+    setup="from __main__ import ff, data",
+    number=3000
+)
+
+print(f"FF GPU Time: {round(ff_time, 3)} seconds")
+
+
+
+
+
+
+lstm = LSTM("models/lstm/LSTM.pth",force_cpu=True)
+ff = FeedForward("models/feedforward/motion.pth",force_cpu=True)
+
+# Time the LSTM loop
+lstm_time = timeit.timeit(
+    stmt="prob, index, conf = lstm.get_gesture(data);",
+    setup="from __main__ import lstm, data",
+    number=3000
+)
+
+print(f"LSTM CPU Time: {round(lstm_time, 3)} seconds")
+
+# Time the FF loop
+ff_time = timeit.timeit(
+    stmt="prob, index, conf = ff.get_gesture([data[0]]);",
+    setup="from __main__ import ff, data",
+    number=3000
+)
+
+print(f"FF CPU Time: {round(ff_time, 3)} seconds")
