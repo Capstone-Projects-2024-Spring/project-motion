@@ -70,7 +70,16 @@ class HandDataset(Dataset):
                             dim=0,
                         )
                     
+        
+        # Count the number of occurrences of each label
+        self.label_counts = np.bincount(self.y.numpy(), minlength=num_classes)
+        
+                # Calculate weights for each class
+        class_count = np.bincount(self.y.numpy(), minlength=len(self.x))
+        weights = 1.0 / class_count
+        self.sample_weights = weights[self.y.numpy()]
         self.n_samples = len(self.x)
+
         print(f"Number of samples: {len(self.x)}")
 
     def rotate(
@@ -152,6 +161,7 @@ class HandDataset(Dataset):
 
         if noise_level > 0:
             noise = np.random.normal(0, noise_level, size=x.shape)
+            
             x_augmented = x + noise
             x_tensor = torch.tensor(x_augmented, dtype=torch.float32)
             return x_tensor
@@ -168,7 +178,8 @@ class HandDataset(Dataset):
 # # num_layers = 2  # number of stacked lstm layers
 # # filename = "data.csv"
 
-# dataset = HandDataset("data.csv",15,10,65)
+#dataset = HandDataset("testdata.csv",2,10,65)
+# print(f"dataset.label_counts={dataset.label_counts}")
 # print(f"dataset.__len__()={dataset.__len__()}")
 # # data size is 3868
 # # train_dataset, test_dataset = torch.utils.data.random_split(
