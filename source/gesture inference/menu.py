@@ -1,7 +1,7 @@
 import pygame_menu
 import os
 from GetHands import GetHands
-from Console import GestureConsole
+import Console
 from typing import Callable
 from functools import partial
 
@@ -22,7 +22,6 @@ class Menu:
         self.toggle_mouse_key = flags["toggle_mouse_key"]
         self.models_folder_ff = "models/feedforward/"
         self.models_folder_lstm = "models/lstm/"
-        self.console = GestureConsole()
         self.setup_settings()
         self.gesture_settings.disable()
         
@@ -152,7 +151,7 @@ class Menu:
         self.flags["key_toggle_enabled"] = current_state_value
 
     def enable_console(self, current_state_value, **kwargs):
-        self.console.printing = current_state_value
+        Console.printing = current_state_value
 
     def lockout_mouse(self, current_state_value, **kwargs):
         if current_state_value:

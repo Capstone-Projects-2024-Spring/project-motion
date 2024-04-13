@@ -8,7 +8,7 @@ from GetHands import GetHands
 from Mouse import Mouse
 from Keyboard import Keyboard
 import os
-from Console import GestureConsole
+import Console
 from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
@@ -38,17 +38,13 @@ flags = {
     "webcam_mode": 1,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
-    "gesture_list": [],
+    "gesture_list": [],     
     "mouse_hand_num": 0,
     "keyboard_hand_num": 0,
     "hand_1_keyboard": None,
     "hand_2_keyboard": None,
     "key_toggle_enabled": False,
 }
-
-
-# custom console
-console = GestureConsole()
 
 
 def main() -> None:
@@ -95,16 +91,16 @@ def game_loop(
         if num == 0:
             game = None
         if num == 1:
-            console.print("Flappybird")
+            Console.print("Flappybird")
             game = flappybird.FlappyBirdGame()
         if num == 2:
-            console.print("Asteroids")
+            Console.print("Asteroids")
             game = asteroids
         if num == 3:
-            console.print("Platformer")
+            Console.print("Platformer")
             game = platformer
         if num == 4:
-            console.print("Fruit Ninja")
+            Console.print("Fruit Ninja")
             game = None
 
     menu = Menu(window_width, window_height, flags, set_game_func=set_game)
@@ -166,8 +162,7 @@ def print_input_table(counter):
             if keys[i]:
                 keyName = pygame.key.name(i)
                 keyString.append([keyName])
-        console.table(["key pressed (pygame)"], keyString, table_number=1)
-
+                
         clicked = []
         if clicks[0]:
             clicked.append(["left"])
@@ -175,9 +170,10 @@ def print_input_table(counter):
             clicked.append(["middle"])
         if clicks[2]:
             clicked.append(["right"])
-
-        console.table(["mouse (pygame)"], clicked, table_number=2)
-        console.update()
+    
+        Console.table(["key pressed (pygame)"], keyString, table_number=1)
+        Console.table(["mouse (pygame)"], clicked, table_number=2)
+        Console.update()
 
 
 if __name__ == "__main__":

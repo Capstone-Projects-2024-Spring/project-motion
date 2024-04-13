@@ -1,6 +1,6 @@
 import pydirectinput
 import time
-from Console import GestureConsole
+import Console
 import numpy as np
 import threading
 
@@ -33,7 +33,6 @@ class Keyboard(threading.Thread):
         self.toggle_keys_pressed = {}
         self.toggle_instances = []
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
-        self.console = GestureConsole()
         self.flags = flags
         self.threshold_off_time = threshold_off_time
         self.bindings = bindings
@@ -58,10 +57,10 @@ class Keyboard(threading.Thread):
 
     def release_all(self):
         if self.key_pressed[2][0] != "none":
-            self.console.print(f"releasing key: {self.key_pressed[2][0]}")
+            Console.print(f"releasing key: {self.key_pressed[2][0]}")
             pydirectinput.keyUp(self.key_pressed[2][0])
         for key in self.toggle_keys_pressed:
-            self.console.print(f"releasing key: {key}")
+            Console.print(f"releasing key: {key}")
             pydirectinput.keyUp(key)
         self.toggle_keys_pressed = {}
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
@@ -117,11 +116,11 @@ class Keyboard(threading.Thread):
         if key in self.toggle_keys_pressed:
             if self.toggle_keys_pressed[key] == True:
                 self.toggle_keys_pressed[key] = False
-        self.console.print(f"releasing key: {key}")
+        Console.print(f"releasing key: {key}")
         pydirectinput.keyUp(key)
 
     def release(self, key):
-        self.console.print(f"releasing key: {self.last_key}")
+        Console.print(f"releasing key: {self.last_key}")
         pydirectinput.keyUp(self.last_key)  # Release the last key
 
     def toggle_or_press(self, current_time, key):
@@ -136,13 +135,13 @@ class Keyboard(threading.Thread):
                 ):
                     self.toggle_keys_pressed[key] = True
                     self.toggle_instances.append(self.key_pressed[2])
-                    self.console.print(f"pressing key (toggled on): {key}")
+                    Console.print(f"pressing key (toggled on): {key}")
                     pydirectinput.keyDown(key)
             else:
-                self.console.print(f"pressing key: {key}")
+                Console.print(f"pressing key: {key}")
                 pydirectinput.keyDown(key)
         else:
-            self.console.print(f"pressing key: {key}")
+            Console.print(f"pressing key: {key}")
             pydirectinput.keyDown(key)
 
     def release_and_press(self, key):
@@ -150,7 +149,7 @@ class Keyboard(threading.Thread):
             not key in self.toggle_keys_pressed
             or self.toggle_keys_pressed[key] == False
         ):
-            self.console.print(f"releasing key: {self.last_key}")
+            Console.print(f"releasing key: {self.last_key}")
             pydirectinput.keyUp(self.last_key)  # Release the last key
-            self.console.print(f"pressing key: {key}")
+            Console.print(f"pressing key: {key}")
             pydirectinput.keyDown(key)

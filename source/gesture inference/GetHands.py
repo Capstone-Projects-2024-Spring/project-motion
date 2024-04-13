@@ -5,7 +5,7 @@ import mediapipe as mp
 import time
 from FeedForward import FeedForward
 import traceback
-from Console import GestureConsole
+import Console
 from Webcam import Webcam
 import os
 from LSTM import LSTM
@@ -26,8 +26,6 @@ class GetHands(Thread):
         flags=None,
     ):
         Thread.__init__(self, daemon=True)
-
-        self.console = GestureConsole()
         self.model_path = mediapipe_model
         self.confidence = 0.1
         self.stopped = False
@@ -107,7 +105,7 @@ class GetHands(Thread):
             if self.num_hands_detected == 0:
                 self.result = []
                 self.confidence_vectors=[]
-                self.console.table(self.gesture_list, self.confidence_vectors) #clear table
+                Console.table(self.gesture_list, self.confidence_vectors) #clear table
                 return
 
             self.result = result
@@ -138,14 +136,11 @@ class GetHands(Thread):
                         confidences, predicted, predicted_confidence = output
                         gestures.append(self.gesture_list[predicted[0]])  # save gesture
                         hand_confidences.append(confidences[0])
-                        self.console.table(self.gesture_list, confidences)
-                    # only take inputs from the first hand, subsequent hands can't control the keyboard
+                        Console.table(self.gesture_list, confidences)
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
                 
-            #self.console.table(self.gesture_list, self.confidence_vectors)
-
             # timestamps are in microseconds so convert to ms
 
             current_time = time.time()
