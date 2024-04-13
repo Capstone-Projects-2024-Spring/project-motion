@@ -21,7 +21,7 @@ class ConsolePanel(Console):
 
 lock = threading.Lock()
 
-printing = False
+printing = True
 console = ConsolePanel()
 layout = Layout()
 layout.split_column(Layout(name="upper"), Layout(name="lower"))

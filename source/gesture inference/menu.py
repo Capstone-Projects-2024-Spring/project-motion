@@ -132,7 +132,7 @@ class Menu:
             "Toggle Keys", False, onchange=self.toggle_keys
         )
         self.gesture_settings.add.toggle_switch(
-            "Enable Console", False, onchange=self.enable_console
+            "Enable Console", True, onchange=self.enable_console
         )
 
     def set_key_1_bindings(self, value, keys):
