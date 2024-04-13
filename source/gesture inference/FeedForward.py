@@ -119,6 +119,4 @@ class NeuralNet(nn.Module):
                 model_inputs[index].append(velocity[index][0])
                 model_inputs[index].append(velocity[index][1])
 
-        out = np.asarray(model_inputs, dtype="float32")
-
-        return out
+        return model_inputs
