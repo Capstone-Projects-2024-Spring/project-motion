@@ -29,12 +29,12 @@ if device.type == "cuda":
 
 # Hyper-parameters
 input_size = 65
-hidden_size = 200
-num_epochs = 10
+hidden_size = 100
+num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-sequence_length = 10
-filename = "data.csv"
+sequence_length = 7
+filename = "wave.csv"
 
 num_classes = 0
 with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
@@ -59,9 +59,10 @@ class HandDataset(Dataset):
         print("Original number of datapoints: " + str(len(self.x)))
         print("Sequence length: " + str(sequence_length))
 
-        # #double the dataset by adding noise to each sample
-        self.x = torch.cat((self.x, self.process_data(xy, num_classes, sequence_length, noise_level=0.0005)), dim=0)
-        self.y = torch.cat((self.y, self.y), dim=0)
+        #increase the dataset by adding noise to each sample
+        for i in range(0):
+            self.x = torch.cat((self.x, self.process_data(xy, num_classes, sequence_length, noise_level=0.0003)), dim=0)
+            self.y = torch.cat((self.y, self.y), dim=0)
 
         print("Shape of x_tensor:", self.x.shape)
         print("Shape of y_tensor:", self.y.shape)
@@ -75,7 +76,7 @@ class HandDataset(Dataset):
         return self.n_samples
 
     def process_data(self, xy, num_classes, sequence_length, noise_level=0):
-        df = pd.DataFrame(xy, columns=[f"feature_{i}" for i in range(80)])
+        df = pd.DataFrame(xy, columns=[f"feature_{i}" for i in range(len(true_labels) + input_size)])
 
         x_frames = df.iloc[:, num_classes:].values
 
@@ -286,7 +287,7 @@ plt.show()
 torch.save(
     (
         lstm.state_dict(),
-        [input_size, hidden_size, num_classes, sequence_length, num_layers],
+        [input_size, hidden_size, num_classes, sequence_length, num_layers, true_labels],
     ),
-    "gestureModel2.pth",
+    "wave.pth",
 )

@@ -36,7 +36,7 @@ class GetHands(Thread):
         
         self.camera = Webcam()
         self.set_gesture_model_FF(flags["gesture_model_path"])
-        self.set_gesture_model_LSTM("models/LSTM.pth")
+        self.set_gesture_model_LSTM("models/wave.pth")
         self.hand_sequences = [[],[],[],[]]
         
         self.gesture_list = self.gesture_model.labels
@@ -123,7 +123,7 @@ class GetHands(Thread):
                 for index, hand in enumerate(model_inputs):
                     #build a sequence of hands
                     self.hand_sequences[index].append(hand)
-                    if len(self.hand_sequences[index]) > 10:
+                    if len(self.hand_sequences[index]) > self.gesture_model.sequence_length:
                         self.hand_sequences[index].pop(0)
                         output = self.gesture_model.get_gesture(self.hand_sequences[index])
                         if output != None:
