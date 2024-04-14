@@ -24,11 +24,11 @@ hidden_size = 150
 num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-filename = "wave.csv"
+filename = "wave"
 labels_list = None
 
 num_classes = 0
-with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
+with open(filename+".csv", "r", newline="", encoding="utf-8") as dataset_file:
     labels_list = next(csv.reader(dataset_file))
     num_classes = len(labels_list)
 
@@ -37,7 +37,7 @@ print("labels: " + str(labels_list))
 
 class HandDataset(Dataset):
     def __init__(self):
-        xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
+        xy = np.loadtxt(filename+".csv", delimiter=",", dtype=np.float32, skiprows=1)
         self.x = torch.from_numpy(xy[:, num_classes:])
         self.y = torch.from_numpy(np.argmax(xy[:, 0:num_classes], axis=1))
         
@@ -186,6 +186,11 @@ with torch.no_grad():
         labels = labels.data.cpu().numpy()
         y_true.extend(labels)  # Save Truth
 
+torch.save(
+    (model.state_dict(), [input_size, hidden_size, num_classes, labels_list]),
+    filename+".pth",
+)
+
 # Build confusion matrix
 cf_matrix = confusion_matrix(y_true, y_pred)
 df_cm = pd.DataFrame(
@@ -196,10 +201,6 @@ df_cm = pd.DataFrame(
 plt.figure(figsize=(12, 7))
 sn.heatmap(df_cm, annot=True)
 
-plt.savefig("outputFF.png")
+plt.savefig(filename + "FF.png")
 plt.show()
 
-torch.save(
-    (model.state_dict(), [input_size, hidden_size, num_classes, labels_list]),
-    "test.pth",
-)

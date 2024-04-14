@@ -36,9 +36,9 @@ hidden_size = 50
 num_epochs = 10
 batch_size = 100
 learning_rate = 0.001
-sequence_length = 10
+sequence_length = 5
 num_layers = 2  # number of stacked lstm layers
-filename = "data"
+filename = "wave"
 
 num_classes = 0
 with open(filename + ".csv", "r", newline="", encoding="utf-8") as dataset_file:
@@ -68,9 +68,16 @@ sampler = WeightedRandomSampler(
 # )
 
 #its difficult to random split and do weighted random sample so test and train are the same data
+
 train_loader = DataLoader(
     sampler=sampler, dataset=dataset, batch_size=batch_size
 )
+
+# train_loader = DataLoader(
+#      dataset=dataset, batch_size=batch_size, shuffle=True
+# )
+
+
 test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 
 import animate
