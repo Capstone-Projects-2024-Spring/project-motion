@@ -33,12 +33,12 @@ if device.type == "cuda":
 # Hyper-parameters
 input_size = 65
 hidden_size = 50
-num_epochs = 10
+num_epochs = 5
 batch_size = 100
 learning_rate = 0.001
-sequence_length = 5
+sequence_length = 7
 num_layers = 2  # number of stacked lstm layers
-filename = "wave"
+filename = "minecraft_motion"
 
 num_classes = 0
 with open(filename + ".csv", "r", newline="", encoding="utf-8") as dataset_file:
@@ -59,23 +59,26 @@ print("dataset built")
     for index, count in enumerate(dataset.label_counts)
 ]
 
-sampler = WeightedRandomSampler(
-    weights=dataset.sample_weights, num_samples=len(dataset), replacement=True
-)
-
-# train_dataset, test_dataset = torch.utils.data.random_split(
-#     dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
+# sampler = WeightedRandomSampler(
+#     weights=dataset.sample_weights, num_samples=len(dataset), replacement=True
 # )
+if len(dataset)%2==0:
+    plus1 = 0
+else:
+    plus1=0
+train_dataset, test_dataset = torch.utils.data.random_split(
+    dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + plus1]
+)
 
 #its difficult to random split and do weighted random sample so test and train are the same data
 
-train_loader = DataLoader(
-    sampler=sampler, dataset=dataset, batch_size=batch_size
-)
-
 # train_loader = DataLoader(
-#      dataset=dataset, batch_size=batch_size, shuffle=True
+#     sampler=sampler, dataset=dataset, batch_size=batch_size
 # )
+
+train_loader = DataLoader(
+     dataset=dataset, batch_size=batch_size, shuffle=True
+)
 
 
 test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)

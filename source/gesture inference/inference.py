@@ -46,6 +46,8 @@ flags = {
     "key_toggle_enabled": False,
 }
 
+flags["gesture_model_path"] = "models/lstm/finetunedV5.pth"
+
 
 def main() -> None:
 
@@ -58,7 +60,7 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["space", "none", "m", "p"],
+        bindings=["none", "w", "s", "space", "e", "ctrlleft", "esc"],
         hand_num=0,
     )
     keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none"], hand_num=1)

@@ -74,29 +74,29 @@ class Menu:
             default=0,
             onchange=self.set_mouse_hand,
         )
-        #["left", "up", "right", "fist"]
+        #["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave"]
         self.gesture_settings.add.dropselect(
             "Hand 1 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft(L)", ["none", "w", "e", "ctrlleft", "space"]),
+                ("Minecraft(L)", ["none", "w", "s", "space", "e", "ctrlleft", "esc"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(L)", ["left", "up", "right", "none"]),
                 ("None", ["none"]),
             ],
-            default=0,
+            default=1,
             onchange=self.set_key_1_bindings,
         )
         self.gesture_settings.add.dropselect(
             "Hand 2 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft(R)", ["none", "none", "shift"]),
+                ("Minecraft(R)", ["none", "none", "none", "none", "shift", "none", "none"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(R)", ["none", "none", "none", "space"]),
                 ("None", ["none"]),
             ],
-            default=4,
+            default=1,
             onchange=self.set_key_2_bindings,
         )
         models_ff = self.find_files_with_ending(".pth", directory_path=self.models_folder_ff)

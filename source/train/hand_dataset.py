@@ -33,7 +33,7 @@ os.chdir(dname)
 
 
 class HandDataset(Dataset):
-    def __init__(self, filename, num_classes, sequence_length, input_size):
+    def __init__(self, filename, num_classes, sequence_length, input_size, rotate=True):
         self.num_classes = num_classes
         self.input_size = input_size
         self.xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
@@ -51,24 +51,25 @@ class HandDataset(Dataset):
 
         degrees = 15
         step = 15
-        #apply a rotaion in 
-        for x in range(-degrees,degrees+1,step):
-            for y in range(-degrees,degrees+1,step):
-                for z in range(-degrees,degrees+1,step):
-                    print(f"Applying rotation and noise: ({x},{y},{z})")
-                    rotated = self.rotate(self.xy, x, y, z)
-                    #add some noise after rotating
-                    self.x_rotated = self.process(rotated, num_classes, sequence_length, noise_level=0.0003)
-                    self.x = torch.cat((self.x, self.x_rotated), dim=0)
-                    self.y = torch.cat(
-                            (
-                                self.y,
-                                torch.from_numpy(
-                                    np.argmax(self.xy[:, 0:num_classes], axis=1)[sequence_length + 1 :]
+        # #apply a rotaion in 
+        if rotate:
+            for x in range(-degrees,degrees+1,step):
+                for y in range(-degrees,degrees+1,step):
+                    for z in range(-degrees,degrees+1,step):
+                        print(f"Applying rotation and noise: ({x},{y},{z})")
+                        rotated = self.rotate(self.xy, x, y, z)
+                        #add some noise after rotating
+                        self.x_rotated = self.process(rotated, num_classes, sequence_length, noise_level=0.0003)
+                        self.x = torch.cat((self.x, self.x_rotated), dim=0)
+                        self.y = torch.cat(
+                                (
+                                    self.y,
+                                    torch.from_numpy(
+                                        np.argmax(self.xy[:, 0:num_classes], axis=1)[sequence_length + 1 :]
+                                    ),
                                 ),
-                            ),
-                            dim=0,
-                        )
+                                dim=0,
+                            )
                     
         
         # Count the number of occurrences of each label
