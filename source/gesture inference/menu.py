@@ -79,6 +79,7 @@ class Menu:
             "Hand 1 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
+                ("Brawlhalla", ["left", "right", "up", "down", "none", "none", "none", "none"]),
                 ("Minecraft(L)", ["none", "w", "s", "space", "e", "ctrlleft", "esc"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(L)", ["left", "up", "right", "none"]),
@@ -91,6 +92,7 @@ class Menu:
             "Hand 2 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
+                ("Brawlhalla", ["none", "none", "none", "none", "z", "x", "c", "v"]),
                 ("Minecraft(R)", ["none", "none", "none", "none", "shift", "none", "none"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(R)", ["none", "none", "none", "space"]),

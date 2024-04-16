@@ -33,7 +33,7 @@ os.chdir(dname)
 
 
 class HandDataset(Dataset):
-    def __init__(self, filename, num_classes, sequence_length, input_size, rotate=True):
+    def __init__(self, filename, num_classes, sequence_length, input_size, rotate=True, degrees=15):
         self.num_classes = num_classes
         self.input_size = input_size
         self.xy = np.loadtxt(filename, delimiter=",", dtype=np.float32, skiprows=1)
@@ -50,7 +50,7 @@ class HandDataset(Dataset):
         self.x = self.process(x, num_classes, sequence_length)
 
         degrees = 15
-        step = 15
+        step = degrees
         # #apply a rotaion in 
         if rotate:
             for x in range(-degrees,degrees+1,step):

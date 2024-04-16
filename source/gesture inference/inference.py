@@ -28,9 +28,9 @@ flags = {
     "render_hands_mode": True,
     "gesture_vector": [],
     "number_of_hands": 2,
-    "move_mouse_flag": True,
+    "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/feedforward/flappy.pth",
+    "gesture_model_path": "models/lstm/brawl.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -46,9 +46,6 @@ flags = {
     "key_toggle_enabled": False,
 }
 
-flags["gesture_model_path"] = "models/lstm/finetunedV11.pth"
-
-
 def main() -> None:
 
     window_width = 800
@@ -60,10 +57,10 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["none", "w", "s", "space", "e", "ctrlleft", "esc"],
+        bindings=["left", "right", "up", "down", "none", "none", "none", "none"],
         hand_num=0,
     ) 
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "shift", "none", "none"], hand_num=1)
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "z", "x", "c", "v"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
