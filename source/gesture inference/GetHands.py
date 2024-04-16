@@ -33,8 +33,9 @@ class GetHands(Thread):
         self.stopped = False
 
         self.flags = flags
-        
+
         self.camera = Webcam()
+        self.camera.start(self.camera.working_ports[0])
 
         self.set_gesture_model(flags["gesture_model_path"])
 
@@ -92,13 +93,13 @@ class GetHands(Thread):
         # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
         try:
             self.location = []
-            self.click = "" 
+            self.click = ""
             self.velocity = []
             self.num_hands_detected = len(result.hand_world_landmarks)
             if self.num_hands_detected == 0:
                 self.result = []
-                self.confidence_vectors=[]
-                self.console.table(self.gesture_list, self.confidence_vectors) #clear table
+                self.confidence_vectors = []
+                self.console.table(self.gesture_list, self.confidence_vectors)
                 return
 
             self.result = result
@@ -131,7 +132,7 @@ class GetHands(Thread):
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
-                
+
             self.console.table(self.gesture_list, self.confidence_vectors)
 
             # timestamps are in microseconds so convert to ms
@@ -151,8 +152,11 @@ class GetHands(Thread):
                 self.camera.stop()
                 self.stop()
             else:
-                (self.grabbed, self.frame) = self.camera.read()
-
+                try:
+                    (self.grabbed, self.frame) = self.camera.read()
+                except:
+                    print("camera read fail")
+                    quit()
             # Detect hand landmarks
             self.detect_hands(self.frame)
 
