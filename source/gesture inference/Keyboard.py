@@ -9,7 +9,6 @@ from Console import GestureConsole
 import numpy as np
 import threading
 
-
 class Keyboard(threading.Thread):
     def __init__(
         self,
