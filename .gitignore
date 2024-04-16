@@ -9,4 +9,5 @@
 .env.production.local
 *.pyc
 *.html
+*.csv
 highscore
