@@ -71,7 +71,7 @@ class Menu:
         self.gesture_settings.add.dropselect(
             "Mouse Hand:",
             [("Hand 1", 0), ("Hand 2", 1)],
-            default=0,
+            default=1,
             onchange=self.set_mouse_hand,
         )
         #["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave"]

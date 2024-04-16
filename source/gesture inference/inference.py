@@ -39,14 +39,14 @@ flags = {
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
     "gesture_list": [],     
-    "mouse_hand_num": 0,
+    "mouse_hand_num": 1,
     "keyboard_hand_num": 0,
     "hand_1_keyboard": None,
     "hand_2_keyboard": None,
     "key_toggle_enabled": False,
 }
 
-flags["gesture_model_path"] = "models/lstm/finetunedV5.pth"
+flags["gesture_model_path"] = "models/lstm/finetunedV11.pth"
 
 
 def main() -> None:
@@ -62,8 +62,8 @@ def main() -> None:
         flags=flags,
         bindings=["none", "w", "s", "space", "e", "ctrlleft", "esc"],
         hand_num=0,
-    )
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none"], hand_num=1)
+    ) 
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "shift", "none", "none"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
@@ -155,7 +155,7 @@ def game_events(game, events, window):
 
 
 def print_input_table(counter):
-    if counter % 5 == 0:
+    if counter % 4 == 0:
         keys = pygame.key.get_pressed()
         clicks = pygame.mouse.get_pressed()
         keyString = []

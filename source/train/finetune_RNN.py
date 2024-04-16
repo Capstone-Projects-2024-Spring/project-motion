@@ -108,7 +108,7 @@ if device.type == "cuda":
     print("Allocated:", round(torch.cuda.memory_allocated(0) / 1024**3, 1), "GB")
     print("Cached:   ", round(torch.cuda.memory_reserved(0) / 1024**3, 1), "GB")
 
-lstm = LSTM("finetine3.pth")
+lstm = LSTM("finetunedV10.pth")
 lstm.train()
 # Use torchinfo to display the model summary
 summary(lstm)
@@ -117,12 +117,12 @@ input_size = lstm.input_size
 hidden_size = lstm.hidden_size
 num_epochs = 1
 # batch_size = 100
-learning_rate = 0.0001
+learning_rate = 0.00001
 sequence_length = lstm.sequence_length
 num_layers = lstm.num_layers  # number of stacked lstm layers
 
 
-filename = "finetine"
+filename = "finetuned"
 
 num_classes = 0
 with open(filename + ".csv", "r", newline="", encoding="utf-8") as dataset_file:
@@ -131,7 +131,7 @@ with open(filename + ".csv", "r", newline="", encoding="utf-8") as dataset_file:
 print(true_labels)
 print("building dataset")
 
-dataset = HandDataset(filename + ".csv", num_classes, sequence_length, input_size, rotate=True)
+dataset = HandDataset(filename + ".csv", num_classes, sequence_length, input_size, rotate=False)
 
 print("dataset built")
 
@@ -208,7 +208,7 @@ torch.save(
             true_labels,
         ],
     ),
-    filename + "4.pth",
+    filename + "V11.pth",
 )
 print(f"model saved as {filename}.pth")
 
