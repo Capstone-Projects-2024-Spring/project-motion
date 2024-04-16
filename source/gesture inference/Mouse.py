@@ -1,4 +1,8 @@
-import pydirectinput
+import sys
+if sys.platform == 'win32':
+    import pydirectinput as pyinput
+else:
+    import pyautogui as pyinput
 import time
 import Console
 import math
@@ -33,8 +37,9 @@ class Mouse(threading.Thread):
                                                     If you decrease drag_threshold_time, even a slight movement of the mouse shortly after clicking can be considered a drag rather than a separate click.
         """
         self.flags = flags
-        self.screen_width, self.screen_height = pydirectinput.size()
-        pydirectinput.FAILSAFE = False
+        self.screen_width, self.screen_height = pyinput.size()
+        pyinput.FAILSAFE = False
+        pyinput.PAUSE = False
         self.single_click_duration = single_click_duration
         self.mouse_sensitivity = float(mouse_sensitivity)
         self.x_scale = float(x_scale)
@@ -99,15 +104,15 @@ class Mouse(threading.Thread):
     def lift_mouse_button(self):
         if self.left_down:
             Console.print(f"releasing mouse left")
-            pydirectinput.mouseUp(button="left")
+            pyinput.mouseUp(button="left")
             self.left_down = False
         if self.middle_down:
             Console.print(f"releasing mouse middle")
-            pydirectinput.mouseUp(button="middle")
+            pyinput.mouseUp(button="middle")
             self.middle_down = False
         if self.right_down:
             Console.print(f"releasing mouse right")
-            pydirectinput.mouseUp(button="right")
+            pyinput.mouseUp(button="right")
             self.right_down = False
 
     def scale(self, x, y):
@@ -143,7 +148,7 @@ class Mouse(threading.Thread):
             self.relative_last_y = self.y_window[len(self.y_window) - 1]
 
         # Check if the movement is smaller than the specified radius
-        last_x, last_y = pydirectinput.position()
+        last_x, last_y = pyinput.position()
         distance = math.sqrt((x - last_x) ** 2 + (y - last_y) ** 2)
 
         # Specify the radius distance
@@ -196,9 +201,12 @@ class Mouse(threading.Thread):
             scaled_y = int(y_diff_abs**self.acceleration_factor) * (
                 1 if y_diff >= 0 else -1
             )
-            pydirectinput.moveRel(scaled_x, scaled_y, relative=True)
+            if sys.platform == 'win32':
+                pyinput.moveRel(scaled_x, scaled_y, relative=True)
+            else:
+                pyinput.moveRel(scaled_x, scaled_y)
         else:
-            pydirectinput.moveTo(x, y)
+            pyinput.moveTo(x, y)
 
     def click(self, mouse_button):
         """Handle mouse clicking.
@@ -211,20 +219,20 @@ class Mouse(threading.Thread):
         if mouse_button == "left":
             if not self.left_down:
                 Console.print(f"clicking mouse {mouse_button}")
-                pydirectinput.mouseDown(button=mouse_button)
+                pyinput.mouseDown(button=mouse_button)
                 self.left_down = True
 
         if mouse_button == "middle":
             if not self.middle_down:
                 Console.print(f"clicking mouse {mouse_button}")
-                # pydirectinput.mouseDown(button=mouse_button)
-                pydirectinput.scroll(-1)
+                # pyinput.mouseDown(button=mouse_button)
+                pyinput.scroll(-1)
                 self.middle_down = True
 
         if mouse_button == "right":
             if not self.right_down:
                 Console.print(f"clicking mouse {mouse_button}")
-                pydirectinput.mouseDown(button=mouse_button)
+                pyinput.mouseDown(button=mouse_button)
                 self.right_down = True
 
     def exponential_moving_average(self, data):

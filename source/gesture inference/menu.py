@@ -50,6 +50,12 @@ class Menu:
         self.main_menu.add.button("Quit", pygame_menu.events.EXIT)
 
     def setup_settings(self):
+        self.gesture_settings.add.dropselect(
+            "Camera:",
+            self.flags["hands"].camera.menu_selector,
+            default=0,
+            onchange=self.set_camera,
+        )
         self.gesture_settings.add.selector(
             "Render Mode :",
             [("Normalized", True), ("World", False)],
@@ -136,6 +142,10 @@ class Menu:
         self.gesture_settings.add.toggle_switch(
             "Enable Console", True, onchange=self.enable_console
         )
+        
+    def set_camera(self, value, cam):
+        self.flags["hands"].camera.stop()
+        self.flags["hands"].camera.start(cam)
 
     def set_key_1_bindings(self, value, keys):
         self.flags["hand_1_keyboard"].bindings = keys

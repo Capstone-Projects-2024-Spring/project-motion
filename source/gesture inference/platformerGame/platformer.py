@@ -75,8 +75,8 @@ class SpriteSheet():
 pygame.init()
 
 #game window dimensions
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 800
 
 #create game window
 surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -158,10 +158,10 @@ class Player():
         # process key presses
         key = pygame.key.get_pressed()
         if key[pygame.K_LEFT]:
-            dx = -10
+            dx = -5
             self.flip = True
         if key[pygame.K_RIGHT]:
-            dx = 10
+            dx = 5
             self.flip = False
         
         # gravity
@@ -289,9 +289,9 @@ def tick():
 
         #generate platforms
         if len(platform_group) < MAX_PLATFORMS:
-            p_w = random.randint(50, 70)
+            p_w = random.randint(70, 100)
             p_x = random.randint(0, SCREEN_WIDTH - p_w)
-            p_y = platform.rect.y - random.randint(80, 120)
+            p_y = platform.rect.y - random.randint(80, 100)
             p_type = random.randint(1, 2)
             if p_type == 1 and score > 1000:
                 p_moving = True

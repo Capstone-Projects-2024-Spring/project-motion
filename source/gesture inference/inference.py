@@ -113,7 +113,7 @@ def game_loop(
 
     clock = pygame.time.Clock()
 
-    tickrate = pygame.display.get_current_refresh_rate()
+   # tickrate = pygame.display.get_current_refresh_rate()
     tickrate = 60
 
     counter = 0
