@@ -33,10 +33,10 @@ def main():
     hands_surface.set_colorkey((0, 0, 0))
 
     myRenderHands = RenderHands(hands_surface, 3) 
-    filename = "thumb_fist.csv"
+    filename = "quick.csv"
     myReader = Reader(filename)
 
-    gesture_list = ["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave"]
+    gesture_list = ["fist", "left", "right", "up", "down", "dodge", "heavy", "quick", "throw"]
 
     myWriter = Writer(gesture_list=gesture_list, filename=filename, write_labels=True)
     if myWriter.rows != 0:
