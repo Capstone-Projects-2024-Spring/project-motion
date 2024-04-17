@@ -41,9 +41,9 @@ class Keyboard(threading.Thread):
         self.threshold_off_time = threshold_off_time
         self.bindings = bindings
         self.hand_num = hand_num
+        self.event = threading.Event()
 
     def run(self):
-        event = threading.Event()
         while True:
             if (
                 self.flags["run_model_flag"]
@@ -55,7 +55,7 @@ class Keyboard(threading.Thread):
                     self.gesture_input(confidence_vectors[self.hand_num])
             else:
                 self.release_all()
-            event.wait(timeout=1 / self.tps)
+            self.event.wait(timeout=1 / self.tps)
 
     def release_all(self):
         if self.key_pressed[2][0] != "none":
@@ -127,6 +127,16 @@ class Keyboard(threading.Thread):
 
     def toggle_or_press(self, current_time, key):
         # if the same key was pressed during the first edge and this edge
+        
+        if key == "scroll down":
+            pyinput.scroll(-1)
+            self.event.wait(0.25)
+            return
+        elif key == "scroll up":
+            pyinput.scroll(1)
+            self.event.wait(0.25)
+            return
+        
         if (
             self.key_pressed[0][0] == self.key_pressed[2][0]
             and self.flags["key_toggle_enabled"]

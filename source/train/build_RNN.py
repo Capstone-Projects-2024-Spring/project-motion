@@ -18,8 +18,8 @@ os.chdir(dname)
 
 
 test_data_filename = "test_dataset/minecraft_motion.csv"
-data_filename = "training_data/brawl.csv"
-model_name = "output_model/brawl.pth"
+data_filename = "test_dataset/minecraft_motion.csv"
+model_name = "output_model/minecraftV2.pth"
 num_epochs = 5
 batch_size = 100
 learning_rate = 0.001
