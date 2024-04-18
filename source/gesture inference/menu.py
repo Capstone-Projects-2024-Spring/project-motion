@@ -26,6 +26,7 @@ class Menu:
         self.gesture_settings.disable()
         
         self.set_game_func = set_game_func
+        #self.set_game_func = self.configure_game_settings
         self.main_menu = pygame_menu.Menu(
             "Esc to toggle menu",
             window_width * 0.8,
@@ -34,15 +35,50 @@ class Menu:
         )
         self.setup_main()
         self.main_menu.enable()
+
+
         
-        
+    def configure_game_settings(self, game_id):
+        if game_id == 1:  
+            self.change_hands_num(["1", 1]) 
+            self.set_mouse_hand(0, 0)
+            self.set_key_1_bindings(0, ["space", "none", "m", "p"]) 
+            self.set_key_2_bindings(4, ["space", "none", "m", "p"])  
+            self.change_gesture_model([("flappy.pth",)])
+            self.lockout_mouse(True) 
+        elif game_id == 2:
+            self.change_hands_num(["2", 2]) 
+            self.set_mouse_hand(0, 0)
+            self.set_key_1_bindings(0, ["left", "up", "right", "none"]) 
+            self.set_key_2_bindings(4,  ["none", "none", "none", "space"])  
+            self.change_gesture_model([("asteroids.pth",)])
+            self.lockout_mouse(True)  
+        elif game_id == 3:
+            self.change_hands_num(["3", 3]) 
+            self.set_mouse_hand(0, 0)
+            self.set_key_1_bindings(0, ["left", "none", "right", "space"]) 
+            self.set_key_2_bindings(4,  ["left", "none", "right", "space"])  
+            self.change_gesture_model([("jumpy.pth",)])
+        #     self.lockout_mouse(True)     
+        # elif game_id == 0:
+        #     self.change_hands_num(["0", 0]) 
+        #     self.set_mouse_hand(0, 0)
+        #     self.set_key_1_bindings(0, ["none"]) 
+        #     self.set_key_2_bindings(4,  ["none"])  
+        #     self.change_gesture_model([("motion.pth",)])
+        #     self.lockout_mouse(True)          
+
+
+        if self.set_game_func:
+            self.set_game_func(game_id)
+
 
     def setup_main(self):
-        self.main_menu.add.button("Flappybird", action=partial(self.set_game_func,1))
-        self.main_menu.add.button("Asteroids", action=partial(self.set_game_func,2))
-        self.main_menu.add.button("Platformer", action=partial(self.set_game_func,3))
-        self.main_menu.add.button("No game", action=partial(self.set_game_func,0))
-        self.main_menu.add.button("Tetris", action=partial(self.set_game_func,5))
+        self.main_menu.add.button("Flappybird", action=partial(self.configure_game_settings,1))
+        self.main_menu.add.button("Asteroids", action=partial(self.configure_game_settings,2))
+        self.main_menu.add.button("Platformer", action=partial(self.configure_game_settings,3))
+        self.main_menu.add.button("No game", action=partial(self.configure_game_settings,0))
+        self.main_menu.add.button("Tetris", action=partial(self.configure_game_settings,5))
         
         
         link = self.main_menu.add.menu_link(self.gesture_settings, "settings")
