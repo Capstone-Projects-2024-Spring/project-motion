@@ -304,7 +304,7 @@ def tick():
         platform_group.update(scroll)
 
         #generate enemies
-        if len(enemy_group) == 0 and score > 1500:
+        if len(enemy_group) == 0:
             enemy = Enemy(SCREEN_WIDTH, 100, bird_sheet, 1.5)
             enemy_group.add(enemy)
 
@@ -379,4 +379,3 @@ def events(events):
                 high_score = score
                 with open('score.txt', 'w') as file:
                     file.write(str(high_score))
-
