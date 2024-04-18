@@ -49,7 +49,7 @@ class Webcam:
                 w = int(camera.get(3))
                 h = int(camera.get(4))
                 if is_reading:
-                    print("Port %s is working and reads images (%s x %s)" %(dev_port,h,w))
+                    #print("Port %s is working and reads images (%s x %s)" %(dev_port,h,w))
                     menu_selector.append((f"{dev_port+1}: {h}x{w}", dev_port))
                     working_ports.append(dev_port)
             dev_port +=1

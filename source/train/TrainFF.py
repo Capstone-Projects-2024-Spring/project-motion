@@ -24,7 +24,7 @@ hidden_size = 150
 num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-filename = "tetris"
+filename = "training_data/tetris_lstm"
 labels_list = None
 
 num_classes = 0
@@ -163,6 +163,11 @@ with torch.no_grad():
     print(
         f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %"
     )
+    
+torch.save(
+    (model.state_dict(), [input_size, hidden_size, num_classes, labels_list]),
+    filename+".pth",
+)
 
 import test_model
 test_model.test(test_loader, device, model, labels_list)

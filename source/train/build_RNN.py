@@ -2,7 +2,7 @@
 
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 import csv
 from torchsummary import summary
 import os
@@ -14,13 +14,13 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = None
-data_filename = "training_data/tetris.csv"
+test_data_filename = "training_data/tetris_lstm.csv"
+data_filename = "training_data/tetris_lstm.csv"
 model_name = "output_model/tetris.pth"
 num_epochs = 5
 batch_size = 100
 learning_rate = 0.001
-WEIGHTED_SAMPLE = False
+WEIGHTED_SAMPLE = True
 ROTATE_DATA_SET = False
 ROTATE_DEGREES = 15
 ANIMATE = False
@@ -68,26 +68,28 @@ print("dataset built")
     for index, count in enumerate(dataset.label_counts)
 ]
 try:
-    train_dataset, test_dataset = torch.utils.data.random_split(
+    train_dataset, test_dataset = random_split(
         dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
     )
 except:
-    train_dataset, test_dataset = torch.utils.data.random_split(
+    train_dataset, test_dataset = random_split(
         dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
     )
 
 if WEIGHTED_SAMPLE:
+    
     sampler = WeightedRandomSampler(
-        weights=dataset.sample_weights, num_samples=len(dataset), replacement=True
+        weights=dataset.sample_weights, num_samples=len(dataset)-1, replacement=True
     )
     train_loader = DataLoader(
-        dataset=train_dataset, batch_size=batch_size, sampler=sampler
+        dataset=dataset, batch_size=batch_size, sampler=sampler
     )
+    test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 else:
     train_loader = DataLoader(
         dataset=train_dataset, batch_size=batch_size, shuffle=True
     )
-test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
 
 if ANIMATE:
@@ -138,7 +140,7 @@ lstm = LSTM(num_classes, input_size, hidden_size, num_layers).to(device)
 
 # Use torchinfo to display the model summary
 summary(lstm)
-
+lstm.train()
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)

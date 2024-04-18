@@ -392,7 +392,8 @@ class Timer:
             if self.repeated:
                 self.activate()
 
-def update_score(lines, score, level):
+def update_score(lines, asdf, level):
+    global score
     score.lines = lines
     score.score = score
     score.level = level
@@ -414,6 +415,7 @@ def events(events):
 def tick():
     global game_over
     global surface
+    
     if game_over:
         return
 
@@ -443,10 +445,9 @@ pygame.display.set_caption('TETRIS')
 next_shapes = [choice(list(SHAPES.keys())) for shape in range(3)]
 game = TetrisGame(get_next_shape, update_score, surface)
 preview = Preview()
-
-music = pygame.mixer.Sound(join(dname,'sound','03. A-Type Music (Korobeiniki).mp3'))
-music.set_volume(0.05)
-music.play(-1)
+music_not_playing = True
+# music = pygame.mixer.Sound(join(dname,'sound','03. A-Type Music (Korobeiniki).mp3'))
+# music.set_volume(0.05)
 
 def restart():
     global surface
@@ -454,7 +455,7 @@ def restart():
     global next_shapes
     global game
     global preview
-    global music
+    #global music
     global game_over
     
     surface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -464,7 +465,7 @@ def restart():
     next_shapes = [choice(list(SHAPES.keys())) for shape in range(3)]
     game = TetrisGame(get_next_shape, update_score, surface)
     preview = Preview()
-
-    music = pygame.mixer.Sound(join(dname,'sound','03. A-Type Music (Korobeiniki).mp3'))
-    music.set_volume(0.05)
-    music.play(-1)
+    
+# def stop():
+#     global music
+#     music.stop()

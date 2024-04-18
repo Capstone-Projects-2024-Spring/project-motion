@@ -44,7 +44,7 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["space", "none", "m", "p"]) 
             self.set_key_2_bindings(4, ["space", "none", "m", "p"])  
-            self.change_gesture_model([("flappy.pth",)])
+            self.change_gesture_model_ff([("flappy.pth",)])
             self.lockout_mouse(True) 
 
         elif game_id == 2:
@@ -52,7 +52,7 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "up", "right", "none"]) 
             self.set_key_2_bindings(4,  ["none", "none", "none", "space"])  
-            self.change_gesture_model([("games.pth",)])
+            self.change_gesture_model_ff([("games.pth",)])
             self.lockout_mouse(True)  
 
         elif game_id == 3:
@@ -60,16 +60,24 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "none", "right", "space"]) 
             self.set_key_2_bindings(4,  ["left", "none", "right", "space"])  
-            self.change_gesture_model([("jumpy.pth",)])
+            self.change_gesture_model_ff([("jumpy.pth",)])
+            self.lockout_mouse(True)  
+            
+        elif game_id == 5:
+            self.change_hands_num(["1", 1]) 
+            self.set_mouse_hand(0, 0)
+            self.set_key_1_bindings(0, ["up", "left", "right", "none", "down"]) 
+            self.set_key_2_bindings(4,  ["none"])  
+            self.change_gesture_model_ff([("tetris.pth",)])
             self.lockout_mouse(True)  
 
         elif game_id == 0:
             self.change_hands_num(["0", 0]) 
             self.set_mouse_hand(0, 0)
-            self.set_key_1_bindings(0, ["none"]) 
+            self.set_key_1_bindings(0, ["none"] ) 
             self.set_key_2_bindings(4,  ["none"])  
-            self.change_gesture_model([("motion.pth",)])
-            self.lockout_mouse(True)          
+            self.change_gesture_model_ff([("motion.pth",)])
+            self.lockout_mouse(True)     
 
 
         if self.set_game_func:
@@ -129,9 +137,9 @@ class Menu:
                 ("Minecraft(L)", ["none", "w", "s", "space", "e", "ctrlleft", "esc"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(L)", ["left", "up", "right", "none"]),
+                ("Tetris", ["none", "left", "right", "up", "down"]),
                 ("None", ["none"]),
             ],
-            default=1,
             onchange=self.set_key_1_bindings,
         )
         self.gesture_settings.add.dropselect(
@@ -144,7 +152,6 @@ class Menu:
                 ("Asteroids(R)", ["none", "none", "none", "space"]),
                 ("None", ["none"]),
             ],
-            default=1,
             onchange=self.set_key_2_bindings,
         )
         models_ff = self.find_files_with_ending(".pth", directory_path=self.models_folder_ff)
