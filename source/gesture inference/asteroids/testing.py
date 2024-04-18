@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, Mock
 import pygame
-from asteroids import Player, Bullet, Asteroid, Alien, Star, tick, events  # Adjust imports accordingly
+from asteroids import Player, AlienBullet, Asteroid, Alien, Star, tick, events  # Adjust imports accordingly
 
 class TestAsteroidGame(unittest.TestCase):
     def setUp(self):

@@ -1,13 +1,15 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import patch, MagicMock
 import pygame
 
-from flappybird import FlappyBirdGame, Bird, Pipe, Button, Show  # Ensure correct import paths
+# Ensure this import path is correct
+from flappybird import FlappyBirdGame  
 
-
+@patch('pygame.font.SysFont', return_value=MagicMock())  # Mock SysFont globally for all tests
+@patch('pygame.init', return_value=None)  # Mock pygame.init globally for all tests
 class TestFlappyBirdGame(unittest.TestCase):
     def setUp(self):
-        # Initialize the game
+        # Now the SysFont and init are mocked, we can safely create an instance of the game
         self.game = FlappyBirdGame()
 
     def test_initialization(self):
@@ -15,7 +17,6 @@ class TestFlappyBirdGame(unittest.TestCase):
         self.assertFalse(self.game.primitives["is flying"])
         self.assertFalse(self.game.primitives["is game over"])
         self.assertEqual(self.game.primitives["score"], 0)
-
 
     def test_game_over_by_collision(self):
         """Test game over triggered by collision."""
