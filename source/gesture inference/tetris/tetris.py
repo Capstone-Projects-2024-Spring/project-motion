@@ -451,7 +451,6 @@ class Main:
         self.game.run()
         self.score.run()
         self.preview.run(self.next_shapes)
-        print("asdfasdfasd")
 
 			# update
             # pygame.display.update()
