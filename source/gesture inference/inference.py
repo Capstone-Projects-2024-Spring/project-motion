@@ -108,9 +108,9 @@ def game_loop(
             console.print("Fruit Ninja")
             game = None
         if num == 5:
-            console.print("Tetris")
-            game = None
-
+            console.print("Tetris")  
+            game = tetris.Main()            
+            
     menu = Menu(window_width, window_height, flags, set_game_func=set_game)
 
     event_handler = GestureEventHandler(menu, flags)

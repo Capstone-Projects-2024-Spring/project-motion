@@ -42,7 +42,7 @@ class Menu:
         self.main_menu.add.button("Asteroids", action=partial(self.set_game_func,2))
         self.main_menu.add.button("Platformer", action=partial(self.set_game_func,3))
         self.main_menu.add.button("No game", action=partial(self.set_game_func,0))
-        self.main_menu.add.button("Tetris", action=partial(self.set_game_func,0))
+        self.main_menu.add.button("Tetris", action=partial(self.set_game_func,5))
         
         
         link = self.main_menu.add.menu_link(self.gesture_settings, "settings")

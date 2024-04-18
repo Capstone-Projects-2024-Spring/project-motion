@@ -13,6 +13,8 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
+surface = pygame.Surface((800, 800))
+
 # Variables
 COLUMNS = 10
 ROWS = 20
@@ -55,10 +57,10 @@ SHAPES = {
 SCORE_DATA = {1: 40, 2: 100, 3: 300, 4: 1200}
 
 class TetrisGame:
-	def __init__(self, get_next_shape, update_score):
+	def __init__(self, get_next_shape, update_score, display_surface):
 
 		self.surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
-		self.display_surface = pygame.display.get_surface()
+		self.display_surface = display_surface
 		self.rect = self.surface.get_rect(topleft = (PADDING, PADDING))
 		self.sprites = pygame.sprite.Group()
 
@@ -393,9 +395,11 @@ class Timer:
     
 class Main:
     def __init__(self):
-
-        pygame.init()
-        self.display_surface = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT))
+        global surface
+        #pygame.init()
+        #self.display_surface = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT))
+        self.display_surface = surface
+        self.surface = surface
         self.clock = pygame.time.Clock()
         pygame.display.set_caption('TETRIS')
 		
@@ -403,7 +407,7 @@ class Main:
 		# shapes
         self.next_shapes = [choice(list(SHAPES.keys())) for shape in range(3)]
 
-        self.game = TetrisGame(self.get_next_shape, self.update_score)
+        self.game = TetrisGame(self.get_next_shape, self.update_score, self.display_surface)
         self.score = Score()
         self.preview = Preview()
 
@@ -420,35 +424,39 @@ class Main:
         next_shape = self.next_shapes.pop(0)
         self.next_shapes.append(choice(list(SHAPES.keys())))
         return next_shape
+    
+    def events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                ...
+                # pygame.quit()
+                # exit()
 
-    def run(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
+    def tick(self):
+        # while True:
 
-			# background window
-            #self.display_surface.fill(GRAY)
-			# Load and scale the background image
-            self.background_image = pygame.image.load(os.path.join(dname,'graphics','360_F_269505479_qX1rCsjKJiwYgtXsay8iGk1ssdBiNBx3.jpg'))
-            #self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
-        	#self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
+        # background window
+        #self.display_surface.fill(GRAY)
+        # Load and scale the background image
+        self.background_image = pygame.image.load(os.path.join(dname,'graphics','360_F_269505479_qX1rCsjKJiwYgtXsay8iGk1ssdBiNBx3.jpg'))
+        #self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
+        #self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
 
-            
-            background_image = pygame.transform.scale(self.background_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
-            # Drawing the background image on the display game surface
-            self.display_surface.blit(background_image, (0, 0))
-            
-			# components
-            self.game.run()
-            self.score.run()
-            self.preview.run(self.next_shapes)
+        
+        background_image = pygame.transform.scale(self.background_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
+        # Drawing the background image on the display game surface
+        self.display_surface.blit(background_image, (0, 0))
+        
+        # components
+        self.game.run()
+        self.score.run()
+        self.preview.run(self.next_shapes)
+        print("asdfasdfasd")
 
 			# update
-            pygame.display.update()
-            self.clock.tick()
+            # pygame.display.update()
+            # self.clock.tick()
 
-if __name__ == '__main__':
-	main = Main()
-	main.run()
+# if __name__ == '__main__':
+# 	main = Main()
+# 	main.run()
