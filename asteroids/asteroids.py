@@ -191,11 +191,20 @@ class AlienBullet(object):
           self.y = y
           self. w = 4
           self.h = 4
-          self.dx, self.dy = player.x - self.x, player.y - self.y
-          self.dist = math.hypot(self.dx, self.dy)
-          self.dx, self.dy = self.dx/ self.dist, self.dy / self.dist
+          dx,dy = player.x - self.x, player.y - self.y
+          dist = math.hypot(dx, dy)
+          dx, dy = dx/ dist, dy / dist
+          # makes alien's aim less accurate for easier gameplay
+          inaccuracy = 0.3  
+          dx += random.uniform(-inaccuracy, inaccuracy)
+          dy += random.uniform(-inaccuracy, inaccuracy)
+
+          new_dist = math.hypot(dx, dy)
+          self.dx, self.dy = dx / new_dist, dy / new_dist
+          
           self.xv = self.dx * 5
           self.yv = self.dy * 5
+     
      def draw(self,window):
           pygame.draw.rect(window, (255,255,255), [self.x,self.y,self.w,self.h])     
 
