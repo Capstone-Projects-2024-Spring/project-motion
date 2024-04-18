@@ -82,14 +82,18 @@ class Player(object):
      
      # update the location of the ship when it goes off the screen
      def update_location(self):  
-          if self.x > SCREEN_WIDTH+ 50:
-              self.x = 0
-          elif self.x < 0 - self.width:
-              self.x = SCREEN_WIDTH
-          elif self.y < -50:
-              self.y = SCREEN_HEIGHT
-          elif self.y > SCREEN_HEIGHT + 50:
-              self.y = 0 
+          self.x = max(self.width // 2, min(self.x, SCREEN_WIDTH - self.width // 2))
+          self.y = max(self.height // 2, min(self.y, SCREEN_HEIGHT - self.height // 2))
+          self.rotated_rect.center = (self.x, self.y)
+
+          # if self.x > SCREEN_WIDTH+ 50:
+          #     self.x = 0
+          # elif self.x < 0 - self.width:
+          #     self.x = SCREEN_WIDTH
+          # elif self.y < -50:
+          #     self.y = SCREEN_HEIGHT
+          # elif self.y > SCREEN_HEIGHT + 50:
+          #     self.y = 0 
 
 # Bullet class + attributes and methods
 class Bullet(object):
@@ -212,10 +216,10 @@ class AlienBullet(object):
 # updates game window with the current game state
 def redraw_window():
         window.blit(bg,(0,0))
-        font = pygame.font.SysFont('arial',20)
-        livesText = font.render('Lives: ' + str(lives),1,(255,255,255))
-        playe_again_text = font.render('Press the Space Bar to Player Again!', 1, (255,255,255))
-        score_text = font.render('Score: ' + str(score),1,(255,255,255))
+        font = pygame.font.SysFont('DejaVu Sans Mono',20)
+        livesText = font.render('Lives: ' + str(lives),1,(255,255,0))
+        playe_again_text = font.render('Press the Space Bar to Player Again!', 1, (255,255,0))
+        score_text = font.render('Score: ' + str(score),1,(255,255,0))
         player.draw(window)
         for a in asteroids:
              a.draw(window)
