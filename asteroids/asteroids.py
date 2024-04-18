@@ -195,7 +195,7 @@ class AlienBullet(object):
           dist = math.hypot(dx, dy)
           dx, dy = dx/ dist, dy / dist
           # makes alien's aim less accurate for easier gameplay
-          inaccuracy = 0.3  
+          inaccuracy = 0.4  
           dx += random.uniform(-inaccuracy, inaccuracy)
           dy += random.uniform(-inaccuracy, inaccuracy)
 
@@ -382,9 +382,14 @@ while run:
                       game_over = False
                       lives = 3
                       score = 0
+                      rapid_fire = False
+                      rapid_fire_start = -1
+                      player = Player()
                       asteroids.clear()
                       alien_bullets.clear()
                       stars.clear()
+                      player_bullets.clear()
+                      aliens.clear()
              # pause key          
              elif event.key == pygame.K_p: 
                  paused = True
