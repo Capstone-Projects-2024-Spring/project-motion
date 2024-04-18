@@ -1,9 +1,13 @@
-import pydirectinput
+import sys
+
+if sys.platform == "win32":
+    import pydirectinput as pyinput
+else:
+    import pyautogui as pyinput
 import time
 from Console import GestureConsole
 import numpy as np
 import threading
-
 
 class Keyboard(threading.Thread):
     def __init__(
@@ -12,8 +16,8 @@ class Keyboard(threading.Thread):
         toggle_threshold=0.3,
         threshold_off_time=0.05,
         flags=None,
-        hand_num = 0,
-        bindings =["none"],
+        hand_num=0,
+        bindings=["none"],
         tps=60,
     ) -> None:
 
@@ -24,8 +28,8 @@ class Keyboard(threading.Thread):
             threshold (float, optional): don't press key if press will be less than this time. Defaults to 0.0.
             toggle_threshold (float, optional): if same key is receieved twice within this time, but not continously, key will be toggled
         """
-        pydirectinput.FAILSAFE = False
-        pydirectinput.PAUSE = 0
+        pyinput.FAILSAFE = False
+        pyinput.PAUSE = 0
         self.tps = tps
         self.threshold = threshold
         self.toggle_threshold = toggle_threshold
@@ -49,9 +53,7 @@ class Keyboard(threading.Thread):
                 # send only the first hand confidence vector the gesture model output
                 confidence_vectors = self.flags["hands"].confidence_vectors
                 if len(confidence_vectors) > self.hand_num:
-                    self.gesture_input(
-                        confidence_vectors[self.hand_num]
-                    )
+                    self.gesture_input(confidence_vectors[self.hand_num])
             else:
                 self.release_all()
             event.wait(timeout=1 / self.tps)
@@ -59,10 +61,10 @@ class Keyboard(threading.Thread):
     def release_all(self):
         if self.key_pressed[2][0] != "none":
             self.console.print(f"releasing key: {self.key_pressed[2][0]}")
-            pydirectinput.keyUp(self.key_pressed[2][0])
+            pyinput.keyUp(self.key_pressed[2][0])
         for key in self.toggle_keys_pressed:
             self.console.print(f"releasing key: {key}")
-            pydirectinput.keyUp(key)
+            pyinput.keyUp(key)
         self.toggle_keys_pressed = {}
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
 
@@ -118,15 +120,18 @@ class Keyboard(threading.Thread):
             if self.toggle_keys_pressed[key] == True:
                 self.toggle_keys_pressed[key] = False
         self.console.print(f"releasing key: {key}")
-        pydirectinput.keyUp(key)
+        pyinput.keyUp(key)
 
     def release(self, key):
         self.console.print(f"releasing key: {self.last_key}")
-        pydirectinput.keyUp(self.last_key)  # Release the last key
+        pyinput.keyUp(self.last_key)  # Release the last key
 
     def toggle_or_press(self, current_time, key):
         # if the same key was pressed during the first edge and this edge
-        if self.key_pressed[0][0] == self.key_pressed[2][0] and self.flags["key_toggle_enabled"]:
+        if (
+            self.key_pressed[0][0] == self.key_pressed[2][0]
+            and self.flags["key_toggle_enabled"]
+        ):
             # if the first key press time wasn't longer ago than the threshold time
             if current_time - self.key_pressed[0][1] < self.toggle_threshold:
                 # if other key was pressed for longer than off time
@@ -137,13 +142,13 @@ class Keyboard(threading.Thread):
                     self.toggle_keys_pressed[key] = True
                     self.toggle_instances.append(self.key_pressed[2])
                     self.console.print(f"pressing key (toggled on): {key}")
-                    pydirectinput.keyDown(key)
+                    pyinput.keyDown(key)
             else:
                 self.console.print(f"pressing key: {key}")
-                pydirectinput.keyDown(key)
+                pyinput.keyDown(key)
         else:
             self.console.print(f"pressing key: {key}")
-            pydirectinput.keyDown(key)
+            pyinput.keyDown(key)
 
     def release_and_press(self, key):
         if (
@@ -151,6 +156,6 @@ class Keyboard(threading.Thread):
             or self.toggle_keys_pressed[key] == False
         ):
             self.console.print(f"releasing key: {self.last_key}")
-            pydirectinput.keyUp(self.last_key)  # Release the last key
+            pyinput.keyUp(self.last_key)  # Release the last key
             self.console.print(f"pressing key: {key}")
-            pydirectinput.keyDown(key)
+            pyinput.keyDown(key)

@@ -40,8 +40,8 @@ class Renderer:
         self.img_pygame = pygame.image.frombuffer(
             frame.tobytes(), frame.shape[1::-1], "BGR"
         )
-        self.webcam_width = self.img_pygame.get_width() * 0.5
-        self.webcam_height = self.img_pygame.get_height() * 0.5
+        self.webcam_width = 480
+        self.webcam_height = 360
         # fullscreen
         if webcam_mode % 3 == 0:
             self.is_webcam_fullscreen = True

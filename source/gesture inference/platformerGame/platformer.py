@@ -75,8 +75,8 @@ class SpriteSheet():
 pygame.init()
 
 #game window dimensions
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 800
 
 #create game window
 surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -183,7 +183,7 @@ class Player():
                     if self.vel_y > 0:
                         self.rect.bottom = platform.rect.top
                         dy = 0
-                        self.vel_y = -20
+                        self.vel_y = -30
 
        
         # check if the player has bounced to the top of the surface
@@ -289,9 +289,9 @@ def tick():
 
         #generate platforms
         if len(platform_group) < MAX_PLATFORMS:
-            p_w = random.randint(50, 70)
+            p_w = random.randint(120, 150)
             p_x = random.randint(0, SCREEN_WIDTH - p_w)
-            p_y = platform.rect.y - random.randint(80, 120)
+            p_y = platform.rect.y - random.randint(80, 150)
             p_type = random.randint(1, 2)
             if p_type == 1 and score > 1000:
                 p_moving = True
@@ -340,13 +340,13 @@ def tick():
         if fade_counter < SCREEN_WIDTH:
             fade_counter += 5
             for y in range(0, 6, 2):
-                pygame.draw.rect(surface, BLACK, (0, y * 100, fade_counter, 100))
-                pygame.draw.rect(surface, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
+                pygame.draw.rect(surface, BLACK, (0, y * 133, fade_counter, 133))
+                pygame.draw.rect(surface, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 133, SCREEN_WIDTH, 133))
         else:
-            draw_text('GAME OVER!', font_big, WHITE, 100, 200)
-            draw_text('SCORE: ' + str(score), font_big, WHITE, 115, 250)
-            draw_text('PRESS SPACE', font_big, WHITE, 95, 300)
-            draw_text('TO PLAY AGAIN', font_big, WHITE, 80, 350)
+            draw_text('GAME OVER!', font_big, WHITE, 300, 200)
+            draw_text('SCORE: ' + str(score), font_big, WHITE, 275, 250)
+            draw_text('PRESS SPACE', font_big, WHITE, 295, 300)
+            draw_text('TO PLAY AGAIN', font_big, WHITE, 280, 350)
             # update high score
             if score > high_score:
                 high_score = score
