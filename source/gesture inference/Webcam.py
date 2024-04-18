@@ -8,7 +8,7 @@ class Webcam:
     """
     def __init__(
         self,
-        webcam_id=0,
+        webcam_id=1,
     ):
         self.webcam_id = webcam_id
         self.working_ports, self.menu_selector = self.list_ports()

@@ -6,14 +6,20 @@ from random import choice
 from pygame.time import get_ticks
 from pygame.image import load
 from os import path
+import os
 import pygame 
 
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 # Variables
 COLUMNS = 10
 ROWS = 20
 CELL_SIZE = 25
 GAME_WIDTH, GAME_HEIGHT = COLUMNS * CELL_SIZE, ROWS * CELL_SIZE
+#GAME_WIDTH = 800
+#GAME_HEIGHT = 800
 SIDEBAR_WIDTH = 200
 PREVIEW_HEIGHT_FRACTION = 0.7
 SCORE_HEIGHT_FRACTION = 1 - PREVIEW_HEIGHT_FRACTION
@@ -47,7 +53,6 @@ SHAPES = {
 }
 
 SCORE_DATA = {1: 40, 2: 100, 3: 300, 4: 1200}
-
 
 class TetrisGame:
 	def __init__(self, get_next_shape, update_score):
@@ -89,7 +94,7 @@ class TetrisGame:
 		self.current_lines = 0
 
 		# sound 
-		self.landing_sound = pygame.mixer.Sound(join('tetris','sound', 'landing.wav'))
+		self.landing_sound = pygame.mixer.Sound(join(dname,'sound','landing.wav'))
 		self.landing_sound.set_volume(0.01)
 
 	def calculate_score(self, num_lines):
@@ -304,7 +309,7 @@ class Score:
 		self.surface = pygame.Surface((SIDEBAR_WIDTH,GAME_HEIGHT * SCORE_HEIGHT_FRACTION - PADDING))
 		self.rect = self.surface.get_rect(bottomright = (WINDOW_WIDTH - PADDING,WINDOW_HEIGHT - PADDING))
 		self.display_surface = pygame.display.get_surface()
-		self.font = pygame.font.Font(join('tetris','graphics','Russo_One.ttf'), 30)
+		self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
 		self.increment_height = self.surface.get_height() / 3
 
 		self.score = 0
@@ -336,7 +341,7 @@ class Preview:
         self.rect = self.surface.get_rect(topright = (WINDOW_WIDTH - PADDING,PADDING))
 
 		# shapes
-        self.shape_surfaces = {shape:load(path.join('tetris','graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
+        self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
 
 		# image position data
         self.increment_height = self.surface.get_height() / 3
@@ -392,7 +397,8 @@ class Main:
         pygame.init()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH,WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
-        pygame.display.set_caption('Tetris')
+        pygame.display.set_caption('TETRIS')
+		
 
 		# shapes
         self.next_shapes = [choice(list(SHAPES.keys())) for shape in range(3)]
@@ -401,7 +407,7 @@ class Main:
         self.score = Score()
         self.preview = Preview()
 
-        self.music = pygame.mixer.Sound(join('tetris','sound','03. A-Type Music (Korobeiniki).mp3'))
+        self.music = pygame.mixer.Sound(join(dname,'sound','03. A-Type Music (Korobeiniki).mp3'))
         self.music.set_volume(0.05)
         self.music.play(-1)
 
@@ -425,8 +431,12 @@ class Main:
 			# background window
             #self.display_surface.fill(GRAY)
 			# Load and scale the background image
-            background_image = pygame.image.load('tetris/graphics/360_F_269505479_qX1rCsjKJiwYgtXsay8iGk1ssdBiNBx3.jpg')  
-            background_image = pygame.transform.scale(background_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
+            self.background_image = pygame.image.load(os.path.join(dname,'graphics','360_F_269505479_qX1rCsjKJiwYgtXsay8iGk1ssdBiNBx3.jpg'))
+            #self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
+        	#self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
+
+            
+            background_image = pygame.transform.scale(self.background_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
             # Drawing the background image on the display game surface
             self.display_surface.blit(background_image, (0, 0))
             

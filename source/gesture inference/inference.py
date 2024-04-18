@@ -15,6 +15,7 @@ from FlappyBird import flappybird
 from EventHandler import GestureEventHandler
 from platformerGame import platformer
 from asteroids import asteroids
+from tetris import tetris
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -105,6 +106,9 @@ def game_loop(
             game = platformer
         if num == 4:
             console.print("Fruit Ninja")
+            game = None
+        if num == 5:
+            console.print("Tetris")
             game = None
 
     menu = Menu(window_width, window_height, flags, set_game_func=set_game)
