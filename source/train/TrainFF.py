@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 import os
+import pandas as pd
 from torchsummary import summary
 
 
@@ -23,26 +24,29 @@ hidden_size = 150
 num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-filename = "minecraft.csv"
+filename = "wave"
 labels_list = None
 
 num_classes = 0
-with open(filename, "r", newline="", encoding="utf-8") as dataset_file:
+with open(filename+".csv", "r", newline="", encoding="utf-8") as dataset_file:
     labels_list = next(csv.reader(dataset_file))
     num_classes = len(labels_list)
 
-print("labels: "+str(labels_list))
-    
+print("labels: " + str(labels_list))
+
 
 class HandDataset(Dataset):
     def __init__(self):
-        xy = np.loadtxt(
-            filename, delimiter=",", dtype=np.float32, skiprows=1
-        )
+        xy = np.loadtxt(filename+".csv", delimiter=",", dtype=np.float32, skiprows=1)
         self.x = torch.from_numpy(xy[:, num_classes:])
         self.y = torch.from_numpy(np.argmax(xy[:, 0:num_classes], axis=1))
-        self.n_samples = xy.shape[0]
         
+        for i in range(3):
+            self.x = torch.cat((self.x, self.add_noise(xy, num_classes, noise_level=0.0003)), dim=0)
+            self.y = torch.cat((self.y, self.y), dim=0)
+        
+        self.n_samples = xy.shape[0]
+
         print("Number of classification labels: " + str(num_classes))
         print("Number of datapoints: " + str(len(self.x)))
         print("Shape of x_tensor:", self.x.shape)
@@ -53,6 +57,20 @@ class HandDataset(Dataset):
 
     def __len__(self):
         return self.n_samples
+    
+    def add_noise(self, xy, num_classes, noise_level=0):
+        df = pd.DataFrame(xy, columns=[f"feature_{i}" for i in range(len(labels_list) + input_size)])
+
+        x = df.iloc[:, num_classes:].values
+
+        if noise_level > 0:
+            noise = np.random.normal(0, noise_level, size=x.shape)
+            x_augmented = x + noise
+            x_tensor = torch.tensor(x_augmented, dtype = torch.float32)
+            return x_tensor
+
+        x_tensor = torch.tensor(x)
+        return x_tensor
 
 
 dataset = HandDataset()
@@ -78,6 +96,7 @@ test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=Tr
 #             break
 # plt.show()
 
+
 # Fully connected neural network with one hidden layer
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -93,7 +112,6 @@ class NeuralNet(nn.Module):
         out = self.l2(out)
         # no activation and no softmax at the end
         return out
-
 
 
 model = NeuralNet(input_size, hidden_size, num_classes).to(device)
@@ -142,6 +160,47 @@ with torch.no_grad():
         n_correct += (predicted == labels).sum().item()
 
     acc = 100.0 * n_correct / n_samples
-    print(f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %")
+    print(
+        f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %"
+    )
 
-torch.save((model.state_dict(),[input_size, hidden_size, num_classes, labels_list]), "minecraft.pth")
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import pandas as pd
+
+y_pred = []
+y_true = []
+
+# Test the model
+# In test phase, we don't need to compute gradients (for memory efficiency)
+with torch.no_grad():
+    n_correct = 0
+    n_samples = 0
+    for hands, labels in test_loader:
+        hands = hands.to(device)
+        labels = labels.to(device)
+        outputs = model(hands)
+        output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
+        y_pred.extend(output)  # Save Prediction
+
+        labels = labels.data.cpu().numpy()
+        y_true.extend(labels)  # Save Truth
+
+torch.save(
+    (model.state_dict(), [input_size, hidden_size, num_classes, labels_list]),
+    filename+".pth",
+)
+
+# Build confusion matrix
+cf_matrix = confusion_matrix(y_true, y_pred)
+df_cm = pd.DataFrame(
+    cf_matrix / np.sum(cf_matrix, axis=1)[:, None],
+    index=[i for i in labels_list],
+    columns=[i for i in labels_list],
+)
+plt.figure(figsize=(12, 7))
+sn.heatmap(df_cm, annot=True)
+
+plt.savefig(filename + "FF.png")
+plt.show()
+

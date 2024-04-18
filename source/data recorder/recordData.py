@@ -35,7 +35,7 @@ def main() -> None:
                               
     myRenderHands = RenderHands(hands_surface, 3)
 
-    gesture_list = ["fist", "palm", "pinky", "peace", "thumb"]
+    gesture_list = ["fist", "left", "right", "up", "down", "dodge", "heavy", "quick", "throw"]
 
     gesture_menu_selection = []
 

@@ -8,7 +8,7 @@ from GetHands import GetHands
 from Mouse import Mouse
 from Keyboard import Keyboard
 import os
-from Console import GestureConsole
+import Console
 from menu import Menu
 from Renderer import Renderer
 from FlappyBird import flappybird
@@ -28,9 +28,9 @@ flags = {
     "render_hands_mode": True,
     "gesture_vector": [],
     "number_of_hands": 2,
-    "move_mouse_flag": True,
+    "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/flappy.pth",
+    "gesture_model_path": "models/lstm/brawl.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -38,18 +38,13 @@ flags = {
     "webcam_mode": 1,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
-    "gesture_list": [],
-    "mouse_hand_num": 0,
+    "gesture_list": [],     
+    "mouse_hand_num": 1,
     "keyboard_hand_num": 0,
     "hand_1_keyboard": None,
     "hand_2_keyboard": None,
     "key_toggle_enabled": False,
 }
-
-
-# custom console
-console = GestureConsole()
-
 
 def main() -> None:
 
@@ -62,10 +57,10 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["space", "none", "m", "p"],
+        bindings=["left", "right", "up", "down", "none", "none", "none", "none"],
         hand_num=0,
-    )
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none"], hand_num=1)
+    ) 
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "z", "x", "c", "v"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
@@ -95,16 +90,16 @@ def game_loop(
         if num == 0:
             game = None
         if num == 1:
-            console.print("Flappybird")
+            Console.print("Flappybird")
             game = flappybird.FlappyBirdGame()
         if num == 2:
-            console.print("Asteroids")
+            Console.print("Asteroids")
             game = asteroids
         if num == 3:
-            console.print("Platformer")
+            Console.print("Platformer")
             game = platformer
         if num == 4:
-            console.print("Fruit Ninja")
+            Console.print("Fruit Ninja")
             game = None
 
     menu = Menu(window_width, window_height, flags, set_game_func=set_game)
@@ -157,7 +152,7 @@ def game_events(game, events, window):
 
 
 def print_input_table(counter):
-    if counter % 5 == 0:
+    if counter % 4 == 0:
         keys = pygame.key.get_pressed()
         clicks = pygame.mouse.get_pressed()
         keyString = []
@@ -166,8 +161,7 @@ def print_input_table(counter):
             if keys[i]:
                 keyName = pygame.key.name(i)
                 keyString.append([keyName])
-        console.table(["key pressed (pygame)"], keyString, table_number=1)
-
+                
         clicked = []
         if clicks[0]:
             clicked.append(["left"])
@@ -175,9 +169,10 @@ def print_input_table(counter):
             clicked.append(["middle"])
         if clicks[2]:
             clicked.append(["right"])
-
-        console.table(["mouse (pygame)"], clicked, table_number=2)
-        console.update()
+    
+        Console.table(["key pressed (pygame)"], keyString, table_number=1)
+        Console.table(["mouse (pygame)"], clicked, table_number=2)
+        Console.update()
 
 
 if __name__ == "__main__":

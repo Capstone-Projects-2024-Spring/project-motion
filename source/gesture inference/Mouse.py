@@ -4,7 +4,7 @@ if sys.platform == 'win32':
 else:
     import pyautogui as pyinput
 import time
-from Console import GestureConsole
+import Console
 import math
 import threading
 
@@ -57,7 +57,6 @@ class Mouse(threading.Thread):
         self.left_down = False
         self.middle_down = False
         self.right_down = False
-        self.console = GestureConsole()
 
         # expontial moving average stuff
         self.x_window = []
@@ -96,7 +95,6 @@ class Mouse(threading.Thread):
                         self.flags["mouse_hand_num"]
                     ]
 
-                    # self.console.print(mouse_button_text)
                     self.control(location[0], location[1], mouse_button_text)
             else:
                 self.lift_mouse_button()
@@ -105,15 +103,15 @@ class Mouse(threading.Thread):
 
     def lift_mouse_button(self):
         if self.left_down:
-            self.console.print(f"releasing mouse left")
+            Console.print(f"releasing mouse left")
             pyinput.mouseUp(button="left")
             self.left_down = False
         if self.middle_down:
-            self.console.print(f"releasing mouse middle")
+            Console.print(f"releasing mouse middle")
             pyinput.mouseUp(button="middle")
             self.middle_down = False
         if self.right_down:
-            self.console.print(f"releasing mouse right")
+            Console.print(f"releasing mouse right")
             pyinput.mouseUp(button="right")
             self.right_down = False
 
@@ -220,20 +218,20 @@ class Mouse(threading.Thread):
         """
         if mouse_button == "left":
             if not self.left_down:
-                self.console.print(f"clicking mouse {mouse_button}")
+                Console.print(f"clicking mouse {mouse_button}")
                 pyinput.mouseDown(button=mouse_button)
                 self.left_down = True
 
         if mouse_button == "middle":
             if not self.middle_down:
-                self.console.print(f"clicking mouse {mouse_button}")
+                Console.print(f"clicking mouse {mouse_button}")
                 # pyinput.mouseDown(button=mouse_button)
                 pyinput.scroll(-1)
                 self.middle_down = True
 
         if mouse_button == "right":
             if not self.right_down:
-                self.console.print(f"clicking mouse {mouse_button}")
+                Console.print(f"clicking mouse {mouse_button}")
                 pyinput.mouseDown(button=mouse_button)
                 self.right_down = True
 
