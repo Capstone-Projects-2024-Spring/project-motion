@@ -103,8 +103,8 @@ def game_loop(
             Console.print("Fruit Ninja")
             game = None
         if num == 5:
-            console.print("Tetris")  
-            game = tetris.Main()            
+            Console.print("Tetris")  
+            game = tetris  
             
     menu = Menu(window_width, window_height, flags, set_game_func=set_game)
 
