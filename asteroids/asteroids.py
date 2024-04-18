@@ -234,7 +234,7 @@ def redraw_window():
                        
         if rapid_fire:
             pygame.draw.rect(window, (0, 0, 0), [SCREEN_WIDTH//2 - 51, 19, 102, 22])
-            pygame.draw.rect(window, (255, 255, 255), [SCREEN_WIDTH//2 - 50, 20, 100 - 100*(count - rapid_fire_start)/500, 20]) 
+            pygame.draw.rect(window, (255, 182, 193), [SCREEN_WIDTH//2 - 50, 20, 100 - 100*(count - rapid_fire_start)/500, 20]) 
         if game_over:
             window.blit(playe_again_text,(SCREEN_WIDTH//2-playe_again_text.get_width()//2, SCREEN_HEIGHT//2 - playe_again_text.get_height()//2))
         window.blit(score_text,(SCREEN_WIDTH-score_text.get_width()-25,25))
