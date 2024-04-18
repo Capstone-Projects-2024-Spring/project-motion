@@ -1,6 +1,6 @@
 # Test the model
 import torch
-from sklearn.metrics import confusion_matrix
+import sklearn.metrics
 import seaborn as sn
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,16 +25,29 @@ def test(test_loader, device, lstm, true_labels):
             y_true.extend(labels)  # Save Truth
 
     # Build confusion matrix
-    cf_matrix = confusion_matrix(y_true, y_pred)
+    cf_matrix = sklearn.metrics.confusion_matrix(y_true, y_pred)
     df_cm = pd.DataFrame(
         cf_matrix / np.sum(cf_matrix, axis=1)[:, None],
         index=[i for i in true_labels],
         columns=[i for i in true_labels],
     )
 
-
+    precision = sklearn.metrics.precision_score(y_true, y_pred, average="weighted")
+    recall = sklearn.metrics.recall_score(y_true, y_pred, average="weighted")
+    f1_score = sklearn.metrics.f1_score(y_true, y_pred, average="weighted")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
+    print(f"F1 score: {f1_score}")
+    
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True)
-
+    
+    plt.text(11,1,f"Precision:{round(precision,4)}")
+    plt.text(11,2,f"Recall: {round(recall,4)}")
+    plt.text(11,3,f"F1 score: {round(f1_score,4)}")
+    
+    plt.ylabel("Ground Truth", fontsize = 15)
+    plt.xlabel("Predicted", fontsize = 15)
+    
     plt.savefig("confusionMatrix.png")
     plt.show()
