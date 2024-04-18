@@ -8,7 +8,7 @@ import numpy as np
 
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
-def test(test_loader, device, lstm, true_labels):
+def test(test_loader, device, model, true_labels):
     y_pred = []
     y_true = []
     with torch.no_grad():
@@ -17,7 +17,7 @@ def test(test_loader, device, lstm, true_labels):
         for hands, labels in test_loader:
             hands = hands.to(device)
             labels = labels.to(device)
-            outputs = lstm(hands)
+            outputs = model(hands)
             output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
             y_pred.extend(output)  # Save Prediction
 
@@ -42,9 +42,11 @@ def test(test_loader, device, lstm, true_labels):
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True)
     
-    plt.text(11,1,f"Precision:{round(precision,4)}")
-    plt.text(11,2,f"Recall: {round(recall,4)}")
-    plt.text(11,3,f"F1 score: {round(f1_score,4)}")
+    text_spacer = len(true_labels) + 1
+    
+    plt.text(text_spacer,1,f"Precision:{round(precision,4)}")
+    plt.text(text_spacer,2,f"Recall: {round(recall,4)}")
+    plt.text(text_spacer,3,f"F1 score: {round(f1_score,4)}")
     
     plt.ylabel("Ground Truth", fontsize = 15)
     plt.xlabel("Predicted", fontsize = 15)

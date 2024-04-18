@@ -3,10 +3,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-import numpy as np
-import matplotlib.pyplot as plt
 import csv
-import pandas as pd
 from torchsummary import summary
 import os
 from hand_dataset import HandDataset
@@ -17,16 +14,16 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = "test_dataset/minecraft_motion.csv"
-data_filename = "training_data/brawl.csv"
-model_name = "output_model/brawl.pth"
+test_data_filename = None
+data_filename = "training_data/tetris.csv"
+model_name = "output_model/tetris.pth"
 num_epochs = 5
 batch_size = 100
 learning_rate = 0.001
-WEIGHTED_SAMPLE = True
-ROTATE_DATA_SET = True
+WEIGHTED_SAMPLE = False
+ROTATE_DATA_SET = False
 ROTATE_DEGREES = 15
-
+ANIMATE = False
 
 # Device configuration
 # https://stackoverflow.com/questions/48152674/how-do-i-check-if-pytorch-is-using-the-gpu
@@ -55,41 +52,49 @@ with open(data_filename, "r", newline="", encoding="utf-8") as dataset_file:
 print(true_labels)
 print("building dataset")
 
-dataset = HandDataset(data_filename, num_classes, sequence_length, input_size, rotate=ROTATE_DATA_SET, degrees=ROTATE_DEGREES)
+dataset = HandDataset(
+    data_filename,
+    num_classes,
+    sequence_length,
+    input_size,
+    rotate=ROTATE_DATA_SET,
+    degrees=ROTATE_DEGREES,
+)
 
 print("dataset built")
 
 [
-    print(
-        "{:<15}".format(true_labels[index])
-        + f"count:{count}"
-    )
+    print("{:<15}".format(true_labels[index]) + f"count:{count}")
     for index, count in enumerate(dataset.label_counts)
 ]
+try:
+    train_dataset, test_dataset = torch.utils.data.random_split(
+        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
+    )
+except:
+    train_dataset, test_dataset = torch.utils.data.random_split(
+        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
+    )
+
 if WEIGHTED_SAMPLE:
     sampler = WeightedRandomSampler(
         weights=dataset.sample_weights, num_samples=len(dataset), replacement=True
     )
-    #its difficult to random split and do weighted random sample so test and train are the same data
     train_loader = DataLoader(
-        sampler=sampler, dataset=dataset, batch_size=batch_size
+        dataset=train_dataset, batch_size=batch_size, sampler=sampler
     )
-    test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 else:
-    if len(dataset)%2==0:
-        plus1 = 0
-    else:
-        plus1=0
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + plus1]
-    )
     train_loader = DataLoader(
         dataset=train_dataset, batch_size=batch_size, shuffle=True
     )
-    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
-import animate
-animate.play(train_loader)
+
+if ANIMATE:
+    import animate
+
+    animate.play(train_loader)
+
 
 class LSTM(nn.Module):
 
@@ -129,16 +134,10 @@ class LSTM(nn.Module):
         return out
 
 
-import warnings
-
-warnings.filterwarnings("ignore")
-
-
 lstm = LSTM(num_classes, input_size, hidden_size, num_layers).to(device)
-example = LSTM(num_classes, input_size, hidden_size, num_layers).to(device)
-example.to(device)
+
 # Use torchinfo to display the model summary
-summary(example)
+summary(lstm)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -182,17 +181,6 @@ torch.save(
 )
 print(f"model saved as {model_name}")
 
-# Test the model
-from sklearn.metrics import confusion_matrix
-import seaborn as sn
-import pandas as pd
+import test_model
 
-
-import test_RNN
-if WEIGHTED_SAMPLE:
-    if test_data_filename:
-        test_dataset = HandDataset(test_data_filename, num_classes, sequence_length, input_size, rotate=False)
-        test_loader = test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
-    test_RNN.test(test_loader, device, lstm, true_labels)
-else:
-    test_RNN.test(test_loader, device, lstm, true_labels)
+test_model.test(test_loader, device, lstm, true_labels)

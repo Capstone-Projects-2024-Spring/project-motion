@@ -24,7 +24,7 @@ hidden_size = 150
 num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-filename = "wave"
+filename = "tetris"
 labels_list = None
 
 num_classes = 0
@@ -164,43 +164,5 @@ with torch.no_grad():
         f"Accuracy of the network on {int(dataset.__len__())+1} training dataset: {round(acc,3)} %"
     )
 
-from sklearn.metrics import confusion_matrix
-import seaborn as sn
-import pandas as pd
-
-y_pred = []
-y_true = []
-
-# Test the model
-# In test phase, we don't need to compute gradients (for memory efficiency)
-with torch.no_grad():
-    n_correct = 0
-    n_samples = 0
-    for hands, labels in test_loader:
-        hands = hands.to(device)
-        labels = labels.to(device)
-        outputs = model(hands)
-        output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
-        y_pred.extend(output)  # Save Prediction
-
-        labels = labels.data.cpu().numpy()
-        y_true.extend(labels)  # Save Truth
-
-torch.save(
-    (model.state_dict(), [input_size, hidden_size, num_classes, labels_list]),
-    filename+".pth",
-)
-
-# Build confusion matrix
-cf_matrix = confusion_matrix(y_true, y_pred)
-df_cm = pd.DataFrame(
-    cf_matrix / np.sum(cf_matrix, axis=1)[:, None],
-    index=[i for i in labels_list],
-    columns=[i for i in labels_list],
-)
-plt.figure(figsize=(12, 7))
-sn.heatmap(df_cm, annot=True)
-
-plt.savefig(filename + "FF.png")
-plt.show()
-
+import test_model
+test_model.test(test_loader, device, model, labels_list)

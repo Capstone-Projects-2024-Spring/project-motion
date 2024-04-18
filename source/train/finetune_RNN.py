@@ -149,5 +149,5 @@ torch.save(
 )
 print(f"model saved as {output_model_name}")
 
-import test_RNN
-test_RNN.test(test_loader, device, lstm, true_labels)
+import source.train.test_model as test_model
+test_model.test(test_loader, device, lstm, true_labels)
