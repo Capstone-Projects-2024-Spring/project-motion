@@ -5,7 +5,7 @@ else:
     import pyautogui as pyinput
 import time
 import Console
-import numpy as np
+from numpy import max, argmax
 import threading
 
 class Keyboard(threading.Thread):
@@ -67,8 +67,8 @@ class Keyboard(threading.Thread):
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
 
     def gesture_input(self, confidences):
-        max_value = np.max(confidences)
-        max_index = np.argmax(confidences).item()
+        max_value = max(confidences)
+        max_index = argmax(confidences).item()
 
         if max_index < len(self.bindings):
             if max_value > self.flags["min_confidence"]:

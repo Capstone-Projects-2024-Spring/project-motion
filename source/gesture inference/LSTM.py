@@ -1,6 +1,6 @@
 import torch.nn as nn
 from torch import load, device, cuda, zeros, from_numpy, max
-import numpy as np
+from numpy import asarray
 
 # from Console import GestureConsole
 
@@ -83,7 +83,7 @@ class LSTM(nn.Module):
             # print(f"input too long len(model_input): {len(model_input)}")
             return None
 
-        hands = from_numpy(np.asarray([model_input], dtype="float32"))
+        hands = from_numpy(asarray([model_input], dtype="float32"))
 
         outputs = self(hands.to(self.device))
         probs = nn.functional.softmax(outputs.data, dim=1)

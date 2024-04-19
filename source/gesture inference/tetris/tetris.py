@@ -421,7 +421,7 @@ def tick():
     # background window
     #self.display_surface.fill(GRAY)
     # Load and scale the background image
-    background_image = pygame.image.load(os.path.join(dname,'graphics','360_F_269505479_qX1rCsjKJiwYgtXsay8iGk1ssdBiNBx3.jpg'))
+    background_image = pygame.image.load(path.join(dname,'graphics','360_F_269505479_qX1rCsjKJiwYgtXsay8iGk1ssdBiNBx3.jpg'))
     #self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
     #self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
 
