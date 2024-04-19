@@ -8,39 +8,43 @@ import os
 from typing import Callable, Union
 import threading
 
-class GestureConsole:
-    # make this class a singleton
-    _initialized = False
+# https://stackoverflow.com/questions/71077706/redirect-print-and-or-logging-to-panel
+class ConsolePanel(Console):
+    def __init__(self, *args, **kwargs):
+        console_file = open(os.devnull, "w")
+        super().__init__(record=True, file=console_file, *args, **kwargs)
 
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(GestureConsole, cls).__new__(cls)
-        return cls.instance
+    def __rich_console__(self, console, options):
+        texts = self.export_text(clear=False).split("\n")
+        for line in texts[-options.height :]:
+            yield line
 
-    def __init__(self, flags=None, max_tables=5) -> None:
-        if not self._initialized:
-            self._initialized = True
-            self.printing = False
-            self.console = ConsolePanel()
-            self.layout = Layout()
-            self.layout.split_column(Layout(name="upper"), Layout(name="lower"))
-            self.live = Live(self.layout, auto_refresh=False)
-            self.live.start()
-            self.tables = []
-            for i in range(max_tables):
-                self.tables.append(Table())
+lock = threading.Lock()
 
-    def console_flag(func: Callable) -> Callable:
-        def print_function(self, *args, **kwargs) -> Union[Callable, bool]:
-            if not self.printing:
-                return lambda *args, **kwargs: None
-            return func(self, *args, **kwargs)
+printing = True
+console = ConsolePanel()
+layout = Layout()
+layout.split_column(Layout(name="upper"), Layout(name="lower"))
+live = Live(layout, auto_refresh=False)
+live.start()
+tables = []
+max_tables = 5
 
-        return print_function
+for i in range(max_tables):
+    tables.append(Table())
 
-    @console_flag
-    def table(self, headers, rows, table_number=0):
-        table = self.tables[table_number]
+def console_flag(func: Callable) -> Callable:
+    def print_function(self, *args, **kwargs) -> Union[Callable, bool]:
+        if not printing:
+            return lambda *args, **kwargs: None
+        return func(self, *args, **kwargs)
+
+    return print_function
+
+@console_flag
+def table(headers, rows, table_number=0):
+    with lock:
+        table = tables[table_number]
         table.columns.clear()  # Clear existing columns
         table.rows.clear()  # Clear existing rows
 
@@ -56,31 +60,20 @@ class GestureConsole:
                     table_row.append(str(item))
             table.add_row(*table_row)
 
-        self.layout["upper"].update(
+        layout["upper"].update(
             Panel.fit(
-                Columns(self.tables),
+                Columns(tables),
             )
         )
 
-    @console_flag
-    def print(self, string: str):
-        self.console.print(string)
-        self.layout["lower"].update(Panel(self.console))
+@console_flag
+def print(string: str):
+    with lock:
+        console.print(string)
+        layout["lower"].update(Panel(console))
 
-    def update(self):
-        lock = threading.Lock()
-        
-        with lock:
-            self.live.update(self.layout, refresh=True)
+def update():
+    with lock:
+        live.update(layout, refresh=True)
 
 
-# https://stackoverflow.com/questions/71077706/redirect-print-and-or-logging-to-panel
-class ConsolePanel(Console):
-    def __init__(self, *args, **kwargs):
-        console_file = open(os.devnull, "w")
-        super().__init__(record=True, file=console_file, *args, **kwargs)
-
-    def __rich_console__(self, console, options):
-        texts = self.export_text(clear=False).split("\n")
-        for line in texts[-options.height :]:
-            yield line

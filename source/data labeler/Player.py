@@ -29,10 +29,10 @@ class Player:
             for index, label in enumerate(labels):
                 if label == "1":
                     gesture_label = self.gesture_list[index]
-
+                
             landmarks = []
             for point in range(21):
-                index = point*3 + 2
+                index = point*3 + len(data) - 65
                 landmarks.append(Landmark(float(data[index]),float(data[index+1]),float(data[index+2])))
             landmarks.append(float(data[63]))
             landmarks.append(float(data[64]))

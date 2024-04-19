@@ -1,7 +1,7 @@
 import pygame_menu
 import os
 from GetHands import GetHands
-from Console import GestureConsole
+import Console
 from typing import Callable
 from functools import partial
 
@@ -20,8 +20,8 @@ class Menu:
         )
         self.flags = flags
         self.toggle_mouse_key = flags["toggle_mouse_key"]
-        self.models_folder = "models/"
-        self.console = GestureConsole()
+        self.models_folder_ff = "models/feedforward/"
+        self.models_folder_lstm = "models/lstm/"
         self.setup_settings()
         self.gesture_settings.disable()
         
@@ -44,7 +44,7 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["space", "none", "m", "p"]) 
             self.set_key_2_bindings(4, ["space", "none", "m", "p"])  
-            self.change_gesture_model([("flappy.pth",)])
+            self.change_gesture_model_ff([("flappy.pth",)])
             self.lockout_mouse(True) 
 
         elif game_id == 2:
@@ -52,7 +52,7 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "up", "right", "none"]) 
             self.set_key_2_bindings(4,  ["none", "none", "none", "space"])  
-            self.change_gesture_model([("games.pth",)])
+            self.change_gesture_model_ff([("games.pth",)])
             self.lockout_mouse(True)  
 
         elif game_id == 3:
@@ -60,16 +60,24 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "none", "right", "space"]) 
             self.set_key_2_bindings(4,  ["left", "none", "right", "space"])  
-            self.change_gesture_model([("jumpy.pth",)])
+            self.change_gesture_model_ff([("jumpy.pth",)])
+            self.lockout_mouse(True)  
+            
+        elif game_id == 5:
+            self.change_hands_num(["1", 1]) 
+            self.set_mouse_hand(0, 0)
+            self.set_key_1_bindings(0, ["up", "left", "right", "none", "down"]) 
+            self.set_key_2_bindings(4,  ["none"])  
+            self.change_gesture_model_ff([("tetris.pth",)])
             self.lockout_mouse(True)  
 
         elif game_id == 0:
             self.change_hands_num(["0", 0]) 
             self.set_mouse_hand(0, 0)
-            self.set_key_1_bindings(0, ["none"]) 
+            self.set_key_1_bindings(0, ["none"] ) 
             self.set_key_2_bindings(4,  ["none"])  
-            self.change_gesture_model([("motion.pth",)])
-            self.lockout_mouse(True)          
+            self.change_gesture_model_ff([("motion.pth",)])
+            self.lockout_mouse(True)     
 
 
         if self.set_game_func:
@@ -81,6 +89,7 @@ class Menu:
         self.main_menu.add.button("Asteroids", action=partial(self.configure_game_settings,2))
         self.main_menu.add.button("Platformer", action=partial(self.configure_game_settings,3))
         self.main_menu.add.button("No game", action=partial(self.configure_game_settings,0))
+        self.main_menu.add.button("Tetris", action=partial(self.configure_game_settings,5))
         
         
         link = self.main_menu.add.menu_link(self.gesture_settings, "settings")
@@ -116,37 +125,42 @@ class Menu:
         self.gesture_settings.add.dropselect(
             "Mouse Hand:",
             [("Hand 1", 0), ("Hand 2", 1)],
-            default=0,
+            default=1,
             onchange=self.set_mouse_hand,
         )
-        #["left", "up", "right", "fist"]
+        #["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave"]
         self.gesture_settings.add.dropselect(
             "Hand 1 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft(L)", ["none", "w", "e", "ctrlleft", "space"]),
+                ("Brawlhalla", ["left", "right", "up", "down", "none", "none", "none", "none"]),
+                ("Minecraft(L)", ["none", "w", "s", "space", "e", "ctrlleft", "esc"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(L)", ["left", "up", "right", "none"]),
+                ("Tetris", ["none", "left", "right", "up", "down"]),
                 ("None", ["none"]),
             ],
-            default=0,
             onchange=self.set_key_1_bindings,
         )
         self.gesture_settings.add.dropselect(
             "Hand 2 Key bindings:",
             [
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Minecraft(R)", ["none", "none", "shift"]),
+                ("Brawlhalla", ["none", "none", "none", "none", "z", "x", "c", "v"]),
+                ("Minecraft(R)", ["none", "none", "none", "none", "shift", "none", "none"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(R)", ["none", "none", "none", "space"]),
                 ("None", ["none"]),
             ],
-            default=4,
             onchange=self.set_key_2_bindings,
         )
-        models = self.find_files_with_ending(".pth", directory_path=self.models_folder)
+        models_ff = self.find_files_with_ending(".pth", directory_path=self.models_folder_ff)
         self.gesture_settings.add.dropselect(
-            "Use Gesture Model :", models, onchange=self.change_gesture_model
+            "Use FF Model :", models_ff, onchange=self.change_gesture_model_ff
+        )
+        models_lstm = self.find_files_with_ending(".pth", directory_path=self.models_folder_lstm)
+        self.gesture_settings.add.dropselect(
+            "Use LSTM Model :", models_lstm, onchange=self.change_gesture_model_lstm
         )
 
         self.gesture_settings.add.range_slider(
@@ -173,7 +187,7 @@ class Menu:
             "Toggle Keys", False, onchange=self.toggle_keys
         )
         self.gesture_settings.add.toggle_switch(
-            "Enable Console", False, onchange=self.enable_console
+            "Enable Console", True, onchange=self.enable_console
         )
         
     def set_camera(self, value, cam):
@@ -196,7 +210,7 @@ class Menu:
         self.flags["key_toggle_enabled"] = current_state_value
 
     def enable_console(self, current_state_value, **kwargs):
-        self.console.printing = current_state_value
+        Console.printing = current_state_value
 
     def lockout_mouse(self, current_state_value, **kwargs):
         if current_state_value:
@@ -231,14 +245,24 @@ class Menu:
         self.flags["hands"] = GetHands(flags=self.flags)
         self.flags["hands"].start()
 
-    def change_gesture_model(self, value):
+    def change_gesture_model_ff(self, value):
         self.flags["gesture_model_path"] = (
-            self.models_folder + value[0][0]
+            self.models_folder_ff + value[0][0]
         )  # tuple within a list for some reason
         self.flags["hands"].stop()
         self.flags["hands"].join()
         self.flags["hands"] = GetHands(flags=self.flags)
         self.flags["hands"].start()
+    
+    def change_gesture_model_lstm(self, value):
+        self.flags["gesture_model_path"] = (
+            self.models_folder_lstm + value[0][0]
+        )  # tuple within a list for some reason
+        self.flags["hands"].stop()
+        self.flags["hands"].join()
+        self.flags["hands"] = GetHands(flags=self.flags)
+        self.flags["hands"].start()
+
 
     def set_click_sense(self, value, **kwargs):
         self.flags["click_sense"] = value / 1000
