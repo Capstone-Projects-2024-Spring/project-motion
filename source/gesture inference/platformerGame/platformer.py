@@ -1,10 +1,9 @@
 import pygame
 import random
-import os
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
-import pygame.surface
+from os import path, chdir
+abspath = path.abspath(__file__)
+dname = path.dirname(abspath)
+chdir(dname)
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -96,7 +95,7 @@ game_over = False
 score = 0
 fade_counter = 0
 
-if os.path.exists('score.txt'):
+if path.exists('score.txt'):
     with open('score.txt', 'r') as file:
         high_score = int(file.read())
 else:

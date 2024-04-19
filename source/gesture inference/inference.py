@@ -7,7 +7,6 @@ import pygame
 from GetHands import GetHands
 from Mouse import Mouse
 from Keyboard import Keyboard
-import os
 import Console
 from menu import Menu
 from Renderer import Renderer
@@ -17,9 +16,10 @@ from platformerGame import platformer
 from asteroids import asteroids
 from tetris import tetris
 
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+from os import path, chdir
+abspath = path.abspath(__file__)
+dname = path.dirname(abspath)
+chdir(dname)
 
 # global variables
 pygame.init()

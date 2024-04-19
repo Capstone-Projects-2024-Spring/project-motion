@@ -5,13 +5,12 @@ from os.path import join
 from random import choice
 from pygame.time import get_ticks
 from pygame.image import load
-from os import path
-import os
 import pygame 
 
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+from os import path, chdir
+abspath = path.abspath(__file__)
+dname = path.dirname(abspath)
+chdir(dname)
 
 
 # Variables

@@ -2,17 +2,17 @@
 
 from threading import Thread
 import mediapipe as mp
-import time
+from time import time
 from FeedForward import FeedForward
 import traceback
 import Console
 from Webcam import Webcam
-import os
 from LSTM import LSTM
 
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+from os import path, chdir
+abspath = path.abspath(__file__)
+dname = path.dirname(abspath)
+chdir(dname)
 
 class GetHands(Thread):
     """
@@ -144,7 +144,7 @@ class GetHands(Thread):
                 
             # timestamps are in microseconds so convert to ms
 
-            current_time = time.time()
+            current_time = time()
             self.delay = (current_time - self.timer) * 1000
             self.timer = current_time
 
@@ -175,7 +175,7 @@ class GetHands(Thread):
         """
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         self.hands_detector.detect_async(
-            mp_image, mp.Timestamp.from_seconds(time.time()).value
+            mp_image, mp.Timestamp.from_seconds(time()).value
         )
 
     def stop(self):

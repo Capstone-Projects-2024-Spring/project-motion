@@ -1,5 +1,5 @@
 import pygame_menu
-import os
+from os import listdir, getcwd
 from GetHands import GetHands
 import Console
 from typing import Callable
@@ -219,10 +219,10 @@ class Menu:
         else:
             self.flags["toggle_mouse_key"] = self.toggle_mouse_key
 
-    def find_files_with_ending(self, ending: str, directory_path=os.getcwd()):
+    def find_files_with_ending(self, ending: str, directory_path=getcwd()):
         """returns a list of tuples of the strings found"""
         files = [
-            (file,) for file in os.listdir(directory_path) if file.endswith(ending)
+            (file,) for file in listdir(directory_path) if file.endswith(ending)
         ]
         return files
 

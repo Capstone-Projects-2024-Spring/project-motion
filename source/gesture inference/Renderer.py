@@ -1,5 +1,4 @@
 import pygame
-import textwrap
 from RenderHands import RenderHands
 
 

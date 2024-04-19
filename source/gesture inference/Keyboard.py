@@ -1,6 +1,5 @@
-import sys
-
-if sys.platform == "win32":
+from sys import platform
+if platform == 'win32':
     import pydirectinput as pyinput
 else:
     import pyautogui as pyinput
