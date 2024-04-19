@@ -46,27 +46,30 @@ class Menu:
             self.set_key_2_bindings(4, ["space", "none", "m", "p"])  
             self.change_gesture_model([("flappy.pth",)])
             self.lockout_mouse(True) 
+
         elif game_id == 2:
             self.change_hands_num(["2", 2]) 
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "up", "right", "none"]) 
             self.set_key_2_bindings(4,  ["none", "none", "none", "space"])  
-            self.change_gesture_model([("asteroids.pth",)])
+            self.change_gesture_model([("games.pth",)])
             self.lockout_mouse(True)  
+
         elif game_id == 3:
             self.change_hands_num(["3", 3]) 
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "none", "right", "space"]) 
             self.set_key_2_bindings(4,  ["left", "none", "right", "space"])  
             self.change_gesture_model([("jumpy.pth",)])
-        #     self.lockout_mouse(True)     
-        # elif game_id == 0:
-        #     self.change_hands_num(["0", 0]) 
-        #     self.set_mouse_hand(0, 0)
-        #     self.set_key_1_bindings(0, ["none"]) 
-        #     self.set_key_2_bindings(4,  ["none"])  
-        #     self.change_gesture_model([("motion.pth",)])
-        #     self.lockout_mouse(True)          
+            self.lockout_mouse(True)  
+
+        elif game_id == 0:
+            self.change_hands_num(["0", 0]) 
+            self.set_mouse_hand(0, 0)
+            self.set_key_1_bindings(0, ["none"]) 
+            self.set_key_2_bindings(4,  ["none"])  
+            self.change_gesture_model([("motion.pth",)])
+            self.lockout_mouse(True)          
 
 
         if self.set_game_func:
