@@ -54,4 +54,9 @@ class Webcam:
                     working_ports.append(dev_port)
             dev_port +=1
         #return available_ports,working_ports,non_working_ports
+        
+        if len(working_ports) == 0:
+            print("no cameras detected")
+            raise Exception()
+        
         return working_ports, menu_selector

@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torch import load, device, cuda, zeros, from_numpy, max
 import numpy as np
-#from Console import GestureConsole
+import Console
 
 
 class FeedForward(nn.Module):
@@ -22,9 +22,6 @@ class FeedForward(nn.Module):
         self.confidence_vector = []
         self.input_size = input_size
         self.last_origin = [(0, 0)]
-
-        # self.console = GestureConsole()
-        # self.console.print(device)
 
         # model definition
         super(FeedForward, self).__init__()

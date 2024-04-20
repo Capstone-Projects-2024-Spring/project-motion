@@ -9,20 +9,18 @@ import Console
 from Webcam import Webcam
 from LSTM import LSTM
 
+import sys
 from os import path, chdir
-abspath = path.abspath(__file__)
-dname = path.dirname(abspath)
-chdir(dname)
-
+bundle_dir = path.dirname(path.abspath(__file__))
+chdir(bundle_dir)
 class GetHands(Thread):
     """
     Class that continuously gets frames and extracts hand data
     with a dedicated thread and Mediapipe
     """
-
     def __init__(
         self,
-        mediapipe_model="models/hand_landmarker.task",
+        mediapipe_model="hand_landmarker.task",
         flags=None,
     ):
         Thread.__init__(self, daemon=True)
@@ -34,11 +32,12 @@ class GetHands(Thread):
 
         self.camera = Webcam()
         self.camera.start(self.camera.working_ports[0])
-        if "models/feedforward/" in flags["gesture_model_path"]:
+        if "feedforward" in flags["gesture_model_path"]:
             self.set_gesture_model_FF(flags["gesture_model_path"])
-        elif "models/lstm/" in flags["gesture_model_path"]:
+        elif "lstm" in flags["gesture_model_path"]:
             self.set_gesture_model_LSTM(flags["gesture_model_path"])
         else:
+            print("path: %s", flags["gesture_model_path"])
             raise Exception("invalid model file path")
             
         self.hand_sequences = [[],[],[],[]]
@@ -62,10 +61,12 @@ class GetHands(Thread):
         self.build_mediapipe_model(flags["number_of_hands"])
 
     def set_gesture_model_FF(self, path):
-        self.gesture_model = FeedForward(path)
+        self.gesture_model = FeedForward(path, force_cpu=True)
+        Console.print(self.gesture_model.device)
         
     def set_gesture_model_LSTM(self, path):
         self.gesture_model = LSTM(path)
+        Console.print(self.gesture_model.device)
 
     def build_mediapipe_model(self, hands_num):
         """Takes in option parameters for the Mediapipe hands model

@@ -26,8 +26,8 @@ class LSTM(nn.Module):
         self.confidence_vector = []
         self.input_size = input_size
         self.last_origin = [(0, 0)]
-        # self.console = GestureConsole()
-        # self.console.print(self.device)
+
+
 
         super(LSTM, self).__init__()
         self.num_classes = num_classes  # output size

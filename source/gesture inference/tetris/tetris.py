@@ -7,11 +7,10 @@ from pygame.time import get_ticks
 from pygame.image import load
 import pygame 
 
-from os import path, chdir
-abspath = path.abspath(__file__)
-dname = path.dirname(abspath)
+import sys
+from os import path, chdir, getcwd
+dname = path.dirname(path.abspath(__file__))
 chdir(dname)
-
 
 # Variables
 COLUMNS = 10

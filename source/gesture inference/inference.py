@@ -16,10 +16,10 @@ from platformerGame import platformer
 from asteroids import asteroids
 from tetris import tetris
 
+import sys
 from os import path, chdir
-abspath = path.abspath(__file__)
-dname = path.dirname(abspath)
-chdir(dname)
+bundle_dir = path.dirname(path.abspath(sys.argv[0]))
+chdir(bundle_dir)
 
 # global variables
 pygame.init()
@@ -31,7 +31,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/lstm/brawl.pth",
+    "gesture_model_path": "models/feedforward/flappy.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -45,6 +45,7 @@ flags = {
     "hand_1_keyboard": None,
     "hand_2_keyboard": None,
     "key_toggle_enabled": False,
+    
 }
 
 def main() -> None:

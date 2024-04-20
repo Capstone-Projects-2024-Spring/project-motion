@@ -1,11 +1,9 @@
 import pygame
 import random
+import sys
 from os import path, chdir
-abspath = path.abspath(__file__)
-dname = path.dirname(abspath)
-chdir(dname)
-
-
+bundle_dir = path.dirname(path.abspath(__file__))
+chdir(bundle_dir)
 class Enemy(pygame.sprite.Sprite):
 	def __init__(self, SCREEN_WIDTH, y, sprite_sheet, scale):
 		pygame.sprite.Sprite.__init__(self)

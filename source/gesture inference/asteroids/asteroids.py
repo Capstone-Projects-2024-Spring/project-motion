@@ -1,10 +1,10 @@
 import math
 import random
 import pygame
-import os
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+import sys
+from os import path, chdir
+bundle_dir = path.dirname(path.abspath(__file__))
+chdir(bundle_dir)
 
 # screen dimensions
 SCREEN_WIDTH = 800
