@@ -54,7 +54,7 @@ class Menu:
             self.set_key_1_bindings(0, ["space", "none", "m", "p"])
             self.set_key_2_bindings(4, ["space", "none", "m", "p"])
             self.change_gesture_model_ff([("flappy.pth",)])
-            self.lockout_mouse(True)
+            self.lockout_mouse(False)
 
         elif game_id == 2:
             self.change_hands_num(["2", 2])
@@ -69,7 +69,7 @@ class Menu:
             self.set_mouse_hand(0, 0)
             self.set_key_1_bindings(0, ["left", "none", "right", "space"])
             self.set_key_2_bindings(4, ["left", "none", "right", "space"])
-            self.change_gesture_model_ff([("jumpy.pth",)])
+            self.change_gesture_model_ff([("games.pth",)])
             self.lockout_mouse(True)
 
         elif game_id == 5:

@@ -59,10 +59,10 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["left", "right", "up", "down", "none", "none", "none", "none"],
+        bindings=["space", "none", "m", "p"],
         hand_num=0,
     ) 
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "z", "x", "c", "v"], hand_num=1)
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["space", "none", "m", "p"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands

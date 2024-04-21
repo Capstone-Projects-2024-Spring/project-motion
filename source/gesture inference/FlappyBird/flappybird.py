@@ -2,10 +2,10 @@ import pygame
 from pygame.locals import *
 import random
 
-import sys
-from os import path, chdir
-bundle_dir = path.dirname(path.abspath(__file__))
-chdir(bundle_dir)
+import os
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 class FlappyBirdGame:
     def __init__(self):
