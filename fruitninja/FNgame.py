@@ -121,7 +121,9 @@ class GameFN:
             "time": 0,
             "pic": pygame.image.load(item_path),
             "throwing": False,
-            "struck": False
+            "struck": False,
+            "angle": 0,
+            "angular_velocity": random.randint(-15, 15)
         }
         if random.random() < 0.6:
             self.stats[throwable]["throwing"] = False
@@ -139,6 +141,11 @@ class GameFN:
                 value["y_pos"] += value["dy/dt"]
                 value["dy/dt"] += (value["time"])
                 value["time"] += 1
+                value["angle"] += value["angular_velocity"]
+
+                # Rotatation if not struck
+                if not value["struck"]:
+                    value["pic"] = pygame.transform.rotate(pygame.image.load("pics/" + key + ".png"), value["angle"])
 
                 # Check if throwable is within screen bounds
                 if value["y_pos"] > self.window_width:
@@ -178,7 +185,7 @@ class GameFN:
     def update_pointer_tracer(self):
         """Updates and draws the mouse trail based on cursor movement."""
         self.mouse_trails.append(pygame.mouse.get_pos())  # Append current mouse position
-        if len(self.mouse_trails) > 3:  # Keep only last 10 positions for a smooth trail
+        if len(self.mouse_trails) > 3:  # Keep only last 3 positions for a smooth trail
             self.mouse_trails.pop(0)
 
         if len(self.mouse_trails) > 1:
