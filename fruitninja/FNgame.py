@@ -34,6 +34,7 @@ class GameFN:
         self.stats = {} # 2D dictionary of throwables and correlated stats
         self.throwables = ["bomb", "orange", "strawberry", "watermelon", "redapple", "greenapple", "coconut", "banana"] # 1D list of throwables
         self.init_objects()
+        self.mouse_trails = []  # Stores positions of the mouse for drawing the trail
 
         self.title_font = pygame.font.SysFont(None, 60)
         self.button_font = pygame.font.SysFont(None, 40)
@@ -173,6 +174,15 @@ class GameFN:
                     value["pic"] = pygame.image.load(cut_path)
                     value["dx/dt"] += 20
                     value["struck"] = True
+    
+    def update_pointer_tracer(self):
+        """Updates and draws the mouse trail based on cursor movement."""
+        self.mouse_trails.append(pygame.mouse.get_pos())  # Append current mouse position
+        if len(self.mouse_trails) > 3:  # Keep only last 10 positions for a smooth trail
+            self.mouse_trails.pop(0)
+
+        if len(self.mouse_trails) > 1:
+            pygame.draw.lines(self.window, (220,220,220), False, self.mouse_trails, 4)
 
     def run(self):
         """Main game loop."""
@@ -209,6 +219,7 @@ class GameFN:
                 self.render_strikes(self.window_width - 130, 4, 3, "pics/emptystrike.png")
                 self.render_strikes(self.window_width - 130, 4, self.strikes, "pics/redstrike.png")
                 self.make_physics()
+                self.update_pointer_tracer() # Draws the trail for the cursor
 
             pygame.display.update()
 
