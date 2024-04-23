@@ -26,7 +26,7 @@ class GameFN:
         pygame.display.set_caption("Fruit Ninja")
         self.backdrop = pygame.image.load("pics/backdrop.png").convert()
         self.window.fill((0, 0, 0))
-        self.fps = 14
+        self.fps = 18
         self.timer = pygame.time.Clock()
 
         self.score = 0
@@ -111,6 +111,8 @@ class GameFN:
     def make_throwables(self, throwable):
         """Creates and randomizes components of each throwable object."""
         item_path = "pics/" + throwable + ".png"
+        # Set a default color, can customize per fruit type
+        aura_color = self.get_aura_color(throwable)
         # for key:value pairs in the stats dictonary (2D), the keys are throwables
         # and the values are the dictionary of key:value pairs below
         self.stats[throwable] = {
@@ -123,12 +125,43 @@ class GameFN:
             "throwing": False,
             "struck": False,
             "angle": 0,
-            "angular_velocity": random.randint(-15, 15)
+            "angular_velocity": random.randint(-20, 20),
+            "aura": {  # Properties here
+                "active": False,
+                "radius": 0,
+                "color": aura_color,  # Use the dynamic color
+                "lifespan": 10  # Before fading away
+            }
         }
         if random.random() < 0.6:
             self.stats[throwable]["throwing"] = False
         else:
             self.stats[throwable]["throwing"] = True
+    
+    def get_aura_color(self, throwable):
+        """Returns an RGBA color based on the type of throwable."""
+        colors = {
+            "orange": (255, 165, 0, 128),
+            "strawberry": (255, 0, 100, 128),
+            "watermelon": (0, 255, 100, 128),
+            "redapple": (255, 0, 0, 128),
+            "greenapple": (0, 255, 0, 128),
+            "coconut": (255, 255, 255, 128),
+            "banana": (255, 255, 0, 128),
+            "bomb": (128, 128, 128, 128)  # Gray for bombs
+        }
+        return colors.get(throwable, (255, 255, 255, 128))
+
+    def shake_screen(self, duration=100, intensity=5):
+        """Action occurs when bombs are hit"""
+        shake_time = pygame.time.get_ticks() + duration
+        while pygame.time.get_ticks() < shake_time:
+            random_offset = (random.randint(-intensity, intensity), random.randint(-intensity, intensity))
+            for key, value in self.stats.items():
+                self.window.blit(value["pic"], (value["x_pos"] + random_offset[0], value["y_pos"] + random_offset[1]))
+            pygame.display.update()
+            self.window.fill(black)  # Clear after each shake
+
 
     def make_physics(self):
         """Handles the physics and interactions of all throwables."""
@@ -143,9 +176,13 @@ class GameFN:
                 value["time"] += 1
                 value["angle"] += value["angular_velocity"]
 
-                # Rotatation if not struck
+                # Rotatation before being struck
                 if not value["struck"]:
                     value["pic"] = pygame.transform.rotate(pygame.image.load("pics/" + key + ".png"), value["angle"])
+                # Rotatation after being struck
+                elif value["struck"] and key != "bomb":
+                    value["angle"] += random.randint(1,100)
+                    value["pic"] = pygame.transform.rotate(pygame.image.load("pics/cut_" + key + ".png"), value["angle"])
 
                 # Check if throwable is within screen bounds
                 if value["y_pos"] > self.window_width:
@@ -158,20 +195,27 @@ class GameFN:
 
                 # Defined bounds of the object for clear collision detection
                 x_min = value["x_pos"]
-                x_max = value["x_pos"] + 60
+                x_max = value["x_pos"] + 80
                 y_min = value["y_pos"]
-                y_max = value["y_pos"] + 60
+                y_max = value["y_pos"] + 80
 
                 # Check if the cursor is within the bounds of the object
                 cursor_within_x_bounds = x_min < cursor_pos[0] < x_max
                 cursor_within_y_bounds = y_min < cursor_pos[1] < y_max
 
                 # Perform the check using simplified conditions
-                if not value["struck"] and cursor_within_x_bounds and cursor_within_y_bounds:                
+                if not value["struck"] and cursor_within_x_bounds and cursor_within_y_bounds:
+                    # Activate the aura effect
+                    new_color = self.get_aura_color(key)  # Get new color based on throwable type
+                    value['aura']['color'] = new_color  # Update the color dynamically
+                    value['aura']['active'] = True
+                    value['aura']['radius'] = 0  # Starting radius
+
                     if key != "bomb": # when fruits are struck
                         self.score += 1
                         cut_path = "pics/cut_" + key + ".png"
                     else: # when bombs are struck
+                        self.shake_screen()
                         self.strikes += 1
                         if self.strikes >= 3:
                             self.game_end = True
@@ -182,7 +226,28 @@ class GameFN:
                     value["dx/dt"] += 20
                     value["struck"] = True
     
-    def update_pointer_tracer(self):
+    def update_and_draw_auras(self):
+        for key, value in self.stats.items():
+            aura = value["aura"]
+            if aura["active"]:
+                # Increase the radius for expansion effect
+                aura["radius"] += 7
+                aura["lifespan"] -= 1
+                
+                # Only draw if there's remaining lifespan
+                if aura["lifespan"] > 0:
+                    # Create a temporary surface with per-pixel alpha
+                    temp_surface = pygame.Surface((aura["radius"] * 2, aura["radius"] * 2), pygame.SRCALPHA)
+                    pygame.draw.circle(temp_surface, aura["color"], (aura["radius"], aura["radius"]), aura["radius"])
+                    
+                    # Blit the temp surface to the window at the correct position
+                    self.window.blit(temp_surface, (value["x_pos"], value["y_pos"]))
+                else:
+                    aura["active"] = False  # Disable aura when lifespan ends
+
+
+    
+    def draw_mouse_trail(self):
         """Updates and draws the mouse trail based on cursor movement."""
         self.mouse_trails.append(pygame.mouse.get_pos())  # Append current mouse position
         if len(self.mouse_trails) > 3:  # Keep only last 3 positions for a smooth trail
@@ -226,7 +291,8 @@ class GameFN:
                 self.render_strikes(self.window_width - 130, 4, 3, "pics/emptystrike.png")
                 self.render_strikes(self.window_width - 130, 4, self.strikes, "pics/redstrike.png")
                 self.make_physics()
-                self.update_pointer_tracer() # Draws the trail for the cursor
+                self.draw_mouse_trail()
+                self.update_and_draw_auras()
 
             pygame.display.update()
 
