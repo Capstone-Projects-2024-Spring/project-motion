@@ -31,7 +31,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/feedforward/flappy.pth",
+    "gesture_model_path": "models/lstm/minecraft-S10-LSTM-V2.5.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -49,7 +49,7 @@ flags = {
 }
 
 def main() -> None:
-
+ 
     window_width = 800
     window_height = 800
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
@@ -59,10 +59,10 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["space", "none", "m", "p"],
+        bindings=["none","w","s","space","e","ctrlleft","esc", "none", "none"],
         hand_num=0,
-    ) 
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["space", "none", "m", "p"], hand_num=1)
+    )
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none","none","none","none","shift","none","none","scroll up", "scroll down"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands

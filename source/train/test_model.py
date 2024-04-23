@@ -31,7 +31,7 @@ def test(test_loader, device, model, true_labels, graph_title=None):
         index=[i for i in true_labels],
         columns=[i for i in true_labels],
     )
-
+    accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)
     precision = sklearn.metrics.precision_score(y_true, y_pred, average="weighted")
     recall = sklearn.metrics.recall_score(y_true, y_pred, average="weighted")
     f1_score = sklearn.metrics.f1_score(y_true, y_pred, average="weighted")
@@ -50,6 +50,7 @@ def test(test_loader, device, model, true_labels, graph_title=None):
     min_recall = np.min(min_recall)
     min_f1_score = np.min(min_f1_score)
     
+    print(f"accuracy={accuracy}")
     print(f"support={support}")
     print(f"Precision: {precision}")
     print(f"Recall: {recall}")
@@ -64,14 +65,15 @@ def test(test_loader, device, model, true_labels, graph_title=None):
     
     text_spacer = len(true_labels) + 1
     
-    plt.text(text_spacer,1,f"Overall Precision:{round(precision,4)}")
-    plt.text(text_spacer,2,f"Overall Recall: {round(recall,4)}")
-    plt.text(text_spacer,3,f"Overall F1 score: {round(f1_score,4)}")
-    plt.text(text_spacer,4,f"Worst Precision '{worst_precision}': {round(min_precision, 4)}")
-    plt.text(text_spacer,5,f"Worst Recall '{worst_recall}': {round(min_recall, 4)}")
-    plt.text(text_spacer,6,f"Worst F1 score '{worst_f1_score}': {round(min_f1_score, 4)}")
-    plt.text(text_spacer,7,"Samples per class:")
-    i = 8
+    plt.text(text_spacer,0.5,f"Accuracy: {round(accuracy,4)}")
+    plt.text(text_spacer,1,f"Overall Precision: {round(precision,4)}")
+    plt.text(text_spacer,1.5,f"Overall Recall: {round(recall,4)}")
+    plt.text(text_spacer,2,f"Overall F1 score: {round(f1_score,4)}")
+    plt.text(text_spacer,2.5,f"Worst Precision '{worst_precision}': {round(min_precision, 4)}")
+    plt.text(text_spacer,3,f"Worst Recall '{worst_recall}': {round(min_recall, 4)}")
+    plt.text(text_spacer,3.5,f"Worst F1 score '{worst_f1_score}': {round(min_f1_score, 4)}")
+    plt.text(text_spacer,4,"Samples per class:")
+    i = 4.5
     for index, item in enumerate(support):
         plt.text(text_spacer,i,f"'{true_labels[index]}': {item}")
         i+=0.5

@@ -61,12 +61,13 @@ class Renderer:
 
     def render_hands(self, hands):
         self.window_width, self.window_height = self.window.get_size()
-        if hands.location != []:
-            for index in range(hands.num_hands_detected):
+        results = hands.get_results()
+        if results != []:
+            for index in range(len(results.hand_landmarks)):
                 if self.flags["render_hands_mode"]:
-                    landmarks = hands.result.hand_world_landmarks
+                    landmarks = results.hand_world_landmarks
                 else:
-                    landmarks = hands.result.hand_landmarks
+                    landmarks = results.hand_landmarks
 
                 for i in range(hands.num_hands_detected):
                     # Transform hand_surfaces to the same size as img_pygame

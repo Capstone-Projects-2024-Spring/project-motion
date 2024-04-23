@@ -80,6 +80,18 @@ class Keyboard(threading.Thread):
         # do nothing with repeated inputs
         if self.last_key == key:
             return
+        
+        if key == "scroll up":
+            self.last_key = key
+            Console.print("scrolling up")
+            pyinput.scroll(1)
+            return
+        elif key == "scroll down":
+            self.last_key = key
+            Console.print("scrolling down")
+            pyinput.scroll(-1)
+            return
+        
         """
             up up up     |  release and press
             up up down   |  release

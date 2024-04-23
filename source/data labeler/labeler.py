@@ -33,10 +33,10 @@ def main():
     hands_surface.set_colorkey((0, 0, 0))
 
     myRenderHands = RenderHands(hands_surface, 3) 
-    filename = "swipe_left.csv"
+    filename = "fb .csv"
     myReader = Reader(filename)
 
-    gesture_list = ["palm","lean","aim","point","fist","pinky","pinched","thumb","shoot","jump","swipe left","swipe right","cut","come","wave"]
+    gesture_list = ["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave", "scroll up", "scroll down"]
 
     myWriter = Writer(gesture_list=gesture_list, filename=filename, write_labels=True)
     if myWriter.rows != 0:

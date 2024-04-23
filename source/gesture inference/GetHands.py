@@ -8,6 +8,10 @@ import traceback
 import Console
 from Webcam import Webcam
 from LSTM import LSTM
+import threading
+from copy import copy
+
+lock = threading.Lock()
 
 import os
 abspath = os.path.abspath(__file__)
@@ -47,7 +51,7 @@ class GetHands(Thread):
         self.flags["gesture_list"] = self.gesture_list
         self.gestures = ["no gesture"]
         self.delay = 0
-        self.result = None
+        self.result = []
 
         self.click = ""
         self.location = []
@@ -91,6 +95,10 @@ class GetHands(Thread):
 
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
+        
+    def get_results(self):
+        with lock:
+            return copy(self.result)
 
     def results_callback(
         self,
@@ -98,8 +106,7 @@ class GetHands(Thread):
         output_image: mp.Image,
         timestamp_ms: int,
     ):
-        # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
-        try:
+        with lock:
             self.location = []
             self.click = ""
             self.velocity = []
@@ -148,10 +155,6 @@ class GetHands(Thread):
             current_time = time()
             self.delay = (current_time - self.timer) * 1000
             self.timer = current_time
-
-        except Exception as e:
-            traceback.print_exc()
-            quit()
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""

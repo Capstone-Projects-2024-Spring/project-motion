@@ -2,7 +2,7 @@
 
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
@@ -18,15 +18,15 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = "test_dataset/data.csv"
-train_data_filename = "training_data/data.csv"
-graph_title = "Motion With Sampling"
-input_model_name = "models/motionSampled.pth"
-output_model_name = "output_model/sadfasdfasdf.pth"
+test_data_filename = "test_dataset/minecraft.csv"
+train_data_filename = "training_data/LABELEDfb.csv"
+graph_title = "Minecraft Finetuning"
+input_model_name = "models/minecraft-S10-LSTM-V2.5.pth"
+output_model_name = "output_model/minecraft-S10-LSTM-V2.6.pth"
 batch_size = 100
-num_epochs = 0
-learning_rate = 0.0001
-WEIGHTED_SAMPLE = True
+num_epochs = 1
+learning_rate = 0.00002
+WEIGHTED_SAMPLE = False
 ROTATE_DATA_SET = False
 ROTATE_DEGREES = 15
 ANIMATE = False
@@ -61,6 +61,8 @@ with open(train_data_filename, "r", newline="", encoding="utf-8") as dataset_fil
     true_labels = next(csv.reader(dataset_file))
     num_classes = len(true_labels)
 print(true_labels)
+
+
 dataset = HandDataset(
     train_data_filename,
     num_classes,
@@ -69,9 +71,17 @@ dataset = HandDataset(
     rotate=ROTATE_DATA_SET,
     degrees=ROTATE_DEGREES,
 )
+test_dataset = HandDataset(
+    test_data_filename,
+    num_classes,
+    sequence_length,
+    input_size,
+    rotate=False,
+    degrees=ROTATE_DEGREES,
+)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
 print("dataset built")
-
 [
     print("{:<15}".format(true_labels[index]) + f"count:{count}")
     for index, count in enumerate(dataset.label_counts)
@@ -80,26 +90,17 @@ print("dataset built")
 
 
 if WEIGHTED_SAMPLE:
+    
     sampler = WeightedRandomSampler(
-        weights=dataset.sample_weights, num_samples=len(dataset), replacement=True
+        weights=dataset.sample_weights, num_samples=len(dataset)-1, replacement=True
     )
     train_loader = DataLoader(
         dataset=dataset, batch_size=batch_size, sampler=sampler
     )
-    test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 else:
-    try:
-        train_dataset, test_dataset = torch.utils.data.random_split(
-            dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
-        )
-    except:
-        train_dataset, test_dataset = torch.utils.data.random_split(
-            dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
-        )
     train_loader = DataLoader(
-        dataset=train_dataset, batch_size=batch_size, shuffle=True
+        dataset=dataset, batch_size=batch_size, shuffle=True
     )
-    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
 if ANIMATE:
     import animate
