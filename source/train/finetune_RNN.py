@@ -18,14 +18,15 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = "test_dataset/brawl.csv"
-train_data_filename = "training_data/brawl.csv"
-input_model_name = "models/brawlV1.pth"
-output_model_name = "output_model/brawlV2.pth"
+test_data_filename = "test_dataset/data.csv"
+train_data_filename = "training_data/data.csv"
+graph_title = "Motion With Sampling"
+input_model_name = "models/motionSampled.pth"
+output_model_name = "output_model/sadfasdfasdf.pth"
 batch_size = 100
-num_epochs = 1
+num_epochs = 0
 learning_rate = 0.0001
-WEIGHTED_SAMPLE = False
+WEIGHTED_SAMPLE = True
 ROTATE_DATA_SET = False
 ROTATE_DEGREES = 15
 ANIMATE = False
@@ -77,27 +78,28 @@ print("dataset built")
 ]
 
 
-try:
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
-    )
-except:
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
-    )
 
 if WEIGHTED_SAMPLE:
     sampler = WeightedRandomSampler(
         weights=dataset.sample_weights, num_samples=len(dataset), replacement=True
     )
     train_loader = DataLoader(
-        dataset=train_dataset, batch_size=batch_size, shuffle=True, sampler=sampler
+        dataset=dataset, batch_size=batch_size, sampler=sampler
     )
+    test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 else:
+    try:
+        train_dataset, test_dataset = torch.utils.data.random_split(
+            dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
+        )
+    except:
+        train_dataset, test_dataset = torch.utils.data.random_split(
+            dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
+        )
     train_loader = DataLoader(
         dataset=train_dataset, batch_size=batch_size, shuffle=True
     )
-test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
 if ANIMATE:
     import animate
@@ -149,5 +151,6 @@ torch.save(
 )
 print(f"model saved as {output_model_name}")
 
-import source.train.test_model as test_model
-test_model.test(test_loader, device, lstm, true_labels)
+import test_model as test_model
+
+test_model.test(test_loader, device, lstm, true_labels, graph_title=graph_title)

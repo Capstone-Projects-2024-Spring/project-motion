@@ -33,10 +33,10 @@ def main():
     hands_surface.set_colorkey((0, 0, 0))
 
     myRenderHands = RenderHands(hands_surface, 3) 
-    filename = "up_fist .csv"
+    filename = "swipe_left.csv"
     myReader = Reader(filename)
 
-    gesture_list = ["fist", "left", "right", "up", "down"]
+    gesture_list = ["palm","lean","aim","point","fist","pinky","pinched","thumb","shoot","jump","swipe left","swipe right","cut","come","wave"]
 
     myWriter = Writer(gesture_list=gesture_list, filename=filename, write_labels=True)
     if myWriter.rows != 0:
@@ -253,7 +253,7 @@ def game_loop(
                 playingback = False
 
         window.blit(hands_surface, (0, 0))
-        clock.tick(60)
+        clock.tick(30)
         pygame.display.update()
 
 if __name__ == "__main__":
