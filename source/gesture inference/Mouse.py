@@ -1,20 +1,30 @@
-import pyautogui
+import sys
+if sys.platform == 'win32':
+    import pydirectinput as pyinput
+else:
+    import pyautogui as pyinput
 import time
-from Console import GestureConsole
+import Console
 import math
+import threading
 
 
-class Mouse:
+class Mouse(threading.Thread):
     def __init__(
         self,
         mouse_sensitivity=1,
-        click_threshold_time=0.22,
-        drag_threshold_time=0.2,
         x_scale=1.3,
         y_scale=1.5,
         alpha=0.15,
         deadzone=15,
+        single_click_duration=1 / 5,
+        is_relative=True,
+        acceleration_factor=1.5,
+        linear_factor=0.25,
+        flags=None,
+        tps=120,
     ) -> None:
+        threading.Thread.__init__(self, daemon=True)
         """Initialization of Mouse class.
 
         Args:
@@ -26,31 +36,101 @@ class Mouse:
                                                     If you increase drag_threshold_time, you will have more time to move the mouse after clicking without triggering a drag.
                                                     If you decrease drag_threshold_time, even a slight movement of the mouse shortly after clicking can be considered a drag rather than a separate click.
         """
-        if click_threshold_time <= drag_threshold_time:
-            raise Exception(
-                "drag_threshold_time must be less than click_threshold_time"
-            )
-
-        pyautogui.FAILSAFE = False
-        pyautogui.PAUSE = 0
+        self.flags = flags
+        self.screen_width, self.screen_height = pyinput.size()
+        pyinput.FAILSAFE = False
+        pyinput.PAUSE = False
+        self.single_click_duration = single_click_duration
         self.mouse_sensitivity = float(mouse_sensitivity)
         self.x_scale = float(x_scale)
         self.y_scale = float(y_scale)
         self.deadzone = deadzone
 
-        self.click_threshold_time = click_threshold_time
-        self.drag_threshold_time = drag_threshold_time
+        self.tps = tps
+
+        self.is_relative = is_relative
+        self.relative_last_x = self.screen_width
+        self.relative_last_y = self.screen_height
+        self.acceleration_factor = acceleration_factor
+        self.linear_factor = linear_factor
+
         self.left_down = False
         self.middle_down = False
         self.right_down = False
-        self.last_time = time.time()
-        self.console = GestureConsole()
 
         # expontial moving average stuff
         self.x_window = []
         self.y_window = []
         self.window_size = 12
         self.alpha = alpha
+
+    def toggle_mouse(self):
+        self.flags["move_mouse_flag"] = not self.flags["move_mouse_flag"]
+
+    def run(self):
+        event = threading.Event()
+        while True:
+            if self.flags["move_mouse_flag"] and self.flags["hands"].location != []:
+                mouse_button_text = ""
+                hands = self.flags["hands"].result.hand_world_landmarks
+                confidences = self.flags["hands"].confidence_vectors
+                # check for race condition
+                if (
+                    len(hands) > self.flags["mouse_hand_num"]
+                    and len(confidences) > self.flags["mouse_hand_num"]
+                ):
+                    hand = hands[self.flags["mouse_hand_num"]]
+
+                    # index tip, thumb tip
+                    if self.is_clicking(hand[8], hand[4], self.flags["click_sense"]):
+                        mouse_button_text = "left"
+                    # middle tip, thumb tip
+                    elif self.is_clicking(hand[12], hand[4], self.flags["click_sense"]):
+                        mouse_button_text = "middle"
+                    # ring tip, thumb tip
+                    elif self.is_clicking(hand[16], hand[4], self.flags["click_sense"]):
+                        mouse_button_text = "right"
+
+                    location = self.flags["hands"].location[
+                        self.flags["mouse_hand_num"]
+                    ]
+
+                    self.control(location[0], location[1], mouse_button_text)
+            else:
+                self.lift_mouse_button()
+
+            event.wait(timeout=1 / self.tps)
+
+    def lift_mouse_button(self):
+        if self.left_down:
+            Console.print(f"releasing mouse left")
+            pyinput.mouseUp(button="left")
+            self.left_down = False
+        if self.middle_down:
+            Console.print(f"releasing mouse middle")
+            pyinput.mouseUp(button="middle")
+            self.middle_down = False
+        if self.right_down:
+            Console.print(f"releasing mouse right")
+            pyinput.mouseUp(button="right")
+            self.right_down = False
+
+    def scale(self, x, y):
+        x = int(
+            (
+                (self.x_scale * self.mouse_sensitivity) * x
+                - (self.x_scale * self.mouse_sensitivity - 1) / 2
+            )
+            * self.screen_width
+        )
+        y = int(
+            (
+                (self.y_scale * self.mouse_sensitivity) * y
+                - (self.y_scale * self.mouse_sensitivity - 1) / 2
+            )
+            * self.screen_height
+        )
+        return x, y
 
     def control(self, x: float, y: float, mouse_button: str):
         """Moves the mouse to XY coordinates and can perform single clicks, or click and drags when called repeatelly
@@ -60,26 +140,18 @@ class Mouse:
             y (float): y coordinate between 0 and 1
             mouse_button (string): can be "", "left", "middle", or "right"
         """
-        x = int(
-            (
-                (self.x_scale * self.mouse_sensitivity) * x
-                - (self.x_scale * self.mouse_sensitivity - 1) / 2
-            )
-            * pyautogui.size().width
-        )
-        y = int(
-            (
-                (self.y_scale * self.mouse_sensitivity) * y
-                - (self.y_scale * self.mouse_sensitivity - 1) / 2
-            )
-            * pyautogui.size().height
-        )
+
+        x, y = self.scale(x, y)
+
+        if len(self.x_window) > 1:
+            self.relative_last_x = self.x_window[len(self.x_window) - 1]
+            self.relative_last_y = self.y_window[len(self.y_window) - 1]
 
         # Check if the movement is smaller than the specified radius
-        last_x, last_y = pyautogui.position()
+        last_x, last_y = pyinput.position()
         distance = math.sqrt((x - last_x) ** 2 + (y - last_y) ** 2)
 
-        # Specify the radius distance (you can adjust this value)
+        # Specify the radius distance
         ignore_small_movement = distance <= self.deadzone
 
         self.x_window.append(x)
@@ -92,25 +164,11 @@ class Mouse:
             self.x_window.pop(0)
             self.y_window.pop(0)
             if mouse_button == "":
-                # un-click
-                if self.left_down:
-                    pyautogui.mouseUp(button="left", _pause=False)
-                    self.left_down = False
-                if self.middle_down:
-                    pyautogui.mouseUp(button="middle", _pause=False)
-                    self.middle_down = False
-                if self.right_down:
-                    pyautogui.mouseUp(button="right", _pause=False)
-                    self.right_down = False
-                if not ignore_small_movement:
-                    self.move(x, y)
+                self.lift_mouse_button()
             else:
-                # click or click and drag
-                self.click(
-                    x,
-                    y,
-                    mouse_button,
-                )
+                self.click(mouse_button)
+            if not ignore_small_movement:
+                self.move(x, y)
 
     def is_clicking(self, tip1, tip2, click_sensitinity):
         distance = math.sqrt(
@@ -128,14 +186,29 @@ class Mouse:
             x (int): X-coordinate.
             y (int): Y-coordinate.
         """
-        pyautogui.moveTo(
-            x,
-            y,
-            duration=0,
-            _pause=False,
-        )
+        if self.is_relative == True:
+            # can't raise negative to an exponent
+            x_diff = self.relative_last_x - x
+            y_diff = self.relative_last_y - y
+            if x_diff > 300 or y_diff > 300:
+                return
 
-    def click(self, x, y, mouse_button):
+            x_diff_abs = abs(x_diff * self.linear_factor)
+            scaled_x = int(x_diff_abs**self.acceleration_factor) * (
+                1 if x_diff >= 0 else -1
+            )
+            y_diff_abs = abs(y_diff * self.linear_factor)
+            scaled_y = int(y_diff_abs**self.acceleration_factor) * (
+                1 if y_diff >= 0 else -1
+            )
+            if sys.platform == 'win32':
+                pyinput.moveRel(scaled_x, scaled_y, relative=True)
+            else:
+                pyinput.moveRel(scaled_x, scaled_y)
+        else:
+            pyinput.moveTo(x, y)
+
+    def click(self, mouse_button):
         """Handle mouse clicking.
 
         Args:
@@ -143,40 +216,27 @@ class Mouse:
             y (int): Y-coordinate.
             mouse_button (str): Mouse button to click.
         """
-        current_time = time.time()  # if it has been longer than threshold time
-        if current_time - self.last_time > self.click_threshold_time:
-            self.last_time = current_time
-            self.console.print("click")
-            pyautogui.click(button=mouse_button, _pause=False)
-        elif (
-            (current_time - self.last_time > self.drag_threshold_time)
-            or self.left_down
-            or self.middle_down
-            or self.right_down
-        ):
+        if mouse_button == "left":
+            if not self.left_down:
+                Console.print(f"clicking mouse {mouse_button}")
+                pyinput.mouseDown(button=mouse_button)
+                self.left_down = True
 
-            if mouse_button == "left":
-                self.last_time = current_time
-                if not self.left_down:
-                    pyautogui.mouseDown(button=mouse_button, _pause=False)
-                    self.left_down = True
+        if mouse_button == "middle":
+            if not self.middle_down:
+                Console.print(f"clicking mouse {mouse_button}")
+                # pyinput.mouseDown(button=mouse_button)
+                pyinput.scroll(-1)
+                self.middle_down = True
 
-            if mouse_button == "middle":
-                self.last_time = current_time
-                if not self.middle_down:
-                    pyautogui.mouseDown(button=mouse_button, _pause=False)
-                    self.middle_down = True
-
-            if mouse_button == "right":
-                self.last_time = current_time
-                if not self.right_down:
-                    pyautogui.mouseDown(button=mouse_button, _pause=False)
-                    self.right_down = True
-
-            self.move(x, y)
+        if mouse_button == "right":
+            if not self.right_down:
+                Console.print(f"clicking mouse {mouse_button}")
+                pyinput.mouseDown(button=mouse_button)
+                self.right_down = True
 
     def exponential_moving_average(self, data):
         ema = [data[0]]
         for i in range(1, len(data)):
             ema.append(self.alpha * data[i] + (1 - self.alpha) * ema[i - 1])
-        return ema[len(data) - 1]
+        return int(ema[len(data) - 1])
