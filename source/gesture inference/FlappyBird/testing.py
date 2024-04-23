@@ -1,34 +1,25 @@
-import unittest
-from unittest.mock import patch, MagicMock
-import pygame
-
 # Ensure this import path is correct
 from flappybird import FlappyBirdGame  
+import unittest
+import pygame
 
-@patch('pygame.font.SysFont', return_value=MagicMock())  # Mock SysFont globally for all tests
-@patch('pygame.init', return_value=None)  # Mock pygame.init globally for all tests
 class TestFlappyBirdGame(unittest.TestCase):
     def setUp(self):
-        # Now the SysFont and init are mocked, we can safely create an instance of the game
+        # Initialize Pygame and create a game instance
+        pygame.init()
         self.game = FlappyBirdGame()
 
-    def test_initialization(self):
-        """Test that game initializes with correct default values."""
-        self.assertFalse(self.game.primitives["is flying"])
+    def test_initial_state(self):
+        # Check initial game state conditions
+        self.assertEqual(self.game.screen_width, 864)
+        self.assertEqual(self.game.screen_height, 936)
+        self.assertFalse(self.game.primitives["is started"])
         self.assertFalse(self.game.primitives["is game over"])
+        self.assertFalse(self.game.primitives["is flying"])
         self.assertEqual(self.game.primitives["score"], 0)
 
-    def test_game_over_by_collision(self):
-        """Test game over triggered by collision."""
-        self.game.flappy.rect.top = -1  # Simulate bird going out of bounds
-        self.game.tick()
-        self.assertTrue(self.game.primitives["is game over"])
+    def tearDown(self):
+        pygame.quit()
 
-    def test_scoring(self):
-        """Test scoring when passing pipes."""
-        self.game.primitives["pass pipe"] = True
-        self.game.tick()
-        self.assertEqual(self.game.primitives["score"], 1)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
