@@ -102,14 +102,18 @@ class Player(object):
 
     # update the location of the ship when it goes off the screen
     def update_location(self):
-        if self.x > SCREEN_WIDTH + 50:
-            self.x = 0
-        elif self.x < 0 - self.width:
-            self.x = SCREEN_WIDTH
-        elif self.y < -50:
-            self.y = SCREEN_HEIGHT
-        elif self.y > SCREEN_HEIGHT + 50:
-            self.y = 0
+          self.x = max(self.width // 2, min(self.x, SCREEN_WIDTH - self.width // 2))
+          self.y = max(self.height // 2, min(self.y, SCREEN_HEIGHT - self.height // 2))
+          self.rotated_rect.center = (self.x, self.y)
+
+        # if self.x > SCREEN_WIDTH + 50:
+        #     self.x = 0
+        # elif self.x < 0 - self.width:
+        #     self.x = SCREEN_WIDTH
+        # elif self.y < -50:
+        #     self.y = SCREEN_HEIGHT
+        # elif self.y > SCREEN_HEIGHT + 50:
+        #     self.y = 0
             
 # game entities
 player = Player()
@@ -267,9 +271,21 @@ class AlienBullet(object):
         self.y = y
         self.w = 4
         self.h = 4
-        self.dx, self.dy = player.x - self.x, player.y - self.y
-        self.dist = math.hypot(self.dx, self.dy)
-        self.dx, self.dy = self.dx / self.dist, self.dy / self.dist
+       
+
+        dx,dy = player.x - self.x, player.y - self.y
+        dist = math.hypot(dx, dy)
+        dx, dy = dx/ dist, dy / dist
+        # makes alien's aim less accurate for easier gameplay
+        inaccuracy = 0.3  
+        dx += random.uniform(-inaccuracy, inaccuracy)
+        dy += random.uniform(-inaccuracy, inaccuracy)
+
+        new_dist = math.hypot(dx, dy)
+        self.dx, self.dy = dx / new_dist, dy / new_dist
+        
+        
+        
         self.xv = self.dx * 5
         self.yv = self.dy * 5
 
@@ -280,12 +296,12 @@ class AlienBullet(object):
 # updates game surface with the current game state
 def redraw_window():
     surface.blit(bg, (0, 0))
-    font = pygame.font.SysFont("arial", 20)
-    livesText = font.render("Lives: " + str(lives), 1, (255, 255, 255))
+    font = pygame.font.SysFont('DejaVu Sans Mono',20)
+    livesText = font.render("Lives: " + str(lives), 1, (255, 255, 0))
     playe_again_text = font.render(
-        "Press the Space Bar to Player Again!", 1, (255, 255, 255)
+        "Press the Space Bar to Player Again!", 1, (255, 255, 0)
     )
-    score_text = font.render("Score: " + str(score), 1, (255, 255, 255))
+    score_text = font.render("Score: " + str(score), 1, (255, 255, 0))
     player.draw(surface)
     for a in asteroids:
         a.draw(surface)
@@ -300,16 +316,7 @@ def redraw_window():
 
     if rapid_fire:
         pygame.draw.rect(surface, (0, 0, 0), [SCREEN_WIDTH // 2 - 51, 19, 102, 22])
-        pygame.draw.rect(
-            surface,
-            (255, 255, 255),
-            [
-                SCREEN_WIDTH // 2 - 50,
-                20,
-                100 - 100 * (count - rapid_fire_start) / 500,
-                20,
-            ],
-        )
+        pygame.draw.rect(surface, (255, 182, 193), [SCREEN_WIDTH//2 - 50, 20, 100 - 100*(count - rapid_fire_start)/500, 20]) 
     if game_over:
         surface.blit(
             playe_again_text,
@@ -514,6 +521,7 @@ def events(events):
     global alien_bullets
     global stars
     global player_bullets
+    global rapid_fire_start
     global player
     global rapid_fire
     global game_over
@@ -544,9 +552,14 @@ def events(events):
                     game_over = False
                     lives = 3
                     score = 0
+                    rapid_fire = False
+                    rapid_fire_start = -1
+                    player = Player()
                     asteroids.clear()
                     alien_bullets.clear()
                     stars.clear()
+                    player_bullets.clear()
+                    aliens.clear()
             # pause key
             elif event.key == pygame.K_p:
                 paused = True

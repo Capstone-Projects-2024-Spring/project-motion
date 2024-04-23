@@ -1,18 +1,18 @@
 import torch.nn as nn
 import torch
 import numpy as np
-from Console import GestureConsole
+#from Console import GestureConsole
 
 
-class NeuralNet(nn.Module):
+class FeedForward(nn.Module):
 
     def __init__(self, modelName, force_cpu=False):
         # Device configuration
         if force_cpu:
-            device = torch.device("cpu")
+            self.device = torch.device("cpu")
         else:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model, data = torch.load(modelName, map_location=device)
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model, data = torch.load(modelName, map_location=self.device)
 
         # model hyperparameters, saved in the model file with its statedict from my train program
         input_size = data[0]
@@ -23,14 +23,15 @@ class NeuralNet(nn.Module):
         self.input_size = input_size
         self.last_origin = [(0, 0)]
 
-        self.console = GestureConsole()
-        self.console.print(device)
+        # self.console = GestureConsole()
+        # self.console.print(device)
 
         # model definition
-        super(NeuralNet, self).__init__()
+        super(FeedForward, self).__init__()
         self.l1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
         self.l2 = nn.Linear(hidden_size, num_classes)
+        self.to(self.device)
         self.load_state_dict(model)
         self.eval()
 
@@ -55,16 +56,16 @@ class NeuralNet(nn.Module):
             Two hand input shape should be (2, 65)
         """
         hands = torch.from_numpy(np.asarray(model_input, dtype="float32"))
-        outputs = self(hands)
+        outputs = self(hands.to(self.device))
         probs = torch.nn.functional.softmax(outputs.data, dim=1)
 
         self.confidence_vector = probs
 
         # print table
-        self.console.table(self.labels, probs.tolist())
+        #self.console.table(self.labels, probs.tolist())
 
         confidence, classes = torch.max(probs, 1)
-        return probs.tolist(), classes.numpy().tolist(), confidence.tolist()
+        return probs.tolist(), classes, confidence.tolist()
     
 
     def find_velocity_and_location(self, result):
@@ -119,6 +120,4 @@ class NeuralNet(nn.Module):
                 model_inputs[index].append(velocity[index][0])
                 model_inputs[index].append(velocity[index][1])
 
-        out = np.asarray(model_inputs, dtype="float32")
-
-        return out
+        return model_inputs
