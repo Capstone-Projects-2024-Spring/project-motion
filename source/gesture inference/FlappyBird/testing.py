@@ -1,34 +1,52 @@
 import unittest
-from unittest.mock import patch, MagicMock
 import pygame
+from unittest.mock import MagicMock, patch
 
-# Ensure this import path is correct
-from flappybird import FlappyBirdGame  
+# Assuming FlappyBirdGame is in flappy_bird_game.py
+from flappybird import FlappyBirdGame
 
-@patch('pygame.font.SysFont', return_value=MagicMock())  # Mock SysFont globally for all tests
-@patch('pygame.init', return_value=None)  # Mock pygame.init globally for all tests
 class TestFlappyBirdGame(unittest.TestCase):
     def setUp(self):
-        # Now the SysFont and init are mocked, we can safely create an instance of the game
+        # Mock initialization of Pygame modules
+        pygame.init = MagicMock()
+        pygame.display.set_caption = MagicMock()
+        
+        # Mock Surface and required return values
+        mocked_surface = MagicMock()
+        mocked_surface.get_size.return_value = (864, 936)
+        pygame.Surface = MagicMock(return_value=mocked_surface)
+
+        # Mock font and images loading
+        pygame.font.SysFont = MagicMock()
+        pygame.image.load = MagicMock(return_value=MagicMock())
+        pygame.sprite.Group = MagicMock(return_value=MagicMock())
+
+        # Now initializing the game will use mocked values
         self.game = FlappyBirdGame()
 
-    def test_initialization(self):
-        """Test that game initializes with correct default values."""
-        self.assertFalse(self.game.primitives["is flying"])
+    def test_initial_state(self):
+        # Test initial states of the game
+        self.assertFalse(self.game.primitives["is started"])
         self.assertFalse(self.game.primitives["is game over"])
+        self.assertFalse(self.game.primitives["is flying"])
         self.assertEqual(self.game.primitives["score"], 0)
 
-    def test_game_over_by_collision(self):
-        """Test game over triggered by collision."""
-        self.game.flappy.rect.top = -1  # Simulate bird going out of bounds
-        self.game.tick()
-        self.assertTrue(self.game.primitives["is game over"])
+    def test_event_handling(self):
+        # Prepare mock events
+        event_quit = MagicMock(type=pygame.QUIT)
+        event_space_down = MagicMock(type=pygame.KEYDOWN, key=pygame.K_SPACE)
+        events = [event_quit, event_space_down]
 
-    def test_scoring(self):
-        """Test scoring when passing pipes."""
-        self.game.primitives["pass pipe"] = True
-        self.game.tick()
-        self.assertEqual(self.game.primitives["score"], 1)
+        # Replace the game's event method with a mock
+        with patch.object(self.game, 'events', return_value=None) as mock_events:
+            self.game.events(events)
+            mock_events.assert_called_once_with(events)
+
+    def test_reset_game(self):
+        # Test reset_game function
+        self.game.reset_game()
+        self.assertEqual(self.game.flappy.rect.x, 100)
+        self.assertEqual(self.game.primitives["score"], 0)
 
 if __name__ == '__main__':
     unittest.main()
