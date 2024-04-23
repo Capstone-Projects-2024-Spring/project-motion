@@ -39,11 +39,13 @@ class GameFN:
         self.title_font = pygame.font.SysFont(None, 60)
         self.button_font = pygame.font.SysFont(None, 40)
         self.score_font = pygame.font.SysFont(None, 30)
+        self.countdown_font = pygame.font.SysFont(None, 100)
         
         self.running = True
         self.in_menu = True
         self.game_start = True
         self.game_end = True
+        self.paused = False
     
     def init_objects(self):
         """Propogates the stats dictionary once"""
@@ -71,6 +73,11 @@ class GameFN:
         pygame.draw.rect(self.window, white, quit_rect.inflate(10, 5), 1)
         self.window.blit(quit_text, quit_rect)
 
+        # Draws the pause instruction
+        pause_instruction_text = self.score_font.render("Press 'P' to pause the game", True, white)
+        pause_instruction_rect = pause_instruction_text.get_rect(center=(self.window_width/2, self.window_height * 0.85))
+        self.window.blit(pause_instruction_text, pause_instruction_rect)
+
         # Updates display
         pygame.display.flip()
         return play_rect, quit_rect
@@ -90,6 +97,52 @@ class GameFN:
                     choosing = False
                 if event.type == pygame.QUIT: #quit event
                     pygame.quit()
+    
+    def display_pause_screen(self):
+        """Displays the pause screen with options to resume or quit."""
+        # Display the pause message
+        pause_text = self.title_font.render("Paused", True, white)
+        pause_rect = pause_text.get_rect(center=(self.window_width / 2, self.window_height / 3 + 70))
+        self.window.blit(pause_text, pause_rect)
+
+        # Display a quit option
+        quit_text = self.button_font.render("Quit Game", True, white)
+        quit_rect = quit_text.get_rect(center=(self.window_width / 2, self.window_height / 1.5))
+        pygame.draw.rect(self.window, white, quit_rect.inflate(20, 10), 2)
+        self.window.blit(quit_text, quit_rect)
+
+        pygame.display.update()  # Update the display to show the pause screen
+
+        return quit_rect
+
+    def display_countdown(self):
+        """Displays a countdown from 3 to 1 on the screen with a white border around the numbers."""
+        background_snapshot = self.window.copy()  # Take snapshot of current game screen
+        offsets = [(-2, -2), (-2, 2), (2, -2), (2, 2), (-1, 0), (1, 0), (0, -1), (0, 1)]  # Offsets for the border effect
+
+        for number in range(3, 0, -1):
+            # Restore the snapshot each time to clear the previous number
+            self.window.blit(background_snapshot, (0, 0))
+
+            # Render countdown number with border
+            text = str(number)
+            font_color = (100, 100, 100)  # Dark gray
+            border_color = white 
+            countdown_text = self.countdown_font.render(text, True, border_color)
+            countdown_rect = countdown_text.get_rect(center=(self.window_width / 2, self.window_height / 3 + 20))
+
+            # Draw border
+            for offset in offsets:
+                border_position = (countdown_rect.x + offset[0], countdown_rect.y + offset[1])
+                self.window.blit(countdown_text, border_position)
+
+            # Draw main text over the border
+            countdown_text = self.countdown_font.render(text, True, font_color)
+            self.window.blit(countdown_text, countdown_rect)
+
+            pygame.display.update()
+            pygame.time.wait(800)  # Pause interval timing
+
 
     def render_words(self, input, size, x, y, color):
         """Helper function to render text on the screen."""
@@ -223,8 +276,14 @@ class GameFN:
                         cut_path = "pics/explode.png"
 
                     value["pic"] = pygame.image.load(cut_path)
-                    value["dx/dt"] += 20
+                    value["dx/dt"] += self.fly_left_or_right(random.random())
                     value["struck"] = True
+
+    def fly_left_or_right(self, halfchance):
+        if(halfchance >= 0.5):
+            return 20 # Return 20 to move it right
+        else:
+            return -20 # Return -20 to move it left
     
     def update_and_draw_auras(self):
         for key, value in self.stats.items():
@@ -258,6 +317,7 @@ class GameFN:
 
     def run(self):
         """Main game loop."""
+        quit_rect = None  # To keep track of the quit button rect
         while self.running:
             self.timer.tick(self.fps) #loops game at specified fps
 
@@ -278,12 +338,28 @@ class GameFN:
                     if self.in_menu:
                         # Check if play button clicked
                         if play_rect.collidepoint(mouse_pos):
+                            self.display_countdown()
                             self.in_menu = False
                             
                         # Check if quit button clicked
                         elif quit_rect.collidepoint(mouse_pos):
                             pygame.quit()
                             sys.exit()
+                    elif self.paused:
+                        if quit_rect:
+                            pygame.quit()
+                            sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        if self.paused:  # If game is already paused, prepare to unpause
+                            self.display_countdown()  # Show countdown before unpausing
+                            self.paused = False  # Unpause after countdown
+                        else:  # If the game is not paused, pause it
+                            self.paused = True
+                            
+            if self.paused:
+                self.display_pause_screen()
+                continue  # Skip the rest of the loop
 
             if not self.in_menu:
                 self.window.blit(self.backdrop, (0, 0))
