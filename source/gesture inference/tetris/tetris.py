@@ -13,7 +13,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-
+pygame.init()
 # Variables
 COLUMNS = 10
 ROWS = 20
@@ -52,9 +52,11 @@ SHAPES = {
     'S': {'shape': [(0,0), (-1,0), (0,-1), (1,-1)], 'color': GREEN},
     'Z': {'shape': [(0,0), (1,0), (0,-1), (-1,-1)], 'color': RED}
 }
+pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 SCORE_DATA = {1: 40, 2: 100, 3: 300, 4: 1200}
 
+FONT =  pygame.font.Font('graphics/Russo_One.ttf', 30)
 class TetrisGame:
     def __init__(self, get_next_shape, update_score, display_surface):
 
@@ -310,7 +312,7 @@ class Score:
         self.surface = pygame.Surface((SIDEBAR_WIDTH,GAME_HEIGHT * SCORE_HEIGHT_FRACTION - PADDING))
         self.rect = self.surface.get_rect(bottomright = (WINDOW_WIDTH - PADDING,WINDOW_HEIGHT - PADDING))
         self.display_surface = pygame.display.get_surface()
-        self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
+        self.font = FONT
         self.increment_height = self.surface.get_height() / 3
 
         self.score = 0
