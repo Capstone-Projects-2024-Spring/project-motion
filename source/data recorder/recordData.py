@@ -22,6 +22,7 @@ flags = {
     "number_of_hands": 1,
 }
 
+
 def main() -> None:
     """Main driver method which initilizes all children and starts pygame render pipeline"""
 
@@ -29,13 +30,23 @@ def main() -> None:
     window_height = 1000
     window = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Test Hand Tracking Multithreaded")
- 
+
     hands_surface = pygame.Surface((window_width, window_height))
     hands_surface.set_colorkey((0, 0, 0))
-                              
+
     myRenderHands = RenderHands(hands_surface, 3)
 
-    gesture_list = ["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave", "scroll up", "scroll down"]
+    gesture_list = [
+        "fist",
+        "forwards",
+        "backwards",
+        "thumb",
+        "pinky",
+        "peace",
+        "wave",
+        "scroll up",
+        "scroll down",
+    ]
 
     gesture_menu_selection = []
 
@@ -63,16 +74,19 @@ def main() -> None:
         window_height * 0.8,
         theme=pygame_menu.themes.THEME_BLUE,
     )
-    
+
     def change_write(value, tuple):
         (write_status, writer) = tuple
-        writer.write_labels=write_status
+        writer.write_labels = write_status
 
     menu.add.selector(
-        "Labels :", [("From Selection", (True, myWriter)), ("Don't save labels", (False, myWriter))], onchange=change_write
+        "Labels :",
+        [
+            ("From Selection", (True, myWriter)),
+            ("Don't save labels", (False, myWriter)),
+        ],
+        onchange=change_write,
     )
-
-    
 
     menu.add.dropselect(
         "Gesture :", gesture_menu_selection, onchange=set_current_gesture
@@ -161,7 +175,6 @@ def game_loop(
 
                     set_write_status()
 
-
         if menu.is_enabled():
             menu.update(events)
             menu.draw(window)
@@ -190,6 +203,7 @@ def game_loop(
 
         clock.tick(60)
         pygame.display.update()
+
 
 if __name__ == "__main__":
     main()

@@ -19,16 +19,16 @@ os.chdir(dname)
 
 
 test_data_filename = "test_dataset/minecraft.csv"
-train_data_filename = "training_data/LABELEDfb.csv"
+train_data_filename = "training_data/LABELEDfist_open.csv"
 graph_title = "Minecraft Finetuning"
-input_model_name = "models/minecraft-S10-LSTM-V2.5.pth"
-output_model_name = "output_model/minecraft-S10-LSTM-V2.6.pth"
+input_model_name = "models/minecraft-S10-LSTM-V2.27.pth"
+output_model_name = "output_model/minecraft-S10-LSTM-V2.28.pth"
 batch_size = 100
 num_epochs = 1
-learning_rate = 0.00002
+learning_rate = 0.00005
 WEIGHTED_SAMPLE = False
 ROTATE_DATA_SET = False
-ROTATE_DEGREES = 15
+ROTATE_DEGREES = 30
 ANIMATE = False
 
 
@@ -88,19 +88,14 @@ print("dataset built")
 ]
 
 
-
 if WEIGHTED_SAMPLE:
-    
+
     sampler = WeightedRandomSampler(
-        weights=dataset.sample_weights, num_samples=len(dataset)-1, replacement=True
+        weights=dataset.sample_weights, num_samples=len(dataset) - 1, replacement=True
     )
-    train_loader = DataLoader(
-        dataset=dataset, batch_size=batch_size, sampler=sampler
-    )
+    train_loader = DataLoader(dataset=dataset, batch_size=batch_size, sampler=sampler)
 else:
-    train_loader = DataLoader(
-        dataset=dataset, batch_size=batch_size, shuffle=True
-    )
+    train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 
 if ANIMATE:
     import animate
@@ -129,6 +124,9 @@ for epoch in range(num_epochs):
         # perform backprop and update weights
         loss.backward()
         optimizer.step()
+
+        if ROTATE_DATA_SET and i > n_total_steps / 4:
+            break
 
         if (i + 1) % 100 == 0:
             print(

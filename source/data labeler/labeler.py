@@ -33,7 +33,7 @@ def main():
     hands_surface.set_colorkey((0, 0, 0))
 
     myRenderHands = RenderHands(hands_surface, 3) 
-    filename = "fb .csv"
+    filename = "antijump.csv"
     myReader = Reader(filename)
 
     gesture_list = ["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave", "scroll up", "scroll down"]

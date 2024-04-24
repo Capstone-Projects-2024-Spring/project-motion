@@ -18,6 +18,7 @@ from tetris import tetris
 
 import sys
 from os import path, chdir
+
 bundle_dir = path.dirname(path.abspath(sys.argv[0]))
 chdir(bundle_dir)
 
@@ -31,7 +32,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/lstm/minecraft-S10-LSTM-V2.5.pth",
+    "gesture_model_path": "models/lstm/minecraft-S10-LSTM-V2.28.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -39,17 +40,17 @@ flags = {
     "webcam_mode": 1,
     "toggle_mouse_key": "m",
     "min_confidence": 0.0,
-    "gesture_list": [],     
+    "gesture_list": [],
     "mouse_hand_num": 1,
-    "keyboard_hand_num": 0,
+    "keyboard_hand_num": 0, 
     "hand_1_keyboard": None,
     "hand_2_keyboard": None,
     "key_toggle_enabled": False,
-    
 }
 
+
 def main() -> None:
- 
+
     window_width = 800
     window_height = 800
     window = pygame.display.set_mode((window_width, window_height), pygame.RESIZABLE)
@@ -59,10 +60,25 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["none","w","s","space","e","ctrlleft","esc", "none", "none"],
+        bindings=["none", "w", "s", "space", "e", "ctrlleft", "esc", "none", "none"],
         hand_num=0,
     )
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none","none","none","none","shift","none","none","scroll up", "scroll down"], hand_num=1)
+    keyboard2 = Keyboard(
+        threshold=0,
+        flags=flags,
+        bindings=[
+            "none",
+            "none",
+            "none",
+            "none",
+            "shift",
+            "none",
+            "none",
+            "scroll up",
+            "scroll down",
+        ],
+        hand_num=1,
+    )
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
@@ -104,9 +120,9 @@ def game_loop(
             Console.print("Fruit Ninja")
             game = None
         if num == 5:
-            Console.print("Tetris")  
-            game = tetris  
-            
+            Console.print("Tetris")
+            game = tetris
+
     menu = Menu(window_width, window_height, flags, set_game_func=set_game)
 
     event_handler = GestureEventHandler(menu, flags)
@@ -118,7 +134,7 @@ def game_loop(
 
     clock = pygame.time.Clock()
 
-   # tickrate = pygame.display.get_current_refresh_rate()
+    # tickrate = pygame.display.get_current_refresh_rate()
     tickrate = 60
 
     counter = 0
@@ -166,7 +182,7 @@ def print_input_table(counter):
             if keys[i]:
                 keyName = pygame.key.name(i)
                 keyString.append([keyName])
-                
+
         clicked = []
         if clicks[0]:
             clicked.append(["left"])
@@ -174,7 +190,7 @@ def print_input_table(counter):
             clicked.append(["middle"])
         if clicks[2]:
             clicked.append(["right"])
-    
+
         Console.table(["key pressed (pygame)"], keyString, table_number=1)
         Console.table(["mouse (pygame)"], clicked, table_number=2)
         Console.update()

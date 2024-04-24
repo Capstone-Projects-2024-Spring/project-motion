@@ -145,7 +145,7 @@ class GetHands(Thread):
                         confidences, predicted, predicted_confidence = output
                         gestures.append(self.gesture_list[predicted[0]])  # save gesture
                         hand_confidences.append(confidences[0])
-                        Console.table(self.gesture_list, confidences)
+                Console.table(self.gesture_list, hand_confidences)
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
