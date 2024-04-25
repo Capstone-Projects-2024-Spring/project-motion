@@ -13,7 +13,6 @@ green = (50, 200, 50)
 black = (0, 0, 0)
 white = (255, 255, 255)
 
-
 class GameFN:
     """Main game class for Fruit Ninja style game."""
 
@@ -49,11 +48,13 @@ class GameFN:
         self.title_font = pygame.font.SysFont(None, 60)
         self.button_font = pygame.font.SysFont(None, 40)
         self.score_font = pygame.font.SysFont(None, 30)
+        self.countdown_font = pygame.font.SysFont(None, 100)
 
         self.running = True
         self.in_menu = True
         self.game_start = True
         self.game_end = True
+        self.paused = False
 
     def init_objects(self):
         """Propogates the stats dictionary once"""
@@ -140,7 +141,6 @@ class GameFN:
         self.window.blit(quit_text, quit_rect)
 
         pygame.display.update()  # Update the display to show the pause screen
-
         return quit_rect
 
     def display_countdown(self):
@@ -214,6 +214,14 @@ class GameFN:
             "pic": pygame.image.load(item_path),
             "throwing": False,
             "struck": False,
+            "angle": 0,
+            "angular_velocity": random.randint(-10, 10),
+            "aura": {  # Properties here
+                "active": False,
+                "radius": 0,
+                "color": aura_color,  # Use the dynamic color
+                "lifespan": 10  # Before fading away
+            }
         }
         if random.random() < 0.6:
             self.stats[throwable]["throwing"] = False
@@ -244,7 +252,6 @@ class GameFN:
             pygame.display.update()
             self.window.fill(black)  # Clear after each shake
 
-
     def make_physics(self):
         """Handles the physics and interactions of all throwables."""
         for key, value in self.stats.items():
@@ -257,6 +264,15 @@ class GameFN:
                 if value["dy/dt"] < 9.5:
                     value["dy/dt"] += value["time"]
                 value["time"] += 0.005
+                value["angle"] += value["angular_velocity"] * 0.8
+
+                # Rotatation before being struck
+                if not value["struck"]:
+                    value["pic"] = pygame.transform.rotate(pygame.image.load("pics/" + key + ".png"), value["angle"])
+                # Rotatation after being struck
+                elif value["struck"] and key != "bomb":
+                    value["angle"] += random.randint(1,30)
+                    value["pic"] = pygame.transform.rotate(pygame.image.load("pics/cut_" + key + ".png"), value["angle"])
 
                 # Check if throwable is within screen bounds
                 if value["y_pos"] > self.window_width:
@@ -280,30 +296,33 @@ class GameFN:
                 cursor_within_y_bounds = y_min < cursor_pos[1] < y_max
 
                 # Perform the check using simplified conditions
-                if (
-                    not value["struck"]
-                    and cursor_within_x_bounds
-                    and cursor_within_y_bounds
-                ):
+                if (not value["struck"] and cursor_within_x_bounds and cursor_within_y_bounds):
+                    # Activate the aura effect
+                    new_color = self.get_aura_color(key)  # Get new color based on throwable type
+                    value['aura']['color'] = new_color  # Update the color dynamically
+                    value['aura']['active'] = True
+                    value['aura']['radius'] = 0  # Starting radius
+
                     if key != "bomb":  # when fruits are struck
                         self.score += 1
                         cut_path = "pics/cut_" + key + ".png"
                     else:  # when bombs are struck
+                        self.shake_screen()
                         self.strikes += 1
                         if self.strikes >= 3:
                             self.game_end = True
                             self.restart_menu()
                         cut_path = "pics/explode.png"
 
-                    value["pic"] = pygame.image.load(cut_path)
-                    value["dx/dt"] += 5
                     value["struck"] = True
+                    value["pic"] = pygame.image.load(cut_path)
+                    value["dx/dt"] += self.fly_left_or_right(random.random())
 
     def fly_left_or_right(self, halfchance):
         if(halfchance >= 0.5):
-            return 20 # Return 20 to move it right
+            return random.randint(0,8) # Return random movement right
         else:
-            return -20 # Return -20 to move it left
+            return random.randint(-8,0) # Return random movement left
     
     def update_and_draw_auras(self):
         for key, value in self.stats.items():
@@ -324,12 +343,10 @@ class GameFN:
                 else:
                     aura["active"] = False  # Disable aura when lifespan ends
 
-
-    
     def draw_mouse_trail(self):
         """Updates and draws the mouse trail based on cursor movement."""
         self.mouse_trails.append(pygame.mouse.get_pos())  # Append current mouse position
-        if len(self.mouse_trails) > 3:  # Keep only last 3 positions for a smooth trail
+        if len(self.mouse_trails) > 5:  # Keep only last 3 positions for a smooth trail
             self.mouse_trails.pop(0)
 
         if len(self.mouse_trails) > 1:
@@ -384,18 +401,13 @@ class GameFN:
             if not self.in_menu:
                 self.window.blit(self.backdrop, (0, 0))
                 self.render_words(f"Score: {self.score}", 40, 80, 0, green)
-                self.render_strikes(
-                    self.window_width - 130, 4, 3, "pics/emptystrike.png"
-                )
-                self.render_strikes(
-                    self.window_width - 130, 4, self.strikes, "pics/redstrike.png"
-                )
+                self.render_strikes(self.window_width - 130, 4, 3, "pics/emptystrike.png")
+                self.render_strikes(self.window_width - 130, 4, self.strikes, "pics/redstrike.png")
                 self.make_physics()
                 self.draw_mouse_trail()
                 self.update_and_draw_auras()
 
             pygame.display.update()
-
 
 if __name__ == "__main__":
     game = GameFN()
