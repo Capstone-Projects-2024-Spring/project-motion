@@ -24,7 +24,7 @@ hidden_size = 150
 num_epochs = 20
 batch_size = 100
 learning_rate = 0.001
-filename = "training_data/tetris_lstm"
+filename = "onehandasteroids"
 labels_list = None
 
 num_classes = 0
@@ -116,8 +116,8 @@ class NeuralNet(nn.Module):
 
 model = NeuralNet(input_size, hidden_size, num_classes).to(device)
 # Use torchinfo to display the model summary
+#summary(model)
 summary(model)
-
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)

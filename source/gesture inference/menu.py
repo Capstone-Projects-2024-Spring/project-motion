@@ -48,11 +48,11 @@ class Menu:
             self.lockout_mouse(True) 
 
         elif game_id == 2:
-            self.change_hands_num(["2", 2]) 
+            self.change_hands_num(["0", 0]) 
             self.set_mouse_hand(0, 0)
-            self.set_key_1_bindings(0, ["left", "up", "right", "none"]) 
-            self.set_key_2_bindings(4,  ["none", "none", "none", "space"])  
-            self.change_gesture_model_ff([("games.pth",)])
+            self.set_key_1_bindings(0, ["left", "up", "right", "space"] ) 
+            self.set_key_2_bindings(4, ["left", "up", "right", "space"])  
+            self.change_gesture_model_ff([("onehandasteroids.pth",)])
             self.lockout_mouse(True)  
 
         elif game_id == 3:
@@ -131,15 +131,16 @@ class Menu:
         #["fist", "forwards", "backwards", "thumb", "pinky", "peace", "wave"]
         self.gesture_settings.add.dropselect(
             "Hand 1 Key bindings:",
-            [
+            [ 
                 ("Flappybird", ["space", "none", "m", "p"]),
-                ("Brawlhalla", ["left", "right", "up", "down", "none", "none", "none", "none"]),
-                ("Minecraft(L)", ["none", "w", "s", "space", "e", "ctrlleft", "esc"]),
+                 ("Brawlhalla", ["left", "right", "up", "down", "none", "none", "none", "none"]),
+                 ("Minecraft(L)", ["none", "w", "s", "space", "e", "ctrlleft", "esc"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
                 ("Asteroids(L)", ["left", "up", "right", "none"]),
                 ("Tetris", ["none", "left", "right", "up", "down"]),
                 ("None", ["none"]),
             ],
+            
             onchange=self.set_key_1_bindings,
         )
         self.gesture_settings.add.dropselect(
@@ -149,7 +150,7 @@ class Menu:
                 ("Brawlhalla", ["none", "none", "none", "none", "z", "x", "c", "v"]),
                 ("Minecraft(R)", ["none", "none", "none", "none", "shift", "none", "none"]),
                 ("Jumpy", ["left", "none", "right", "space"]),
-                ("Asteroids(R)", ["none", "none", "none", "space"]),
+                ("Asteroids(R)", ["left", "up", "right", "none"]),
                 ("None", ["none"]),
             ],
             onchange=self.set_key_2_bindings,
