@@ -16,6 +16,7 @@ from EventHandler import GestureEventHandler
 from platformerGame import platformer
 from asteroids import asteroids
 from tetris import tetris
+from fruitninja import FNgame
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -101,7 +102,7 @@ def game_loop(
             game = platformer
         if num == 4:
             Console.print("Fruit Ninja")
-            game = None
+            game = FNgame
         if num == 5:
             Console.print("Tetris")  
             game = tetris  

@@ -89,6 +89,7 @@ class Menu:
         self.main_menu.add.button("Asteroids", action=partial(self.configure_game_settings,2))
         self.main_menu.add.button("Platformer", action=partial(self.configure_game_settings,3))
         self.main_menu.add.button("No game", action=partial(self.configure_game_settings,0))
+        self.main_menu.add.button("Fruit Ninja", action=partial(self.configure_game_settings,4))
         self.main_menu.add.button("Tetris", action=partial(self.configure_game_settings,5))
         
         
