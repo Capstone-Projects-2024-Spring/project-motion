@@ -224,8 +224,8 @@ class Mouse(threading.Thread):
         if mouse_button == "middle":
             if not self.middle_down:
                 Console.print(f"clicking mouse {mouse_button}")
-                # pyinput.mouseDown(button=mouse_button)
-                pyinput.scroll(-1)
+                pyinput.mouseDown(button=mouse_button)
+                #pyinput.scroll(-1)
                 self.middle_down = True
 
         if mouse_button == "right":
