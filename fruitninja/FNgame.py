@@ -28,6 +28,8 @@ class GameFN:
         self.window.fill((0, 0, 0))
         self.fps = 60
         self.timer = pygame.time.Clock()
+        self.play_rect = None
+        self.quit_rect = None
 
         self.score = 0
         self.strikes = 0
@@ -242,7 +244,7 @@ class GameFN:
         }
         return colors.get(throwable, (255, 255, 255, 128))
 
-    def shake_screen(self, duration=100, intensity=5):
+    def shake_screen(self, duration=200, intensity=5):
         """Action occurs when bombs are hit"""
         shake_time = pygame.time.get_ticks() + duration
         while pygame.time.get_ticks() < shake_time:
@@ -352,47 +354,51 @@ class GameFN:
         if len(self.mouse_trails) > 1:
             pygame.draw.lines(self.window, (220,220,220), False, self.mouse_trails, 4)
 
-    def run(self):
+    def events(self):
+        """Handles all events from the user and system."""
+        for event in pygame.event.get():  # iterates through all pygame events
+            if event.type == pygame.QUIT:  # closing game window event
+                self.running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if self.in_menu:
+                    # Check if play button clicked
+                    if self.play_rect.collidepoint(mouse_pos):
+                        self.display_countdown()
+                        self.in_menu = False
+
+                    # Check if quit button clicked
+                    elif self.quit_rect.collidepoint(mouse_pos):
+                        pygame.quit()
+                        sys.exit()
+                elif self.paused:
+                    if self.quit_rect:
+                        pygame.quit()
+                        sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    if self.paused:  # If game is already paused, prepare to unpause
+                        self.display_countdown()  # Show countdown before unpausing
+                        self.paused = False  # Unpause after countdown
+                    else:  # If the game is not paused, pause it
+                        self.paused = True
+
+    def tick(self):
         """Main game loop."""
-        quit_rect = None  # To keep track of the quit button rect
         while self.running:
             self.timer.tick(self.fps)  # loops game at specified fps
 
             if self.game_start:  # starting state
-                play_rect, quit_rect = self.main_menu()
+                self.play_rect, self.quit_rect = self.main_menu()
                 self.game_start = False
 
             if self.game_end:  # restart state
                 self.score = 0
                 self.strikes = 0
                 self.game_end = False
-
-            for event in pygame.event.get():  # iterates through all pygame events
-                if event.type == pygame.QUIT:  # closing game window event
-                    self.running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
-                    if self.in_menu:
-                        # Check if play button clicked
-                        if play_rect.collidepoint(mouse_pos):
-                            self.display_countdown()
-                            self.in_menu = False
-
-                        # Check if quit button clicked
-                        elif quit_rect.collidepoint(mouse_pos):
-                            pygame.quit()
-                            sys.exit()
-                    elif self.paused:
-                        if quit_rect:
-                            pygame.quit()
-                            sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        if self.paused:  # If game is already paused, prepare to unpause
-                            self.display_countdown()  # Show countdown before unpausing
-                            self.paused = False  # Unpause after countdown
-                        else:  # If the game is not paused, pause it
-                            self.paused = True
+            
+            # Handle all events
+            self.events()
                             
             if self.paused:
                 self.display_pause_screen()
@@ -411,7 +417,7 @@ class GameFN:
 
 if __name__ == "__main__":
     game = GameFN()
-    game.run()
+    game.tick()
 
 pygame.quit()  # terminates pygame
 sys.exit()  # cleanly stops execution
