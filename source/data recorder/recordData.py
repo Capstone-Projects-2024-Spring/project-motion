@@ -56,7 +56,7 @@ def main() -> None:
 
     flags["gesture_vector"].append(False)
 
-    myWriter = Writer(gesture_list=gesture_list, write_labels=False)
+    myWriter = Writer(gesture_list=gesture_list, write_labels=True)
     # control_mouse=mouse_controls.control,
     hands = RecordHands(
         myRenderHands.render_hands,
