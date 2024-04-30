@@ -17,10 +17,10 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = "test_dataset/minecraft_motion.csv"
-data_filename = "training_data/brawl.csv"
-model_name = "output_model/brawl.pth"
-num_epochs = 5
+test_data_filename = None
+data_filename = "training_data/brawlhalla2.csv"
+model_name = "output_model/brawlhalla2.pth"
+num_epochs = 1
 batch_size = 100
 learning_rate = 0.001
 WEIGHTED_SAMPLE = True

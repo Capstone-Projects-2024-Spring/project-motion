@@ -30,7 +30,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/lstm/brawl.pth",
+    "gesture_model_path": "models/lstm/brawlhalla2.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,
@@ -57,10 +57,11 @@ def main() -> None:
     keyboard = Keyboard(
         threshold=0,
         flags=flags,
-        bindings=["left", "right", "up", "down", "none", "none", "none", "none"],
+        bindings=["none", "left", "right", "up", "down", "none", "none", "none", "none"],
+        # ["fist", "left", "right", "up", "down", "dodge", "heavy", "quick", "throw"]
         hand_num=0,
     ) 
-    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "z", "x", "c", "v"], hand_num=1)
+    keyboard2 = Keyboard(threshold=0, flags=flags, bindings=["none", "none", "none", "none", "none", "z", "x", "c", "v"], hand_num=1)
 
     hands = GetHands(flags=flags)
     flags["hands"] = hands
