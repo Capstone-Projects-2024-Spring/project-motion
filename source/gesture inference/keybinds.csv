@@ -1,5 +1,5 @@
-Brawlhalla(L),left,right,up,down,none,none,none,none
-Brawlhalla(R),none,none,none,none,z,x,c,v
+Brawlhalla(L),none,left,right,up,down,none,none,none,none
+Brawlhalla(R),none,none,none,none,none,z,x,c,v
 Minecraft(L),none,w,s,space,e,ctrlleft,esc
 Minecraft(R),none,none,none,none,shift,none,none
 Asteroids(L),left,up,right,none

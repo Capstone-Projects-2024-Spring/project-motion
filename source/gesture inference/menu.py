@@ -57,12 +57,12 @@ class Menu:
             self.lockout_mouse(False)
 
         elif game_id == 2:
-            self.change_hands_num(["2", 2])
+            self.change_hands_num(["0", 0])
             self.set_mouse_hand(0, 0)
-            self.set_key_1_bindings(0, ["left", "up", "right", "none"])
-            self.set_key_2_bindings(4, ["none", "none", "none", "space"])
-            self.change_gesture_model_ff([("games.pth",)])
-            self.lockout_mouse(True)
+            self.set_key_1_bindings(0, ["left", "up", "right", "space"] ) 
+            self.set_key_2_bindings(4, ["left", "up", "right", "space"])  
+            self.change_gesture_model_ff([("onehandasteroids.pth",)])
+            self.lockout_mouse(True)  
 
         elif game_id == 3:
             self.change_hands_num(["3", 3])
