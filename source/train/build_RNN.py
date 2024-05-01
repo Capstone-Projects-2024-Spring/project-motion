@@ -14,13 +14,14 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = "training_data/tetris_lstm.csv"
-data_filename = "training_data/tetris_lstm.csv"
-model_name = "output_model/tetris.pth"
-num_epochs = 5
+test_data_filename = "training_data/wave-test.csv"
+data_filename = "training_data/wave-test.csv"
+model_name = "output_model/wave-lstm.pth"
+graph_title = "wave LSTM"
+num_epochs = 15
 batch_size = 100
 learning_rate = 0.001
-WEIGHTED_SAMPLE = True
+WEIGHTED_SAMPLE = False
 ROTATE_DATA_SET = False
 ROTATE_DEGREES = 15
 ANIMATE = False
@@ -42,7 +43,7 @@ if device.type == "cuda":
 # Hyper-parameters
 input_size = 65
 hidden_size = 50
-sequence_length = 7
+sequence_length = 10
 num_layers = 2  # number of stacked lstm layers
 
 num_classes = 0
@@ -67,14 +68,6 @@ print("dataset built")
     print("{:<15}".format(true_labels[index]) + f"count:{count}")
     for index, count in enumerate(dataset.label_counts)
 ]
-try:
-    train_dataset, test_dataset = random_split(
-        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
-    )
-except:
-    train_dataset, test_dataset = random_split(
-        dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
-    )
 
 if WEIGHTED_SAMPLE:
     
@@ -84,8 +77,24 @@ if WEIGHTED_SAMPLE:
     train_loader = DataLoader(
         dataset=dataset, batch_size=batch_size, sampler=sampler
     )
-    test_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
+    test_dataset = HandDataset(
+        data_filename,
+        num_classes,
+        sequence_length,
+        input_size,
+        rotate=False,
+        degrees=ROTATE_DEGREES,
+    )
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 else:
+    try:
+        train_dataset, test_dataset = random_split(
+            dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2)]
+        )
+    except:
+        train_dataset, test_dataset = random_split(
+            dataset, [int(dataset.__len__() * 0.8), int(dataset.__len__() * 0.2) + 1]
+        )
     train_loader = DataLoader(
         dataset=train_dataset, batch_size=batch_size, shuffle=True
     )
@@ -161,6 +170,9 @@ for epoch in range(num_epochs):
         # perform backprop and update weights
         loss.backward()
         optimizer.step()
+        
+        # if ROTATE_DATA_SET and i > n_total_steps/2:
+        #     break
 
         if (i + 1) % 100 == 0:
             print(
@@ -184,5 +196,5 @@ torch.save(
 print(f"model saved as {model_name}")
 
 import test_model
-
-test_model.test(test_loader, device, lstm, true_labels)
+print("testing...")
+test_model.test(test_loader, device, lstm, true_labels, graph_title=graph_title)

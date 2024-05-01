@@ -1,12 +1,11 @@
-import sys
-
-if sys.platform == "win32":
+from sys import platform
+if platform == 'win32':
     import pydirectinput as pyinput
 else:
     import pyautogui as pyinput
 import time
 import Console
-import numpy as np
+from numpy import max, argmax
 import threading
 
 class Keyboard(threading.Thread):
@@ -68,8 +67,8 @@ class Keyboard(threading.Thread):
         self.key_pressed = [("none", 0.0), ("none", 0.0), ("none", 0.0)]
 
     def gesture_input(self, confidences):
-        max_value = np.max(confidences)
-        max_index = np.argmax(confidences).item()
+        max_value = max(confidences)
+        max_index = argmax(confidences).item()
 
         if max_index < len(self.bindings):
             if max_value > self.flags["min_confidence"]:
@@ -81,6 +80,18 @@ class Keyboard(threading.Thread):
         # do nothing with repeated inputs
         if self.last_key == key:
             return
+        
+        if key == "scroll up":
+            self.last_key = key
+            Console.print("scrolling up")
+            pyinput.scroll(1)
+            return
+        elif key == "scroll down":
+            self.last_key = key
+            Console.print("scrolling down")
+            pyinput.scroll(-1)
+            return
+        
         """
             up up up     |  release and press
             up up down   |  release

@@ -4,9 +4,6 @@ import os
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
-import pygame.surface
-
-
 class Enemy(pygame.sprite.Sprite):
 	def __init__(self, SCREEN_WIDTH, y, sprite_sheet, scale):
 		pygame.sprite.Sprite.__init__(self)

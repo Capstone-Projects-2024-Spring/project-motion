@@ -1,6 +1,6 @@
 import torch.nn as nn
-import torch
-import numpy as np
+from torch import load, device, cuda, zeros, from_numpy, max
+from numpy import asarray
 
 # from Console import GestureConsole
 
@@ -10,10 +10,10 @@ class LSTM(nn.Module):
     def __init__(self, modelName, force_cpu=False):
         # Device configuration
         if force_cpu:
-            self.device = torch.device("cpu")
+            self.device = device("cpu")
         else:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model, data = torch.load(modelName, map_location=self.device)
+            self.device = device("cuda" if cuda.is_available() else "cpu")
+        model, data = load(modelName, map_location=self.device)
 
         # model hyperparameters, saved in the model file with its statedict from my train program
         # [input_size, hidden_size, num_classes, sequence_length, num_layers, true_labels]
@@ -26,8 +26,8 @@ class LSTM(nn.Module):
         self.confidence_vector = []
         self.input_size = input_size
         self.last_origin = [(0, 0)]
-        # self.console = GestureConsole()
-        # self.console.print(self.device)
+
+
 
         super(LSTM, self).__init__()
         self.num_classes = num_classes  # output size
@@ -35,9 +35,9 @@ class LSTM(nn.Module):
         self.input_size = input_size  # input size
         self.hidden_size = hidden_size  # neurons in each lstm layer
         # hidden state
-        self.h_0 = torch.zeros(self.num_layers, 1, self.hidden_size)  # .to(self.device)
+        self.h_0 = zeros(self.num_layers, 1, self.hidden_size)  # .to(self.device)
         # cell state
-        self.c_0 = torch.zeros(self.num_layers, 1, self.hidden_size)  # .to(self.device)
+        self.c_0 = zeros(self.num_layers, 1, self.hidden_size)  # .to(self.device)
 
         # LSTM model
         self.lstm = nn.LSTM(
@@ -83,14 +83,14 @@ class LSTM(nn.Module):
             # print(f"input too long len(model_input): {len(model_input)}")
             return None
 
-        hands = torch.from_numpy(np.asarray([model_input], dtype="float32"))
+        hands = from_numpy(asarray([model_input], dtype="float32"))
 
         outputs = self(hands.to(self.device))
-        probs = torch.nn.functional.softmax(outputs.data, dim=1)
+        probs = nn.functional.softmax(outputs.data, dim=1)
 
         self.confidence_vector = probs
 
-        confidence, classes = torch.max(probs, 1)
+        confidence, classes = max(probs, 1)
         return probs.tolist(), classes, confidence.tolist()
 
     def gesture_input(self, result, velocity):

@@ -1,0 +1,17 @@
+matplotlib==3.8.4
+mediapipe==0.10.9
+numpy==1.26.4
+opencv_contrib_python==4.9.0.80
+opencv_python==4.9.0.80
+pandas==2.2.2
+PyAutoGUI==0.9.54
+pydirectinput_rgx==2.1.1
+pygame==2.5.2
+pygame_ce==2.4.1
+pygame_menu==4.4.3
+rich==13.7.1
+scikit_learn==1.4.2
+seaborn==0.13.2
+torch==2.2.0+cu121
+torch_summary==1.4.5
+torchsummary==1.5.1

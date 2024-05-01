@@ -4,14 +4,14 @@ from rich.layout import Layout
 from rich.console import Console
 from rich.panel import Panel
 from rich.columns import Columns
-import os
+from os import devnull
 from typing import Callable, Union
 import threading
 
 # https://stackoverflow.com/questions/71077706/redirect-print-and-or-logging-to-panel
 class ConsolePanel(Console):
     def __init__(self, *args, **kwargs):
-        console_file = open(os.devnull, "w")
+        console_file = open(devnull, "w")
         super().__init__(record=True, file=console_file, *args, **kwargs)
 
     def __rich_console__(self, console, options):
