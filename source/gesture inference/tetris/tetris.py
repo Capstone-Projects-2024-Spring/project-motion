@@ -19,13 +19,14 @@ COLUMNS = 10
 ROWS = 20
 CELL_SIZE = 25
 GAME_WIDTH, GAME_HEIGHT = COLUMNS * CELL_SIZE, ROWS * CELL_SIZE
-# GAME_WIDTH = 800
+#GAME_WIDTH = 800
 # GAME_HEIGHT = 800
 SIDEBAR_WIDTH = 200
 PREVIEW_HEIGHT_FRACTION = 0.7
 SCORE_HEIGHT_FRACTION = 1 - PREVIEW_HEIGHT_FRACTION
 PADDING = 30
 WINDOW_WIDTH = GAME_WIDTH + SIDEBAR_WIDTH + PADDING * 3
+WINDOW_WIDTH = 800
 WINDOW_HEIGHT = GAME_HEIGHT + PADDING * 2
 UPDATE_START_SPEED = 200
 MOVE_WAIT_TIME = 200
@@ -60,7 +61,7 @@ class TetrisGame:
 
         self.surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self.display_surface = display_surface
-        self.rect = self.surface.get_rect(topleft = (PADDING, PADDING))
+        self.rect = self.surface.get_rect(topleft = (PADDING*4, PADDING)) # HERE
         self.sprites = pygame.sprite.Group()
 
         self.get_next_shape = get_next_shape
@@ -210,7 +211,7 @@ class TetrisGame:
         self.sprites.draw(self.surface)
 
         self.draw_grid()
-        self.display_surface.blit(self.surface, (PADDING,PADDING))
+        self.display_surface.blit(self.surface, (PADDING*4,PADDING))
         pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)
 
 class Tetromino:
@@ -308,7 +309,7 @@ class Block(pygame.sprite.Sprite):
 class Score:
     def __init__(self):
         self.surface = pygame.Surface((SIDEBAR_WIDTH,GAME_HEIGHT * SCORE_HEIGHT_FRACTION - PADDING))
-        self.rect = self.surface.get_rect(bottomright = (WINDOW_WIDTH - PADDING,WINDOW_HEIGHT - PADDING))
+        self.rect = self.surface.get_rect(bottomright = (WINDOW_WIDTH - PADDING*4,WINDOW_HEIGHT - PADDING))
         self.display_surface = pygame.display.get_surface()
         self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
         self.increment_height = self.surface.get_height() / 3
@@ -339,7 +340,7 @@ class Preview:
 
         self.display_surface = pygame.display.get_surface()
         self.surface = pygame.Surface((SIDEBAR_WIDTH, GAME_HEIGHT * PREVIEW_HEIGHT_FRACTION))
-        self.rect = self.surface.get_rect(topright = (WINDOW_WIDTH - PADDING,PADDING))
+        self.rect = self.surface.get_rect(topright = (WINDOW_WIDTH - PADDING*4,PADDING))
 
         # shapes
         self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
