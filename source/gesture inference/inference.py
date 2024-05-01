@@ -115,7 +115,7 @@ def game_loop(
             game = platformer
         if num == 4:
             Console.print("Fruit Ninja")
-            game = FNgame
+            game = FNgame.GameFN()
         if num == 5:
             Console.print("Tetris")
             game = tetris

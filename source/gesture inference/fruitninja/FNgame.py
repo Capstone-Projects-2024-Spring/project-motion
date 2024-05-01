@@ -13,6 +13,7 @@ green = (50, 200, 50)
 black = (0, 0, 0)
 white = (255, 255, 255)
 
+
 class GameFN:
     """Main game class for Fruit Ninja style game."""
 
@@ -22,9 +23,10 @@ class GameFN:
         pygame.init()
         self.window_width = 800
         self.window_height = 600
-        self.window = pygame.display.set_mode((self.window_width, self.window_height))
+        self.window = pygame.Surface((self.window_width, self.window_height))
+        self.surface = self.window
         pygame.display.set_caption("Fruit Ninja")
-        self.backdrop = pygame.image.load("pics/backdrop.png").convert()
+        self.backdrop = pygame.image.load("fruitninja/pics/backdrop.png").convert()
         self.window.fill((0, 0, 0))
         self.fps = 60
         self.timer = pygame.time.Clock()
@@ -91,12 +93,14 @@ class GameFN:
         self.window.blit(quit_text, quit_rect)
 
         # Draws the pause instruction
-        pause_instruction_text = self.score_font.render("Press 'P' to pause the game", True, white)
-        pause_instruction_rect = pause_instruction_text.get_rect(center=(self.window_width/2, self.window_height * 0.85))
+        pause_instruction_text = self.score_font.render(
+            "Press 'P' to pause the game", True, white
+        )
+        pause_instruction_rect = pause_instruction_text.get_rect(
+            center=(self.window_width / 2, self.window_height * 0.85)
+        )
         self.window.blit(pause_instruction_text, pause_instruction_rect)
 
-        # Updates display
-        pygame.display.flip()
         return play_rect, quit_rect
 
     def restart_menu(self):
@@ -119,7 +123,6 @@ class GameFN:
             self.window_height * 3 / 4,
             white,
         )
-        pygame.display.flip()
 
         choosing = True
         while choosing:  # loops until player chooses an event
@@ -128,17 +131,21 @@ class GameFN:
                     choosing = False
                 if event.type == pygame.QUIT:  # quit event
                     pygame.quit()
-    
+
     def display_pause_screen(self):
         """Displays the pause screen with options to resume or quit."""
         # Display the pause message
         pause_text = self.title_font.render("Paused", True, white)
-        pause_rect = pause_text.get_rect(center=(self.window_width / 2, self.window_height / 3 + 70))
+        pause_rect = pause_text.get_rect(
+            center=(self.window_width / 2, self.window_height / 3 + 70)
+        )
         self.window.blit(pause_text, pause_rect)
 
         # Display a quit option
         quit_text = self.button_font.render("Quit Game", True, white)
-        quit_rect = quit_text.get_rect(center=(self.window_width / 2, self.window_height / 1.5))
+        quit_rect = quit_text.get_rect(
+            center=(self.window_width / 2, self.window_height / 1.5)
+        )
         pygame.draw.rect(self.window, white, quit_rect.inflate(20, 10), 2)
         self.window.blit(quit_text, quit_rect)
 
@@ -148,7 +155,16 @@ class GameFN:
     def display_countdown(self):
         """Displays a countdown from 3 to 1 on the screen with a white border around the numbers."""
         background_snapshot = self.window.copy()  # Take snapshot of current game screen
-        offsets = [(-2, -2), (-2, 2), (2, -2), (2, 2), (-1, 0), (1, 0), (0, -1), (0, 1)]  # Offsets for the border effect
+        offsets = [
+            (-2, -2),
+            (-2, 2),
+            (2, -2),
+            (2, 2),
+            (-1, 0),
+            (1, 0),
+            (0, -1),
+            (0, 1),
+        ]  # Offsets for the border effect
 
         for number in range(3, 0, -1):
             # Restore the snapshot each time to clear the previous number
@@ -157,13 +173,18 @@ class GameFN:
             # Render countdown number with border
             text = str(number)
             font_color = (100, 100, 100)  # Dark gray
-            border_color = white 
+            border_color = white
             countdown_text = self.countdown_font.render(text, True, border_color)
-            countdown_rect = countdown_text.get_rect(center=(self.window_width / 2, self.window_height / 3 + 20))
+            countdown_rect = countdown_text.get_rect(
+                center=(self.window_width / 2, self.window_height / 3 + 20)
+            )
 
             # Draw border
             for offset in offsets:
-                border_position = (countdown_rect.x + offset[0], countdown_rect.y + offset[1])
+                border_position = (
+                    countdown_rect.x + offset[0],
+                    countdown_rect.y + offset[1],
+                )
                 self.window.blit(countdown_text, border_position)
 
             # Draw main text over the border
@@ -172,7 +193,6 @@ class GameFN:
 
             pygame.display.update()
             pygame.time.wait(800)  # Pause interval timing
-
 
     def render_words(self, input, size, x, y, color):
         """Helper function to render text on the screen."""
@@ -202,7 +222,7 @@ class GameFN:
 
     def make_throwables(self, throwable):
         """Creates and randomizes components of each throwable object."""
-        item_path = "pics/" + throwable + ".png"
+        item_path = "fruitninja/pics/" + throwable + ".png"
         # Set a default color, can customize per fruit type
         aura_color = self.get_aura_color(throwable)
         # for key:value pairs in the stats dictonary (2D), the keys are throwables
@@ -222,14 +242,14 @@ class GameFN:
                 "active": False,
                 "radius": 0,
                 "color": aura_color,  # Use the dynamic color
-                "lifespan": 10  # Before fading away
-            }
+                "lifespan": 10,  # Before fading away
+            },
         }
         if random.random() < 0.6:
             self.stats[throwable]["throwing"] = False
         else:
             self.stats[throwable]["throwing"] = True
-    
+
     def get_aura_color(self, throwable):
         """Returns an RGBA color based on the type of throwable."""
         colors = {
@@ -240,7 +260,7 @@ class GameFN:
             "greenapple": (0, 255, 0, 128),
             "coconut": (255, 255, 255, 128),
             "banana": (255, 255, 0, 128),
-            "bomb": (128, 128, 128, 128)  # Gray for bombs
+            "bomb": (128, 128, 128, 128),  # Gray for bombs
         }
         return colors.get(throwable, (255, 255, 255, 128))
 
@@ -248,9 +268,18 @@ class GameFN:
         """Action occurs when bombs are hit"""
         shake_time = pygame.time.get_ticks() + duration
         while pygame.time.get_ticks() < shake_time:
-            random_offset = (random.randint(-intensity, intensity), random.randint(-intensity, intensity))
+            random_offset = (
+                random.randint(-intensity, intensity),
+                random.randint(-intensity, intensity),
+            )
             for key, value in self.stats.items():
-                self.window.blit(value["pic"], (value["x_pos"] + random_offset[0], value["y_pos"] + random_offset[1]))
+                self.window.blit(
+                    value["pic"],
+                    (
+                        value["x_pos"] + random_offset[0],
+                        value["y_pos"] + random_offset[1],
+                    ),
+                )
             pygame.display.update()
             self.window.fill(black)  # Clear after each shake
 
@@ -270,11 +299,15 @@ class GameFN:
 
                 # Rotatation before being struck
                 if not value["struck"]:
-                    value["pic"] = pygame.transform.rotate(pygame.image.load("pics/" + key + ".png"), value["angle"])
+                    value["pic"] = pygame.transform.rotate(
+                        pygame.image.load("fruitninja/pics/" + key + ".png"), value["angle"]
+                    )
                 # Rotatation after being struck
                 elif value["struck"] and key != "bomb":
-                    value["angle"] += random.randint(1,30)
-                    value["pic"] = pygame.transform.rotate(pygame.image.load("pics/cut_" + key + ".png"), value["angle"])
+                    value["angle"] += random.randint(1, 30)
+                    value["pic"] = pygame.transform.rotate(
+                        pygame.image.load("fruitninja/pics/cut_" + key + ".png"), value["angle"]
+                    )
 
                 # Check if throwable is within screen bounds
                 if value["y_pos"] > self.window_width:
@@ -298,34 +331,40 @@ class GameFN:
                 cursor_within_y_bounds = y_min < cursor_pos[1] < y_max
 
                 # Perform the check using simplified conditions
-                if (not value["struck"] and cursor_within_x_bounds and cursor_within_y_bounds):
+                if (
+                    not value["struck"]
+                    and cursor_within_x_bounds
+                    and cursor_within_y_bounds
+                ):
                     # Activate the aura effect
-                    new_color = self.get_aura_color(key)  # Get new color based on throwable type
-                    value['aura']['color'] = new_color  # Update the color dynamically
-                    value['aura']['active'] = True
-                    value['aura']['radius'] = 0  # Starting radius
+                    new_color = self.get_aura_color(
+                        key
+                    )  # Get new color based on throwable type
+                    value["aura"]["color"] = new_color  # Update the color dynamically
+                    value["aura"]["active"] = True
+                    value["aura"]["radius"] = 0  # Starting radius
 
                     if key != "bomb":  # when fruits are struck
                         self.score += 1
-                        cut_path = "pics/cut_" + key + ".png"
+                        cut_path = "fruitninja/pics/cut_" + key + ".png"
                     else:  # when bombs are struck
                         self.shake_screen()
                         self.strikes += 1
                         if self.strikes >= 3:
                             self.game_end = True
                             self.restart_menu()
-                        cut_path = "pics/explode.png"
+                        cut_path = "fruitninja/pics/explode.png"
 
                     value["struck"] = True
                     value["pic"] = pygame.image.load(cut_path)
                     value["dx/dt"] += self.fly_left_or_right(random.random())
 
     def fly_left_or_right(self, halfchance):
-        if(halfchance >= 0.5):
-            return random.randint(0,8) # Return random movement right
+        if halfchance >= 0.5:
+            return random.randint(0, 8)  # Return random movement right
         else:
-            return random.randint(-8,0) # Return random movement left
-    
+            return random.randint(-8, 0)  # Return random movement left
+
     def update_and_draw_auras(self):
         for key, value in self.stats.items():
             aura = value["aura"]
@@ -333,13 +372,20 @@ class GameFN:
                 # Increase the radius for expansion effect
                 aura["radius"] += 7
                 aura["lifespan"] -= 1
-                
+
                 # Only draw if there's remaining lifespan
                 if aura["lifespan"] > 0:
                     # Create a temporary surface with per-pixel alpha
-                    temp_surface = pygame.Surface((aura["radius"] * 2, aura["radius"] * 2), pygame.SRCALPHA)
-                    pygame.draw.circle(temp_surface, aura["color"], (aura["radius"], aura["radius"]), aura["radius"])
-                    
+                    temp_surface = pygame.Surface(
+                        (aura["radius"] * 2, aura["radius"] * 2), pygame.SRCALPHA
+                    )
+                    pygame.draw.circle(
+                        temp_surface,
+                        aura["color"],
+                        (aura["radius"], aura["radius"]),
+                        aura["radius"],
+                    )
+
                     # Blit the temp surface to the window at the correct position
                     self.window.blit(temp_surface, (value["x_pos"], value["y_pos"]))
                 else:
@@ -347,16 +393,18 @@ class GameFN:
 
     def draw_mouse_trail(self):
         """Updates and draws the mouse trail based on cursor movement."""
-        self.mouse_trails.append(pygame.mouse.get_pos())  # Append current mouse position
+        self.mouse_trails.append(
+            pygame.mouse.get_pos()
+        )  # Append current mouse position
         if len(self.mouse_trails) > 5:  # Keep only last 3 positions for a smooth trail
             self.mouse_trails.pop(0)
 
         if len(self.mouse_trails) > 1:
-            pygame.draw.lines(self.window, (220,220,220), False, self.mouse_trails, 4)
+            pygame.draw.lines(self.window, (220, 220, 220), False, self.mouse_trails, 4)
 
-    def events(self):
+    def events(self, events):
         """Handles all events from the user and system."""
-        for event in pygame.event.get():  # iterates through all pygame events
+        for event in events:  # iterates through all pygame events
             if event.type == pygame.QUIT:  # closing game window event
                 self.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -369,12 +417,10 @@ class GameFN:
 
                     # Check if quit button clicked
                     elif self.quit_rect.collidepoint(mouse_pos):
-                        pygame.quit()
-                        sys.exit()
+                        ...
                 elif self.paused:
                     if self.quit_rect:
-                        pygame.quit()
-                        sys.exit()
+                        ...
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
                     if self.paused:  # If game is already paused, prepare to unpause
@@ -384,40 +430,28 @@ class GameFN:
                         self.paused = True
 
     def tick(self):
-        """Main game loop."""
-        while self.running:
-            self.timer.tick(self.fps)  # loops game at specified fps
+        if self.game_start:  # starting state
+            self.play_rect, self.quit_rect = self.main_menu()
+            self.game_start = False
 
-            if self.game_start:  # starting state
-                self.play_rect, self.quit_rect = self.main_menu()
-                self.game_start = False
+        if self.game_end:  # restart state
+            self.score = 0
+            self.strikes = 0
+            self.game_end = False
 
-            if self.game_end:  # restart state
-                self.score = 0
-                self.strikes = 0
-                self.game_end = False
-            
-            # Handle all events
-            self.events()
-                            
-            if self.paused:
-                self.display_pause_screen()
-                continue  # Skip the rest of the loop
+        if self.paused:
+            self.display_pause_screen()
+            return  # Skip the rest of the loop
 
-            if not self.in_menu:
-                self.window.blit(self.backdrop, (0, 0))
-                self.render_words(f"Score: {self.score}", 40, 80, 0, green)
-                self.render_strikes(self.window_width - 130, 4, 3, "pics/emptystrike.png")
-                self.render_strikes(self.window_width - 130, 4, self.strikes, "pics/redstrike.png")
-                self.make_physics()
-                self.draw_mouse_trail()
-                self.update_and_draw_auras()
-
-            pygame.display.update()
-
-if __name__ == "__main__":
-    game = GameFN()
-    game.tick()
-
-pygame.quit()  # terminates pygame
-sys.exit()  # cleanly stops execution
+        if not self.in_menu:
+            self.window.blit(self.backdrop, (0, 0))
+            self.render_words(f"Score: {self.score}", 40, 80, 0, green)
+            self.render_strikes(
+                self.window_width - 130, 4, 3, "fruitninja/pics/emptystrike.png"
+            )
+            self.render_strikes(
+                self.window_width - 130, 4, self.strikes, "fruitninja/pics/redstrike.png"
+            )
+            self.make_physics()
+            self.draw_mouse_trail()
+            self.update_and_draw_auras()
