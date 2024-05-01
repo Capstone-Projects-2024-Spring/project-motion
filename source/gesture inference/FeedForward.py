@@ -1,18 +1,18 @@
 import torch.nn as nn
-import torch
+from torch import load, cuda, device, zeros, from_numpy, max
 import numpy as np
-#from Console import GestureConsole
+import Console
 
 
 class FeedForward(nn.Module):
 
-    def __init__(self, modelName, force_cpu=False):
+    def __init__(self, modelName, force_cpu=True):
         # Device configuration
         if force_cpu:
-            self.device = torch.device("cpu")
+            self.device = device("cpu")
         else:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model, data = torch.load(modelName, map_location=self.device)
+            self.device = device("cuda" if cuda.is_available() else "cpu")
+        model, data = load(modelName, map_location=self.device)
 
         # model hyperparameters, saved in the model file with its statedict from my train program
         input_size = data[0]
@@ -22,9 +22,6 @@ class FeedForward(nn.Module):
         self.confidence_vector = []
         self.input_size = input_size
         self.last_origin = [(0, 0)]
-
-        # self.console = GestureConsole()
-        # self.console.print(device)
 
         # model definition
         super(FeedForward, self).__init__()
@@ -55,16 +52,16 @@ class FeedForward(nn.Module):
 
             Two hand input shape should be (2, 65)
         """
-        hands = torch.from_numpy(np.asarray(model_input, dtype="float32"))
+        hands = from_numpy(np.asarray(model_input, dtype="float32"))
         outputs = self(hands.to(self.device))
-        probs = torch.nn.functional.softmax(outputs.data, dim=1)
+        probs = nn.functional.softmax(outputs.data, dim=1)
 
         self.confidence_vector = probs
 
         # print table
         #self.console.table(self.labels, probs.tolist())
 
-        confidence, classes = torch.max(probs, 1)
+        confidence, classes = max(probs, 1)
         return probs.tolist(), classes, confidence.tolist()
     
 

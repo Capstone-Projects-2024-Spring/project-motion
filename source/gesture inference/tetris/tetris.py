@@ -1,18 +1,15 @@
 #https://github.com/clear-code-projects/pygame_tetris 
 
 from sys import exit
-from os.path import join
 from random import choice
 from pygame.time import get_ticks
 from pygame.image import load
-from os import path
-import os
 import pygame 
 
+import os
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
-
 
 # Variables
 COLUMNS = 10
@@ -95,7 +92,7 @@ class TetrisGame:
         self.current_lines = 0
 
         # sound 
-        self.landing_sound = pygame.mixer.Sound(join(dname,'sound','landing.wav'))
+        self.landing_sound = pygame.mixer.Sound(os.path.join(dname,'sound','landing.wav'))
         self.landing_sound.set_volume(0.01)
 
     def calculate_score(self, num_lines):
@@ -310,7 +307,7 @@ class Score:
         self.surface = pygame.Surface((SIDEBAR_WIDTH,GAME_HEIGHT * SCORE_HEIGHT_FRACTION - PADDING))
         self.rect = self.surface.get_rect(bottomright = (WINDOW_WIDTH - PADDING,WINDOW_HEIGHT - PADDING))
         self.display_surface = pygame.display.get_surface()
-        self.font = pygame.font.Font(join(dname,'graphics','Russo_One.ttf'), 30)
+        self.font = pygame.font.Font(os.path.join(dname,'graphics','Russo_One.ttf'), 30)
         self.increment_height = self.surface.get_height() / 3
 
         self.score = 0
@@ -342,7 +339,7 @@ class Preview:
         self.rect = self.surface.get_rect(topright = (WINDOW_WIDTH - PADDING,PADDING))
 
         # shapes
-        self.shape_surfaces = {shape:load(path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
+        self.shape_surfaces = {shape:load(os.path.join(dname,'graphics',f'{shape}.png')).convert_alpha() for shape in SHAPES.keys()}
 
         # image position data
         self.increment_height = self.surface.get_height() / 3

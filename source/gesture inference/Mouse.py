@@ -1,11 +1,10 @@
-import sys
-if sys.platform == 'win32':
+from sys import platform
+if platform == 'win32':
     import pydirectinput as pyinput
 else:
     import pyautogui as pyinput
-import time
 import Console
-import math
+from math import sqrt
 import threading
 
 
@@ -149,7 +148,7 @@ class Mouse(threading.Thread):
 
         # Check if the movement is smaller than the specified radius
         last_x, last_y = pyinput.position()
-        distance = math.sqrt((x - last_x) ** 2 + (y - last_y) ** 2)
+        distance = sqrt((x - last_x) ** 2 + (y - last_y) ** 2)
 
         # Specify the radius distance
         ignore_small_movement = distance <= self.deadzone
@@ -171,7 +170,7 @@ class Mouse(threading.Thread):
                 self.move(x, y)
 
     def is_clicking(self, tip1, tip2, click_sensitinity):
-        distance = math.sqrt(
+        distance = sqrt(
             (tip1.x - tip2.x) ** 2 + (tip1.y - tip2.y) ** 2 + (tip1.z - tip2.z) ** 2
         )
         if distance < click_sensitinity:
@@ -201,7 +200,7 @@ class Mouse(threading.Thread):
             scaled_y = int(y_diff_abs**self.acceleration_factor) * (
                 1 if y_diff >= 0 else -1
             )
-            if sys.platform == 'win32':
+            if platform == 'win32':
                 pyinput.moveRel(scaled_x, scaled_y, relative=True)
             else:
                 pyinput.moveRel(scaled_x, scaled_y)
@@ -225,8 +224,8 @@ class Mouse(threading.Thread):
         if mouse_button == "middle":
             if not self.middle_down:
                 Console.print(f"clicking mouse {mouse_button}")
-                # pyinput.mouseDown(button=mouse_button)
-                pyinput.scroll(-1)
+                pyinput.mouseDown(button=mouse_button)
+                #pyinput.scroll(-1)
                 self.middle_down = True
 
         if mouse_button == "right":

@@ -2,27 +2,29 @@
 
 from threading import Thread
 import mediapipe as mp
-import time
+from time import time
 from FeedForward import FeedForward
 import traceback
 import Console
 from Webcam import Webcam
-import os
 from LSTM import LSTM
+import threading
+from copy import copy
 
+lock = threading.Lock()
+
+import os
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
-
 class GetHands(Thread):
     """
     Class that continuously gets frames and extracts hand data
     with a dedicated thread and Mediapipe
     """
-
     def __init__(
         self,
-        mediapipe_model="models/hand_landmarker.task",
+        mediapipe_model="hand_landmarker.task",
         flags=None,
     ):
         Thread.__init__(self, daemon=True)
@@ -34,11 +36,12 @@ class GetHands(Thread):
 
         self.camera = Webcam()
         self.camera.start(self.camera.working_ports[0])
-        if "models/feedforward/" in flags["gesture_model_path"]:
+        if "feedforward" in flags["gesture_model_path"]:
             self.set_gesture_model_FF(flags["gesture_model_path"])
-        elif "models/lstm/" in flags["gesture_model_path"]:
+        elif "lstm" in flags["gesture_model_path"]:
             self.set_gesture_model_LSTM(flags["gesture_model_path"])
         else:
+            print("path: %s", flags["gesture_model_path"])
             raise Exception("invalid model file path")
             
         self.hand_sequences = [[],[],[],[]]
@@ -48,7 +51,7 @@ class GetHands(Thread):
         self.flags["gesture_list"] = self.gesture_list
         self.gestures = ["no gesture"]
         self.delay = 0
-        self.result = None
+        self.result = []
 
         self.click = ""
         self.location = []
@@ -62,10 +65,12 @@ class GetHands(Thread):
         self.build_mediapipe_model(flags["number_of_hands"])
 
     def set_gesture_model_FF(self, path):
-        self.gesture_model = FeedForward(path)
+        self.gesture_model = FeedForward(path, force_cpu=True)
+        Console.print(self.gesture_model.device)
         
     def set_gesture_model_LSTM(self, path):
         self.gesture_model = LSTM(path)
+        Console.print(self.gesture_model.device)
 
     def build_mediapipe_model(self, hands_num):
         """Takes in option parameters for the Mediapipe hands model
@@ -90,6 +95,10 @@ class GetHands(Thread):
 
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
+        
+    def get_results(self):
+        with lock:
+            return copy(self.result)
 
     def results_callback(
         self,
@@ -97,8 +106,7 @@ class GetHands(Thread):
         output_image: mp.Image,
         timestamp_ms: int,
     ):
-        # this try catch block is for debugging. this code runs in a different thread and doesn't automatically raise its own exceptions
-        try:
+        with lock:
             self.location = []
             self.click = ""
             self.velocity = []
@@ -137,20 +145,16 @@ class GetHands(Thread):
                         confidences, predicted, predicted_confidence = output
                         gestures.append(self.gesture_list[predicted[0]])  # save gesture
                         hand_confidences.append(confidences[0])
-                        Console.table(self.gesture_list, confidences)
+                Console.table(self.gesture_list, hand_confidences)
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
                 
             # timestamps are in microseconds so convert to ms
 
-            current_time = time.time()
+            current_time = time()
             self.delay = (current_time - self.timer) * 1000
             self.timer = current_time
-
-        except Exception as e:
-            traceback.print_exc()
-            quit()
 
     def run(self):
         """Continuously grabs new frames from the webcam and uses Mediapipe to detect hands"""
@@ -175,7 +179,7 @@ class GetHands(Thread):
         """
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
         self.hands_detector.detect_async(
-            mp_image, mp.Timestamp.from_seconds(time.time()).value
+            mp_image, mp.Timestamp.from_seconds(time()).value
         )
 
     def stop(self):
