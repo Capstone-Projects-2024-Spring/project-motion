@@ -1,7 +1,3 @@
-# https://developers.google.com/mediapipe/framework/getting_started/gpu_support
-# https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
-# https://pygame-menu.readthedocs.io/en/latest/_source/add_widgets.html
-
 # pygame-ce
 import pygame
 from GetHands import GetHands
@@ -32,7 +28,7 @@ flags = {
     "number_of_hands": 2,
     "move_mouse_flag": False,
     "run_model_flag": True,
-    "gesture_model_path": "models/lstm/minecraftV2.pth",
+    "gesture_model_path": "models/lstm/minecraft.pth",
     "click_sense": 0.05,
     "hands": None,
     "running": True,

@@ -14,15 +14,15 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-test_data_filename = "training_data/minecraft.csv"
-data_filename = "training_data/minecraft.csv"
-model_name = "output_model/minecraft-S10-LSTM-V2.4.pth"
-graph_title = "Minecraft LSTM-V2.4"
-num_epochs = 1
+test_data_filename = "training_data/wave-test.csv"
+data_filename = "training_data/wave-test.csv"
+model_name = "output_model/wave-lstm.pth"
+graph_title = "wave LSTM"
+num_epochs = 15
 batch_size = 100
 learning_rate = 0.001
-WEIGHTED_SAMPLE = True
-ROTATE_DATA_SET = True
+WEIGHTED_SAMPLE = False
+ROTATE_DATA_SET = False
 ROTATE_DEGREES = 15
 ANIMATE = False
 
@@ -78,13 +78,13 @@ if WEIGHTED_SAMPLE:
         dataset=dataset, batch_size=batch_size, sampler=sampler
     )
     test_dataset = HandDataset(
-    data_filename,
-    num_classes,
-    sequence_length,
-    input_size,
-    rotate=False,
-    degrees=ROTATE_DEGREES,
-)
+        data_filename,
+        num_classes,
+        sequence_length,
+        input_size,
+        rotate=False,
+        degrees=ROTATE_DEGREES,
+    )
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 else:
     try:

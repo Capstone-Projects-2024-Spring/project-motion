@@ -63,20 +63,24 @@ def test(test_loader, device, model, true_labels, graph_title=None):
     plt.figure(figsize=(12, 7))
     sn.heatmap(df_cm, annot=True, cbar=False)
     
-    text_spacer = len(true_labels) + 1
+    text_spacer = len(true_labels) +0.2
     
-    plt.text(text_spacer,0.5,f"Accuracy: {round(accuracy,4)}")
-    plt.text(text_spacer,1,f"Overall Precision: {round(precision,4)}")
-    plt.text(text_spacer,1.5,f"Overall Recall: {round(recall,4)}")
-    plt.text(text_spacer,2,f"Overall F1 score: {round(f1_score,4)}")
-    plt.text(text_spacer,2.5,f"Worst Precision '{worst_precision}': {round(min_precision, 4)}")
-    plt.text(text_spacer,3,f"Worst Recall '{worst_recall}': {round(min_recall, 4)}")
-    plt.text(text_spacer,3.5,f"Worst F1 score '{worst_f1_score}': {round(min_f1_score, 4)}")
-    plt.text(text_spacer,4,"Samples per class:")
-    i = 4.5
+    down = 0
+    def go_down():
+        nonlocal down
+        down += text_spacer/20
+        return down
+    
+    plt.text(text_spacer,go_down(),f"Accuracy: {round(accuracy,4)}")
+    plt.text(text_spacer,go_down(),f"Overall Precision: {round(precision,4)}")
+    plt.text(text_spacer,go_down(),f"Overall Recall: {round(recall,4)}")
+    plt.text(text_spacer,go_down(),f"Overall F1 score: {round(f1_score,4)}")
+    plt.text(text_spacer,go_down(),f"Worst Precision '{worst_precision}': {round(min_precision, 4)}")
+    plt.text(text_spacer,go_down(),f"Worst Recall '{worst_recall}': {round(min_recall, 4)}")
+    plt.text(text_spacer,go_down(),f"Worst F1 score '{worst_f1_score}': {round(min_f1_score, 4)}")
+    plt.text(text_spacer,go_down(),"Samples per class:")
     for index, item in enumerate(support):
-        plt.text(text_spacer,i,f"'{true_labels[index]}': {item}")
-        i+=0.5
+        plt.text(text_spacer,go_down(),f"'{true_labels[index]}': {item}")
     
     plt.title(graph_title, fontsize = 15)
     plt.ylabel("Ground Truth", fontsize = 15)
