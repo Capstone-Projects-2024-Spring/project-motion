@@ -1,12 +1,12 @@
 import torch.nn as nn
-from torch import load, device, cuda, zeros, from_numpy, max
+from torch import load, cuda, device, zeros, from_numpy, max
 import numpy as np
 import Console
 
 
 class FeedForward(nn.Module):
 
-    def __init__(self, modelName, force_cpu=False):
+    def __init__(self, modelName, force_cpu=True):
         # Device configuration
         if force_cpu:
             self.device = device("cpu")
