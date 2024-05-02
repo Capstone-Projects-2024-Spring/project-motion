@@ -6,7 +6,7 @@ import Console
 
 class FeedForward(nn.Module):
 
-    def __init__(self, modelName, force_cpu=True):
+    def __init__(self, modelName, force_cpu=False):
         # Device configuration
         if force_cpu:
             self.device = device("cpu")
@@ -48,9 +48,9 @@ class FeedForward(nn.Module):
         return out
 
     def get_gesture(self, model_input):
-        """ One hand input shape should be (1,65)
+        """One hand input shape should be (1,65)
 
-            Two hand input shape should be (2, 65)
+        Two hand input shape should be (2, 65)
         """
         hands = from_numpy(np.asarray(model_input, dtype="float32"))
         outputs = self(hands.to(self.device))
@@ -59,11 +59,10 @@ class FeedForward(nn.Module):
         self.confidence_vector = probs
 
         # print table
-        #self.console.table(self.labels, probs.tolist())
+        # self.console.table(self.labels, probs.tolist())
 
         confidence, classes = max(probs, 1)
         return probs.tolist(), classes, confidence.tolist()
-    
 
     def find_velocity_and_location(self, result):
         """Given a Mediapipe result object, calculates the velocity and origin of hands.

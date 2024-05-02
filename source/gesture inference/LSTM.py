@@ -7,7 +7,7 @@ from numpy import asarray
 
 class LSTM(nn.Module):
 
-    def __init__(self, modelName, force_cpu=True):
+    def __init__(self, modelName, force_cpu=False):
         # Device configuration
         if force_cpu:
             self.device = device("cpu")

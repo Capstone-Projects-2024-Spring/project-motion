@@ -14,14 +14,18 @@ from copy import copy
 lock = threading.Lock()
 
 import os
+
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
+
+
 class GetHands(Thread):
     """
     Class that continuously gets frames and extracts hand data
     with a dedicated thread and Mediapipe
     """
+
     def __init__(
         self,
         mediapipe_model="hand_landmarker.task",
@@ -43,9 +47,9 @@ class GetHands(Thread):
         else:
             print("path: %s", flags["gesture_model_path"])
             raise Exception("invalid model file path")
-            
-        self.hand_sequences = [[],[],[],[]]
-        
+
+        self.hand_sequences = [[], [], [], []]
+
         self.gesture_list = self.gesture_model.labels
         self.confidence_vectors = self.gesture_model.confidence_vector
         self.flags["gesture_list"] = self.gesture_list
@@ -65,9 +69,9 @@ class GetHands(Thread):
         self.build_mediapipe_model(flags["number_of_hands"])
 
     def set_gesture_model_FF(self, path):
-        self.gesture_model = FeedForward(path, force_cpu=True)
+        self.gesture_model = FeedForward(path)
         Console.print(self.gesture_model.device)
-        
+
     def set_gesture_model_LSTM(self, path):
         self.gesture_model = LSTM(path)
         Console.print(self.gesture_model.device)
@@ -95,7 +99,7 @@ class GetHands(Thread):
 
         # build hands model
         self.hands_detector = self.HandLandmarker.create_from_options(self.options)
-        
+
     def get_results(self):
         with lock:
             return copy(self.result)
@@ -127,18 +131,23 @@ class GetHands(Thread):
 
                 # get all the hands and format them
                 model_inputs = self.gesture_model.gesture_input(result, velocity)
-                #print(model_inputs)
+                # print(model_inputs)
 
                 # serialized input
                 hand_confidences = []  # prepare data for console table
                 gestures = []  # store gesture output as text
                 for index, hand in enumerate(model_inputs):
-                    #build a sequence of hands
+                    # build a sequence of hands
                     if type(self.gesture_model) == LSTM:
                         self.hand_sequences[index].append(hand)
-                        if len(self.hand_sequences[index]) > self.gesture_model.sequence_length:
+                        if (
+                            len(self.hand_sequences[index])
+                            > self.gesture_model.sequence_length
+                        ):
                             self.hand_sequences[index].pop(0)
-                        output = self.gesture_model.get_gesture(self.hand_sequences[index])
+                        output = self.gesture_model.get_gesture(
+                            self.hand_sequences[index]
+                        )
                     elif type(self.gesture_model) == FeedForward:
                         output = self.gesture_model.get_gesture([hand])
                     if output != None:
@@ -149,7 +158,7 @@ class GetHands(Thread):
 
                 self.gestures = gestures
                 self.confidence_vectors = hand_confidences
-                
+
             # timestamps are in microseconds so convert to ms
 
             current_time = time()
