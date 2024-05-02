@@ -20,7 +20,7 @@ Known bugs
 
 ## How to use and build
 ### To build
- - Windows or Mac
+ - Windows
  - Python: version 3.8 - 3.11
  - install all libraries listed in the requirements section
  - target "source/gesture inference/inference.py" including the models folder and each game's folder using pyinstaller or another python exe program to build an executable
