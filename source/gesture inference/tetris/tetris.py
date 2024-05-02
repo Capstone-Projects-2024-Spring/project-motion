@@ -14,25 +14,27 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-# Variables
+# tetris game window 
 COLUMNS = 10
 ROWS = 20
 CELL_SIZE = 25
 GAME_WIDTH, GAME_HEIGHT = COLUMNS * CELL_SIZE, ROWS * CELL_SIZE
-#GAME_WIDTH = 800
-# GAME_HEIGHT = 800
+# sidebar with preview and high score 
 SIDEBAR_WIDTH = 200
 PREVIEW_HEIGHT_FRACTION = 0.7
 SCORE_HEIGHT_FRACTION = 1 - PREVIEW_HEIGHT_FRACTION
 PADDING = 30
-WINDOW_WIDTH = GAME_WIDTH + SIDEBAR_WIDTH + PADDING * 3
+#main window dimensions
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = GAME_HEIGHT + PADDING * 2
-UPDATE_START_SPEED = 200
+# wait time for movement to register in milliseconds 
+UPDATE_START_SPEED = 300
 MOVE_WAIT_TIME = 200
 ROTATE_WAIT_TIME = 200
+# tetromino spawn coordinate
 BLOCK_OFFSET = pygame.Vector2(COLUMNS // 2, -1)
 
+# colors
 YELLOW = '#f1e60d'
 RED = '#e51b20'
 BLUE = '#204b9b'
@@ -44,6 +46,7 @@ GRAY = '#1C1C1C'
 BLACK = '#000000'
 LINE_COLOR = '#00008B'
 
+# tetromino attributes
 SHAPES = {
     'T': {'shape': [(0,0), (-1,0), (1,0), (0,-1)], 'color': PURPLE},
     'O': {'shape': [(0,0), (0,-1), (1,0), (1,-1)], 'color': YELLOW},
@@ -57,29 +60,33 @@ SHAPES = {
 SCORE_DATA = {1: 40, 2: 100, 3: 300, 4: 1200}
 
 class TetrisGame:
-    def __init__(self, get_next_shape, update_score, display_surface):
+    def __init__(self, get_next_shape, update_score, display_surface, score):
 
         self.surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self.display_surface = display_surface
-        self.rect = self.surface.get_rect(topleft = (PADDING*4, PADDING)) # HERE
+        self.rect = self.surface.get_rect(topleft = (PADDING*4, PADDING)) 
+        # sprites is a tetromino, a group of blocks, so a group of sprites. 
         self.sprites = pygame.sprite.Group()
 
         self.get_next_shape = get_next_shape
         self.update_score = update_score
 
+        # the lines that make up the grid 
         self.line_surface = self.surface.copy()
         self.line_surface.fill((0,255,0))
         self.line_surface.set_colorkey((0,255,0))
         self.line_surface.set_alpha(120)
 
+        # a nested list corresponding to the grid, filled with zeros to show that it's empty
         self.field_data = [[0 for x in range(COLUMNS)] for y in range(ROWS)]
+        # create a Tetromino instance 
         self.tetromino = Tetromino(
             choice(list(SHAPES.keys())), 
             self.sprites, 
             self.create_new_tetromino,
             self.field_data)
 
-        # timer 
+        # Time is used to update the position of shapes on the grid.
         self.down_speed = UPDATE_START_SPEED
         self.down_speed_faster = self.down_speed * 0.3
         self.down_pressed = False
@@ -89,13 +96,12 @@ class TetrisGame:
             'rotate': Timer(ROTATE_WAIT_TIME)
         }
         self.timers['vertical move'].activate()
-
-        # score
+        # the game score
         self.current_level = 1
         self.current_score = 0
         self.current_lines = 0
 
-        # sound 
+        # in game sound
         self.landing_sound = pygame.mixer.Sound(join(dname,'sound','landing.wav'))
         self.landing_sound.set_volume(0.01)
 
@@ -103,13 +109,13 @@ class TetrisGame:
         self.current_lines += num_lines
         self.current_score += SCORE_DATA[num_lines] * self.current_level
 
+        # new level every ten lines
         if self.current_lines / 10 > self.current_level:
             self.current_level += 1
             self.down_speed *= 0.75
             self.down_speed_faster = self.down_speed * 0.3
             self.timers['vertical move'].duration = self.down_speed
-            
-        self.update_score(self.current_lines, self.current_score, self.current_level)
+        self.update_score(score, self.current_lines, self.current_score, self.current_level)
 
     def check_game_over(self):
         for block in self.tetromino.blocks:
@@ -129,20 +135,18 @@ class TetrisGame:
     def timer_update(self):
         for timer in self.timers.values():
             timer.update()
-
+            
     def move_down(self):
         self.tetromino.move_down()
 
+    # grid for the game window
     def draw_grid(self):
-
         for col in range(1, COLUMNS):
             x = col * CELL_SIZE
             pygame.draw.line(self.line_surface, LINE_COLOR, (x,0), (x,self.surface.get_height()), 1)
-
         for row in range(1, ROWS):
             y = row * CELL_SIZE
             pygame.draw.line(self.line_surface, LINE_COLOR, (0,y), (self.surface.get_width(),y))
-
         self.surface.blit(self.line_surface, (0,0))
 
     def input(self):
@@ -157,47 +161,40 @@ class TetrisGame:
                 self.tetromino.move_horizontal(1)	
                 self.timers['horizontal move'].activate()
 
-        # ROTATION
+        # rotation
         if not self.timers['rotate'].active:
             if keys[pygame.K_UP]:
                 self.tetromino.rotate()
                 self.timers['rotate'].activate()
 
-        # DOWN
+        # speed up
         if not self.down_pressed and keys[pygame.K_DOWN]:
             self.down_pressed = True
             self.timers['vertical move'].duration = self.down_speed_faster
-
         if self.down_pressed and not keys[pygame.K_DOWN]:
             self.down_pressed = False
             self.timers['vertical move'].duration = self.down_speed
 
     def check_finished_rows(self):
-
         # get the full row indexes 
         delete_rows = []
         for i, row in enumerate(self.field_data):
             if all(row):
                 delete_rows.append(i)
-
         if delete_rows:
             for delete_row in delete_rows:
-
-                # delete full rows
+                # delete the full row
                 for block in self.field_data[delete_row]:
                     block.kill()
-
                 # move down blocks
                 for row in self.field_data:
                     for block in row:
                         if block and block.pos.y < delete_row:
                             block.pos.y += 1
-
-            # rebuild the field data 
+            # update the field data 
             self.field_data = [[0 for x in range(COLUMNS)] for y in range(ROWS)]
             for block in self.sprites:
                 self.field_data[int(block.pos.y)][int(block.pos.x)] = block
-
             # update score
             self.calculate_score(len(delete_rows))
 
@@ -214,6 +211,7 @@ class TetrisGame:
         self.display_surface.blit(self.surface, (PADDING*4,PADDING))
         pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)
 
+
 class Tetromino:
     def __init__(self, shape, group, create_new_tetromino, field_data):
 
@@ -226,28 +224,26 @@ class Tetromino:
         # create blocks
         self.blocks = [Block(group, pos, self.color) for pos in self.block_positions]
 
-    # collisions
+    # grid collisions
     def next_move_horizontal_collide(self, blocks, amount):
         collision_list = [block.horizontal_collide(int(block.pos.x + amount), self.field_data) for block in self.blocks]
         return True if any(collision_list) else False
-
     def next_move_vertical_collide(self, blocks, amount):
         collision_list = [block.vertical_collide(int(block.pos.y + amount), self.field_data) for block in self.blocks]
         return True if any(collision_list) else False
 
-    # movement
+    # movement allowed as long as there are no collisions 
     def move_horizontal(self, amount):
         if not self.next_move_horizontal_collide(self.blocks, amount):
             for block in self.blocks:
                 block.pos.x += amount
-
     def move_down(self):
         if not self.next_move_vertical_collide(self.blocks, 1):
             for block in self.blocks:
                 block.pos.y += 1
-        else:
+        else: # create new tetromino once there is a collision with the bottom of the grid
             for block in self.blocks:
-                self.field_data[int(block.pos.y)][int(block.pos.x)] = block
+                self.field_data[int(block.pos.y)][int(block.pos.x)] = block #update the field_data
             self.create_new_tetromino()
 
     def rotate(self):
@@ -274,35 +270,34 @@ class Tetromino:
                 block.pos = new_block_positions[i]
 
 class Block(pygame.sprite.Sprite):
+    
     def __init__(self, group, pos, color):
-        
+        #pos is the vector coordinate of the block on the grid
         super().__init__(group)
         self.image = pygame.Surface((CELL_SIZE,CELL_SIZE))
         self.image.fill(color)
-        
+        # convert pos tuple into a vector
         self.pos = pygame.Vector2(pos) + BLOCK_OFFSET
         self.rect = self.image.get_rect(topleft = self.pos * CELL_SIZE)
 
     def rotate(self, pivot_pos):
-
         return pivot_pos + (self.pos - pivot_pos).rotate(90)
 
     def horizontal_collide(self, x, field_data):
         if not 0 <= x < COLUMNS:
             return True
-
+        # check for collisions between pieces, if field_data is not empty, it means some other block is taking up the space thus a collision
         if field_data[int(self.pos.y)][x]:
             return True
 
     def vertical_collide(self, y, field_data):
         if y >= ROWS:
             return True
-
+        # check for collisions between pieces
         if y >= 0 and field_data[y][int(self.pos.x)]:
             return True
-
+    # update the block position
     def update(self):
-
         self.rect.topleft = self.pos * CELL_SIZE
 
 
@@ -317,7 +312,7 @@ class Score:
         self.score = 0
         self.level = 1
         self.lines = 0
-
+        
     def display_text(self, pos, text):
         text_surface = self.font.render(f'{text[0]}: {text[1]}', True, 'white')
         text_rext = text_surface.get_rect(center = pos)
@@ -333,6 +328,8 @@ class Score:
 
         self.display_surface.blit(self.surface,self.rect)
         pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)
+    
+
 
 # The preview for the next shape in the side bar
 class Preview:
@@ -393,11 +390,10 @@ class Timer:
             if self.repeated:
                 self.activate()
 
-def update_score(lines, asdf, level):
-    global score
-    score.lines = lines
-    score.score = score
-    score.level = level
+def update_score(obj, lines, score, level):
+    obj.lines = lines
+    obj.score = score
+    obj.level = level
     
 def get_next_shape():
     global next_shapes
@@ -444,7 +440,7 @@ game_over = False
 score = Score()
 pygame.display.set_caption('TETRIS')
 next_shapes = [choice(list(SHAPES.keys())) for shape in range(3)]
-game = TetrisGame(get_next_shape, update_score, surface)
+game = TetrisGame(get_next_shape, update_score, surface, score)
 preview = Preview()
 music_not_playing = True
 # music = pygame.mixer.Sound(join(dname,'sound','03. A-Type Music (Korobeiniki).mp3'))
@@ -464,7 +460,7 @@ def restart():
     score = Score()
     pygame.display.set_caption('TETRIS')
     next_shapes = [choice(list(SHAPES.keys())) for shape in range(3)]
-    game = TetrisGame(get_next_shape, update_score, surface)
+    game = TetrisGame(get_next_shape, update_score, surface, score)
     preview = Preview()
     
 # def stop():
