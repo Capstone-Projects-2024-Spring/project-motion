@@ -1,7 +1,7 @@
 Brawlhalla(L),none,left,right,up,down,none,none,none,none
 Brawlhalla(R),none,none,none,none,none,z,x,c,v
-Minecraft(L),none,w,s,space,e,ctrlleft,esc
-Minecraft(R),none,none,none,none,shift,none,none
+Minecraft(L),none,w,s,space,e,ctrlleft,esc,none,none
+Minecraft(R),none,none,none,none,shift,none,none,scroll up,scroll down
 Asteroids(L),left,up,right,none
 Asteroids(R),none,none,none,space
 Jumpy,left,none,right,space
