@@ -18,6 +18,11 @@ Known bugs
  - some batch sizes during training will not print training progress
  - confusion matrix class descriptions don't scale correctly with the size of the matrix
 
+## Action Recognition
+![](https://github.com/Capstone-Projects-2024-Spring/project-motion/blob/main/action-gif.gif)
+## Playing Minecraft
+![](https://github.com/Capstone-Projects-2024-Spring/project-motion/blob/main/minecraft-gif.gif)
+
 ## How to use and build
 ### To build
  - Windows
